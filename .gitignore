@@ -28,3 +28,8 @@ gradle.properties.local
 *.log
 *.tmp
 build/reports/detekt/
+
+# Publishing documentation (kept in lamco-admin)
+docs/
+PUBLISHING-STATUS.md
+test-signing.gradle.kts

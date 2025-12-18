@@ -107,9 +107,20 @@ subprojects {
         }
     }
 
+    // Create javadoc JAR for Maven Central (required)
+    val javadocJar by tasks.registering(Jar::class) {
+        archiveClassifier.set("javadoc")
+        // Empty javadoc JAR - Kotlin projects use Dokka for documentation
+    }
+
     configure<PublishingExtension> {
         publications {
             withType<MavenPublication> {
+                // Add javadoc JAR only to JVM publications (Maven Central requirement)
+                if (name.contains("jvm", ignoreCase = true)) {
+                    artifact(javadocJar)
+                }
+
                 pom {
                     name.set("NetKit ${project.name}")
                     description.set("Kotlin Multiplatform networking toolkit - ${project.name} module")

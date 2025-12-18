@@ -1,3 +1,0 @@
-[*.{kt,kts}]
-# Disable wildcard import check
-ktlint_standard_no-wildcard-imports = disabled
