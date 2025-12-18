@@ -1,0 +1,488 @@
+package com.lamco.wifiintelligence.advisor.intelligent
+
+import com.lamco.wifiintelligence.advisor.knowledge.*
+import com.lamco.wifiintelligence.advisor.troubleshooting.*
+
+/**
+ * Main intelligent advisor orchestrator
+ *
+ * This is the primary entry point for the expert system. It integrates all
+ * components from the knowledge base and troubleshooting engine to provide
+ * comprehensive, intelligent advice.
+ *
+ * **Architecture**:
+ * - **Expert System**: Rule-based, NOT machine learning
+ * - **Knowledge Base**: Best practices, templates, standards
+ * - **Inference Engine**: Forward chaining with decision trees
+ * - **Troubleshooting**: Symptom analysis and root cause diagnosis
+ * - **Personalization**: Context-aware recommendations
+ *
+ * Example Usage:
+ * ```kotlin
+ * val advisor = IntelligentAdvisor()
+ *
+ * // Comprehensive network assessment
+ * val assessment = advisor.assessNetwork(
+ *     context = NetworkContext(
+ *         networkType = NetworkType.HOME,
+ *         deviceCount = 15,
+ *         coverage = 150.0
+ *     )
+ * )
+ *
+ * // Get personalized recommendations
+ * val advice = advisor.getRecommendations(
+ *     context = AdviceContext(
+ *         userLevel = UserExpertiseLevel.INTERMEDIATE,
+ *         networkType = NetworkType.HOME,
+ *         goals = listOf("Improve security", "Better coverage")
+ *     )
+ * )
+ *
+ * // Troubleshoot issues
+ * val diagnosis = advisor.diagnoseIssues(
+ *     symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+ *     context = DiagnosticContext(signalStrength = -75)
+ * )
+ * ```
+ */
+class IntelligentAdvisor {
+
+    private val knowledgeBase = BestPracticesKnowledgeBase.create()
+    private val templateLibrary = ConfigurationTemplateLibrary.create()
+    private val diagnosticWorkflow = DiagnosticWorkflow()
+    private val vendorKnowledge = VendorSpecificKnowledgeBase.create()
+    private val networkProfiles = NetworkTypeProfiles.create()
+
+    /**
+     * Perform comprehensive network assessment
+     *
+     * Analyzes the network configuration and environment to provide
+     * an overall health score with detailed category scores.
+     *
+     * @param context Network context with configuration details
+     * @param userLevel User expertise level for tailored feedback
+     * @return Network assessment with scores and analysis
+     */
+    fun assessNetwork(
+        context: NetworkContext,
+        userLevel: UserExpertiseLevel = UserExpertiseLevel.INTERMEDIATE
+    ): NetworkAssessment {
+        // Validate best practices
+        val validation = knowledgeBase.validate(context)
+
+        // Calculate category scores
+        val securityScore = calculateSecurityScore(context, validation)
+        val performanceScore = calculatePerformanceScore(context)
+        val reliabilityScore = calculateReliabilityScore(context)
+        val coverageScore = calculateCoverageScore(context)
+
+        val scores = CategoryScores(
+            security = securityScore,
+            performance = performanceScore,
+            reliability = reliabilityScore,
+            coverage = coverageScore
+        )
+
+        // Identify strengths and weaknesses
+        val strengths = identifyStrengths(context, scores)
+        val weaknesses = identifyWeaknesses(context, scores, validation)
+        val risks = identifyRisks(context, validation)
+
+        return NetworkAssessment(
+            networkType = context.networkType,
+            overallScore = scores.average,
+            scores = scores,
+            strengths = strengths,
+            weaknesses = weaknesses,
+            risks = risks
+        )
+    }
+
+    /**
+     * Get comprehensive personalized recommendations
+     *
+     * Provides tailored advice based on user expertise level, network type,
+     * current issues, and goals.
+     *
+     * @param context Advice context with user preferences
+     * @return Comprehensive recommendations
+     */
+    fun getRecommendations(
+        context: AdviceContext
+    ): AdvisorRecommendations {
+        val recommendations = mutableListOf<Recommendation>()
+
+        // Best practice violations
+        val networkContext = buildNetworkContext(context)
+        val validation = knowledgeBase.validate(networkContext)
+        val violations = validation.violations.map { it.summary }
+
+        // Add recommendations for violations
+        recommendations.addAll(
+            validation.violations
+                .filter { it.rule.severity.ordinal <= context.userLevel.maxDifficulty.ordinal }
+                .map { violation ->
+                    Recommendation(
+                        title = "Fix: ${violation.rule.title}",
+                        description = violation.rule.description,
+                        category = when (violation.rule.category) {
+                            RuleCategory.SECURITY -> RecommendationCategory.SECURITY
+                            RuleCategory.PERFORMANCE -> RecommendationCategory.PERFORMANCE
+                            RuleCategory.RELIABILITY -> RecommendationCategory.RELIABILITY
+                            RuleCategory.COVERAGE -> RecommendationCategory.CONFIGURATION
+                            RuleCategory.CONFIGURATION -> RecommendationCategory.CONFIGURATION
+                        },
+                        priority = when (violation.rule.severity) {
+                            RuleSeverity.MUST -> 10
+                            RuleSeverity.SHOULD -> 7
+                            RuleSeverity.MAY -> 4
+                        },
+                        impact = when (violation.rule.severity) {
+                            RuleSeverity.MUST -> Impact.HIGH
+                            RuleSeverity.SHOULD -> Impact.MEDIUM
+                            RuleSeverity.MAY -> Impact.LOW
+                        },
+                        effort = Difficulty.MEDIUM,
+                        steps = listOf("Review: ${violation.rule.rationale}", "Apply fix")
+                    )
+                }
+        )
+
+        // Troubleshooting recommendations (if issues present)
+        if (context.currentIssues.isNotEmpty()) {
+            val diagnosis = diagnosticWorkflow.quickDiagnose(
+                symptoms = context.currentIssues,
+                context = DiagnosticContext()
+            )
+
+            diagnosis.rootCauses.forEach { cause ->
+                recommendations.add(
+                    Recommendation(
+                        title = "Address: ${cause.cause.displayName}",
+                        description = cause.fixSuggestion,
+                        category = RecommendationCategory.TROUBLESHOOTING,
+                        priority = (cause.probability * 10).toInt().coerceIn(1, 10),
+                        impact = Impact.HIGH,
+                        effort = when (cause.cause) {
+                            NetworkIssue.WRONG_PASSWORD -> Difficulty.EASY
+                            NetworkIssue.WEAK_SIGNAL -> Difficulty.MEDIUM
+                            NetworkIssue.INSUFFICIENT_COVERAGE -> Difficulty.HARD
+                            else -> Difficulty.MEDIUM
+                        },
+                        steps = cause.evidence
+                    )
+                )
+            }
+        }
+
+        // Network type specific recommendations
+        val profile = networkProfiles.getProfile(context.networkType)
+        recommendations.addAll(
+            profile.recommendations
+                .take(3)  // Top 3 recommendations
+                .map { rec ->
+                    Recommendation(
+                        title = rec,
+                        description = "Best practice for ${context.networkType.displayName} networks",
+                        category = RecommendationCategory.CONFIGURATION,
+                        priority = 6,
+                        impact = Impact.MEDIUM,
+                        effort = Difficulty.MEDIUM,
+                        steps = listOf("Review network type requirements", "Apply configuration")
+                    )
+                }
+        )
+
+        // Sort by priority
+        val sortedRecommendations = recommendations.sortedByDescending { it.priority }
+
+        // Categorize recommendations
+        val quickWins = sortedRecommendations.filter {
+            it.effort == Difficulty.EASY && it.impact in listOf(Impact.MEDIUM, Impact.HIGH)
+        }.take(3)
+
+        val longTermImprovements = sortedRecommendations.filter {
+            it.effort == Difficulty.HARD && it.impact == Impact.HIGH
+        }.take(3)
+
+        val securityIssues = violations.filter { it.contains("security", ignoreCase = true) }
+        val optimizationSuggestions = profile.recommendations.take(5)
+
+        return AdvisorRecommendations(
+            recommendations = sortedRecommendations,
+            bestPracticeViolations = violations,
+            optimizationSuggestions = optimizationSuggestions,
+            securityIssues = securityIssues,
+            quickWins = quickWins,
+            longTermImprovements = longTermImprovements
+        )
+    }
+
+    /**
+     * Diagnose network issues with comprehensive analysis
+     *
+     * @param symptoms List of observed symptoms
+     * @param context Diagnostic context with metrics
+     * @param userLevel User expertise level
+     * @return Complete workflow result with diagnosis and solutions
+     */
+    fun diagnoseIssues(
+        symptoms: List<Symptom>,
+        context: DiagnosticContext = DiagnosticContext(),
+        userLevel: UserExpertiseLevel = UserExpertiseLevel.INTERMEDIATE
+    ): WorkflowResult {
+        return diagnosticWorkflow.runDiagnostics(
+            symptoms = symptoms,
+            context = context,
+            maxDifficulty = userLevel.maxDifficulty
+        )
+    }
+
+    /**
+     * Generate optimal configuration for network requirements
+     *
+     * @param requirements Network requirements
+     * @return Generated configuration template
+     */
+    fun generateConfiguration(
+        requirements: NetworkRequirements
+    ): ConfigurationTemplate {
+        return templateLibrary.generateConfiguration(requirements)
+    }
+
+    /**
+     * Get vendor-specific recommendations
+     *
+     * @param vendor Vendor name
+     * @return Vendor-specific knowledge
+     */
+    fun getVendorRecommendations(vendor: String): VendorKnowledge {
+        return vendorKnowledge.getKnowledge(vendor)
+    }
+
+    /**
+     * Start interactive troubleshooting session
+     *
+     * @param symptoms Initial symptoms
+     * @param context Diagnostic context
+     * @return Interactive session
+     */
+    fun startTroubleshooting(
+        symptoms: List<Symptom>,
+        context: DiagnosticContext = DiagnosticContext()
+    ): InteractiveTroubleshootingSession {
+        return diagnosticWorkflow.startInteractiveSession(symptoms, context)
+    }
+
+    // ========================================
+    // Private Helper Methods
+    // ========================================
+
+    /**
+     * Calculate security score (0-100)
+     */
+    private fun calculateSecurityScore(
+        context: NetworkContext,
+        validation: BestPracticeValidationResult
+    ): Int {
+        var score = 100
+
+        // Deduct for security violations
+        validation.violations.forEach { violation ->
+            if (violation.rule.category == RuleCategory.SECURITY) {
+                score -= when (violation.rule.severity) {
+                    RuleSeverity.MUST -> 25
+                    RuleSeverity.SHOULD -> 15
+                    RuleSeverity.MAY -> 5
+                }
+            }
+        }
+
+        // Check encryption
+        if (!context.hasWpa3 && !context.hasWpa2) {
+            score -= 30
+        }
+
+        return score.coerceIn(0, 100)
+    }
+
+    /**
+     * Calculate performance score (0-100)
+     */
+    private fun calculatePerformanceScore(context: NetworkContext): Int {
+        var score = 100
+
+        // Check channel optimization
+        if (context.channel == null) {
+            score -= 15
+        }
+
+        // Check band steering
+        if (!context.hasBandSteering && context.networkType != NetworkType.SMALL_OFFICE) {
+            score -= 10
+        }
+
+        // Check device count vs capacity
+        if (context.deviceCount > 30 && context.networkType == NetworkType.HOME) {
+            score -= 20
+        }
+
+        return score.coerceIn(0, 100)
+    }
+
+    /**
+     * Calculate reliability score (0-100)
+     */
+    private fun calculateReliabilityScore(context: NetworkContext): Int {
+        var score = 100
+
+        // Check for redundancy
+        if (context.apCount < 2 && context.networkType in listOf(
+                NetworkType.ENTERPRISE,
+                NetworkType.RETAIL,
+                NetworkType.HOSPITALITY
+            )
+        ) {
+            score -= 20
+        }
+
+        // Check monitoring
+        if (!context.hasMonitoring) {
+            score -= 15
+        }
+
+        return score.coerceIn(0, 100)
+    }
+
+    /**
+     * Calculate coverage score (0-100)
+     */
+    private fun calculateCoverageScore(context: NetworkContext): Int {
+        var score = 100
+
+        // Check coverage area vs AP count
+        val recommendedAPs = (context.coverage / 150.0).toInt().coerceAtLeast(1)
+        if (context.apCount < recommendedAPs) {
+            score -= ((recommendedAPs - context.apCount) * 15).coerceAtMost(40)
+        }
+
+        return score.coerceIn(0, 100)
+    }
+
+    /**
+     * Identify network strengths
+     */
+    private fun identifyStrengths(
+        context: NetworkContext,
+        scores: CategoryScores
+    ): List<String> {
+        val strengths = mutableListOf<String>()
+
+        if (scores.security >= 80) {
+            strengths.add("Strong security configuration")
+        }
+        if (scores.performance >= 80) {
+            strengths.add("Optimized performance settings")
+        }
+        if (scores.reliability >= 80) {
+            strengths.add("Reliable network infrastructure")
+        }
+        if (scores.coverage >= 80) {
+            strengths.add("Adequate coverage for area")
+        }
+
+        if (context.hasWpa3) {
+            strengths.add("WPA3 encryption enabled")
+        }
+
+        if (context.hasBandSteering) {
+            strengths.add("Band steering configured")
+        }
+
+        return strengths
+    }
+
+    /**
+     * Identify network weaknesses
+     */
+    private fun identifyWeaknesses(
+        context: NetworkContext,
+        scores: CategoryScores,
+        validation: BestPracticeValidationResult
+    ): List<String> {
+        val weaknesses = mutableListOf<String>()
+
+        if (scores.security < 60) {
+            weaknesses.add("Security configuration needs improvement")
+        }
+        if (scores.performance < 60) {
+            weaknesses.add("Performance optimization needed")
+        }
+        if (scores.reliability < 60) {
+            weaknesses.add("Reliability concerns detected")
+        }
+        if (scores.coverage < 60) {
+            weaknesses.add("Insufficient coverage")
+        }
+
+        // Add top violations as weaknesses
+        validation.violations
+            .filter { it.rule.severity == RuleSeverity.MUST }
+            .take(3)
+            .forEach { violation ->
+                weaknesses.add(violation.rule.title)
+            }
+
+        return weaknesses
+    }
+
+    /**
+     * Identify potential risks
+     */
+    private fun identifyRisks(
+        context: NetworkContext,
+        validation: BestPracticeValidationResult
+    ): List<String> {
+        val risks = mutableListOf<String>()
+
+        // Security risks
+        if (!context.hasWpa3 && !context.hasWpa2) {
+            risks.add("Critical: Weak or no encryption")
+        }
+
+        // Compliance risks
+        if (validation.complianceScore < 80) {
+            risks.add("Compliance requirements not fully met")
+        }
+
+        // Capacity risks
+        if (context.deviceCount > 50 && context.apCount < 2) {
+            risks.add("High device count may cause overload")
+        }
+
+        // Coverage risks
+        if (context.coverage > 300 && context.apCount < 2) {
+            risks.add("Large area may have dead zones")
+        }
+
+        return risks
+    }
+
+    /**
+     * Build NetworkContext from AdviceContext
+     */
+    private fun buildNetworkContext(advice: AdviceContext): NetworkContext {
+        return NetworkContext(
+            networkType = advice.networkType,
+            deviceCount = 10,  // Default
+            coverage = 100.0,  // Default
+            apCount = 1,
+            hasWpa3 = false,  // Conservative defaults
+            hasWpa2 = true,
+            hasBandSteering = false,
+            hasMonitoring = false,
+            channel = null
+        )
+    }
+}
