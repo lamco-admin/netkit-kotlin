@@ -6,7 +6,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
 
 class ConfigurationTemplateLibraryTest {
-
     @Test
     fun `create library with templates`() {
         val template = createTestTemplate()
@@ -54,22 +53,25 @@ class ConfigurationTemplateLibraryTest {
         val library = ConfigurationTemplateLibrary.create()
         val secure = library.getSecureTemplates(SecurityTemplate.WPA3_ENTERPRISE)
 
-        assertTrue(secure.all {
-            it.securityRecommendation.securityScore >= SecurityTemplate.WPA3_ENTERPRISE.securityScore
-        })
+        assertTrue(
+            secure.all {
+                it.securityRecommendation.securityScore >= SecurityTemplate.WPA3_ENTERPRISE.securityScore
+            },
+        )
     }
 
     @Test
     fun `generate configuration from requirements`() {
         val library = ConfigurationTemplateLibrary.create()
-        val requirements = NetworkRequirements(
-            networkType = NetworkType.SMALL_OFFICE,
-            expectedDeviceCount = 25,
-            coverageArea = 500,
-            primaryUse = UseCase.SMALL_OFFICE,
-            securityLevel = SecurityRequirement.STANDARD,
-            budgetLevel = BudgetLevel.SMALL_BUSINESS
-        )
+        val requirements =
+            NetworkRequirements(
+                networkType = NetworkType.SMALL_OFFICE,
+                expectedDeviceCount = 25,
+                coverageArea = 500,
+                primaryUse = UseCase.SMALL_OFFICE,
+                securityLevel = SecurityRequirement.STANDARD,
+                budgetLevel = BudgetLevel.SMALL_BUSINESS,
+            )
 
         val config = library.generateConfiguration(requirements)
         assertNotNull(config)
@@ -93,21 +95,19 @@ class ConfigurationTemplateLibraryTest {
         assertTrue(summary.totalTemplates > 0)
     }
 
-    private fun createTestTemplate(
-        useCase: UseCase = UseCase.HOME_BASIC
-    ): ConfigurationTemplate {
-        return ConfigurationTemplate(
+    private fun createTestTemplate(useCase: UseCase = UseCase.HOME_BASIC): ConfigurationTemplate =
+        ConfigurationTemplate(
             name = "Test Template",
             description = "Test",
             useCase = useCase,
             networkType = NetworkType.HOME_BASIC,
-            channelRecommendation = ChannelRecommendation(
-                band24GHz = ChannelPlan(1, 20),
-                band5GHz = null
-            ),
+            channelRecommendation =
+                ChannelRecommendation(
+                    band24GHz = ChannelPlan(1, 20),
+                    band5GHz = null,
+                ),
             securityRecommendation = SecurityTemplate.WPA2_PERSONAL,
             powerSettings = "100%",
-            qosSettings = null
+            qosSettings = null,
         )
-    }
 }

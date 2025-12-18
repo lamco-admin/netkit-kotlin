@@ -1,12 +1,10 @@
 package io.lamco.netkit.security.model
 
 /**
- * WiFi Protected Setup (WPS) risk assessment
+ * WPS configuration information extracted from beacon/probe response
  *
  * WPS was designed to simplify WiFi setup but introduced serious security vulnerabilities,
  * particularly the PIN method which can be brute-forced in hours.
- *
- * This module provides risk scoring and issue detection for WPS configurations.
  *
  * Background:
  * - WPS PIN has only 10^4 possible values due to checksum validation
@@ -15,18 +13,9 @@ package io.lamco.netkit.security.model
  * - Many routers never properly disable WPS even when "disabled" in UI
  * - WPS push-button (PBC) is safer but still has timing attack risks
  *
- * References:
- * - Wi-Fi Alliance WPS specification
- * - CVE-2011-5053 (WPS PIN brute force)
- * - Viehböck (2011) "Brute forcing Wi-Fi Protected Setup"
- * - Pixie Dust attack (Dominique Bongard, 2014)
- *
- * @see WpsInfo
- * @see WpsIssue
- */
-
-/**
- * WPS configuration information extracted from beacon/probe response
+ * References: Wi-Fi Alliance WPS specification, CVE-2011-5053,
+ * Viehböck (2011) "Brute forcing Wi-Fi Protected Setup",
+ * Pixie Dust attack (Dominique Bongard, 2014)
  *
  * @property configMethods Set of supported configuration methods
  * @property wpsState WPS setup state

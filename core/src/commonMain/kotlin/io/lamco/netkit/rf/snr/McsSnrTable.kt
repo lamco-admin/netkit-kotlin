@@ -102,8 +102,7 @@ class StandardMcsSnrTable : McsSnrTable {
      * WiFi 7 (802.11be) MCS-SNR requirements
      * MCS 0-13, includes 4096-QAM (MCS 12-13)
      */
-    private fun getWiFi7BaseSnr(mcs: McsLevel): Double =
-        WIFI_7_SNR_TABLE.getOrElse(mcs.level) { 45.0 } // Safety margin for invalid MCS
+    private fun getWiFi7BaseSnr(mcs: McsLevel): Double = WIFI_7_SNR_TABLE.getOrElse(mcs.level) { 45.0 } // Safety margin for invalid MCS
 
     companion object {
         /**

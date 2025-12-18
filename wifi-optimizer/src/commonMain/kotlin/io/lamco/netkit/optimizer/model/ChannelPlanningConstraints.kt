@@ -36,7 +36,7 @@ data class ChannelPlanningConstraints(
     val allowedChannels: Set<Int>? = null,
     val excludedChannels: Set<Int> = emptySet(),
     val maxApCountPerChannel: Int = 3,
-    val prioritizeStability: Boolean = false
+    val prioritizeStability: Boolean = false,
 ) {
     init {
         require(band != WiFiBand.UNKNOWN) {
@@ -92,7 +92,8 @@ data class ChannelPlanningConstraints(
      * (Generally not recommended due to overlap)
      */
     val allows40MHzIn24GHz: Boolean
-        get() = band == WiFiBand.BAND_2_4GHZ &&
+        get() =
+            band == WiFiBand.BAND_2_4GHZ &&
                 preferredWidths.contains(ChannelWidth.WIDTH_40MHZ)
 
     /**
@@ -125,21 +126,20 @@ data class ChannelPlanningConstraints(
     /**
      * Whether a specific channel is usable under these constraints
      */
-    fun isChannelUsable(channel: Int): Boolean {
-        return channel in getAvailableChannels()
-    }
+    fun isChannelUsable(channel: Int): Boolean = channel in getAvailableChannels()
 
     /**
      * Get constraint summary for logging/debugging
      */
     val summary: String
-        get() = buildString {
-            append("${band.displayName}, ")
-            append("DFS: $supportsDfs, ")
-            append("Widths: ${preferredWidths.joinToString("+") { "${it.widthMHz}MHz" }}, ")
-            append("Domain: ${regulatoryDomain.name}, ")
-            append("Channels: ${getAvailableChannels().size} available")
-        }
+        get() =
+            buildString {
+                append("${band.displayName}, ")
+                append("DFS: $supportsDfs, ")
+                append("Widths: ${preferredWidths.joinToString("+") { "${it.widthMHz}MHz" }}, ")
+                append("Domain: ${regulatoryDomain.name}, ")
+                append("Channels: ${getAvailableChannels().size} available")
+            }
 }
 
 /**
@@ -156,7 +156,9 @@ data class ChannelPlanningConstraints(
  * - ETSI EN 300 328, EN 301 893
  * - MIC (Japan) regulation
  */
-enum class RegulatoryDomain(val displayName: String) {
+enum class RegulatoryDomain(
+    val displayName: String,
+) {
     /**
      * FCC (Federal Communications Commission) - USA
      * - 2.4 GHz: Channels 1-11
@@ -196,7 +198,8 @@ enum class RegulatoryDomain(val displayName: String) {
      * - Conservative channel set
      * - Lower power limits
      */
-    ROW("Rest of World");
+    ROW("Rest of World"),
+    ;
 
     /**
      * Get available channels for a specific band
@@ -205,26 +208,27 @@ enum class RegulatoryDomain(val displayName: String) {
      * @param includeDfs Whether to include DFS channels
      * @return Set of channel numbers available in this domain
      */
-    fun getChannelsForBand(band: WiFiBand, includeDfs: Boolean = true): Set<Int> {
-        return when (band) {
+    fun getChannelsForBand(
+        band: WiFiBand,
+        includeDfs: Boolean = true,
+    ): Set<Int> =
+        when (band) {
             WiFiBand.BAND_2_4GHZ -> get24GHzChannels()
             WiFiBand.BAND_5GHZ -> get5GHzChannels(includeDfs)
             WiFiBand.BAND_6GHZ -> get6GHzChannels()
             WiFiBand.UNKNOWN -> emptySet()
         }
-    }
 
     /**
      * 2.4 GHz channels by regulatory domain
      */
-    private fun get24GHzChannels(): Set<Int> {
-        return when (this) {
+    private fun get24GHzChannels(): Set<Int> =
+        when (this) {
             FCC -> setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             ETSI, CN -> setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
             MKK -> setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
             ROW -> setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
         }
-    }
 
     /**
      * 5 GHz channels by regulatory domain
@@ -234,24 +238,26 @@ enum class RegulatoryDomain(val displayName: String) {
      */
     private fun get5GHzChannels(includeDfs: Boolean): Set<Int> {
         // Non-DFS channels (common across domains)
-        val nonDfs = when (this) {
-            FCC -> setOf(36, 40, 44, 48, 149, 153, 157, 161, 165)
-            ETSI -> setOf(36, 40, 44, 48)
-            MKK -> setOf(36, 40, 44, 48)
-            CN -> setOf(36, 40, 44, 48, 149, 153, 157, 161, 165)
-            ROW -> setOf(36, 40, 44, 48)
-        }
+        val nonDfs =
+            when (this) {
+                FCC -> setOf(36, 40, 44, 48, 149, 153, 157, 161, 165)
+                ETSI -> setOf(36, 40, 44, 48)
+                MKK -> setOf(36, 40, 44, 48)
+                CN -> setOf(36, 40, 44, 48, 149, 153, 157, 161, 165)
+                ROW -> setOf(36, 40, 44, 48)
+            }
 
         if (!includeDfs) return nonDfs
 
         // DFS channels (U-NII-2A, U-NII-2C)
-        val dfs = when (this) {
-            FCC -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144)
-            ETSI -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140)
-            MKK -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140)
-            CN -> setOf(52, 56, 60, 64)
-            ROW -> setOf(52, 56, 60, 64)
-        }
+        val dfs =
+            when (this) {
+                FCC -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144)
+                ETSI -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140)
+                MKK -> setOf(52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140)
+                CN -> setOf(52, 56, 60, 64)
+                ROW -> setOf(52, 56, 60, 64)
+            }
 
         return nonDfs + dfs
     }
@@ -262,12 +268,12 @@ enum class RegulatoryDomain(val displayName: String) {
      * 6 GHz availability varies significantly by region.
      * This returns a conservative set of channels.
      */
-    private fun get6GHzChannels(): Set<Int> {
-        return when (this) {
+    private fun get6GHzChannels(): Set<Int> =
+        when (this) {
             FCC -> {
                 // FCC allows 5.925-7.125 GHz (1200 MHz)
                 // Channels 1-233 in 20 MHz spacing
-                (1..233 step 4).toSet()  // PSC (Preferred Scanning Channels)
+                (1..233 step 4).toSet() // PSC (Preferred Scanning Channels)
             }
             ETSI -> {
                 // ETSI: Limited 6 GHz (5.945-6.425 GHz)
@@ -278,7 +284,6 @@ enum class RegulatoryDomain(val displayName: String) {
                 emptySet()
             }
         }
-    }
 
     /**
      * Maximum allowed transmit power (EIRP) for this domain
@@ -286,32 +291,34 @@ enum class RegulatoryDomain(val displayName: String) {
      * @param band Frequency band
      * @return Maximum power in dBm
      */
-    fun getMaxTxPower(band: WiFiBand): Int {
-        return when (this) {
-            FCC -> when (band) {
-                WiFiBand.BAND_2_4GHZ -> 30  // 30 dBm = 1W
-                WiFiBand.BAND_5GHZ -> 30
-                WiFiBand.BAND_6GHZ -> 30
-                WiFiBand.UNKNOWN -> 0
-            }
-            ETSI -> when (band) {
-                WiFiBand.BAND_2_4GHZ -> 20  // 20 dBm = 100mW
-                WiFiBand.BAND_5GHZ -> 23    // 23 dBm = 200mW
-                WiFiBand.BAND_6GHZ -> 23
-                WiFiBand.UNKNOWN -> 0
-            }
-            MKK -> 20  // Conservative across all bands
+    fun getMaxTxPower(band: WiFiBand): Int =
+        when (this) {
+            FCC ->
+                when (band) {
+                    WiFiBand.BAND_2_4GHZ -> 30 // 30 dBm = 1W
+                    WiFiBand.BAND_5GHZ -> 30
+                    WiFiBand.BAND_6GHZ -> 30
+                    WiFiBand.UNKNOWN -> 0
+                }
+            ETSI ->
+                when (band) {
+                    WiFiBand.BAND_2_4GHZ -> 20 // 20 dBm = 100mW
+                    WiFiBand.BAND_5GHZ -> 23 // 23 dBm = 200mW
+                    WiFiBand.BAND_6GHZ -> 23
+                    WiFiBand.UNKNOWN -> 0
+                }
+            MKK -> 20 // Conservative across all bands
             CN -> 20
             ROW -> 20
         }
-    }
 
     /**
      * Whether DFS is required for 5 GHz channels in this domain
      */
     val requiresDfs: Boolean
-        get() = when (this) {
-            FCC, ETSI, MKK -> true
-            CN, ROW -> false
-        }
+        get() =
+            when (this) {
+                FCC, ETSI, MKK -> true
+                CN, ROW -> false
+            }
 }

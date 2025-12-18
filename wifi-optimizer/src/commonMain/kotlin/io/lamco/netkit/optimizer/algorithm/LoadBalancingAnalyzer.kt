@@ -22,7 +22,6 @@ import kotlin.math.sqrt
  * - Enterprise WiFi deployment best practices
  */
 class LoadBalancingAnalyzer {
-
     /**
      * Analyze load balancing across APs in a cluster
      *
@@ -35,15 +34,16 @@ class LoadBalancingAnalyzer {
      */
     fun analyzeLoadBalancing(
         cluster: ApCluster,
-        apLoads: Map<String, ApLoadMetrics>
+        apLoads: Map<String, ApLoadMetrics>,
     ): LoadBalancingAnalysis {
         require(cluster.isMultiAp) {
             "Load balancing only applicable to multi-AP deployments"
         }
 
-        val loads = cluster.bssids.mapNotNull { bss ->
-            apLoads[bss.bssid]
-        }
+        val loads =
+            cluster.bssids.mapNotNull { bss ->
+                apLoads[bss.bssid]
+            }
 
         if (loads.isEmpty()) {
             return LoadBalancingAnalysis(
@@ -51,7 +51,7 @@ class LoadBalancingAnalyzer {
                 imbalanceFactor = 0.0,
                 overloadedAps = emptyList(),
                 underutilizedAps = emptyList(),
-                recommendations = listOf("No load data available")
+                recommendations = listOf("No load data available"),
             )
         }
 
@@ -65,27 +65,32 @@ class LoadBalancingAnalyzer {
         val meanClientCount = loads.map { it.clientCount }.average()
         val meanUtilization = loads.map { it.utilizationPercent }.average()
 
-        val overloaded = loads.filter {
-            it.clientCount > meanClientCount * 1.5 || it.utilizationPercent > meanUtilization * 1.3
-        }.map { it.bssid }
+        val overloaded =
+            loads
+                .filter {
+                    it.clientCount > meanClientCount * 1.5 || it.utilizationPercent > meanUtilization * 1.3
+                }.map { it.bssid }
 
-        val underutilized = loads.filter {
-            it.clientCount < meanClientCount * 0.5 || it.utilizationPercent < meanUtilization * 0.5
-        }.map { it.bssid }
+        val underutilized =
+            loads
+                .filter {
+                    it.clientCount < meanClientCount * 0.5 || it.utilizationPercent < meanUtilization * 0.5
+                }.map { it.bssid }
 
-        val recommendations = buildLoadBalancingRecommendations(
-            imbalanceFactor = imbalanceFactor,
-            overloadedCount = overloaded.size,
-            underutilizedCount = underutilized.size,
-            totalAps = loads.size
-        )
+        val recommendations =
+            buildLoadBalancingRecommendations(
+                imbalanceFactor = imbalanceFactor,
+                overloadedCount = overloaded.size,
+                underutilizedCount = underutilized.size,
+                totalAps = loads.size,
+            )
 
         return LoadBalancingAnalysis(
             isBalanced = imbalanceFactor < 0.3,
             imbalanceFactor = imbalanceFactor,
             overloadedAps = overloaded,
             underutilizedAps = underutilized,
-            recommendations = recommendations
+            recommendations = recommendations,
         )
     }
 
@@ -103,28 +108,30 @@ class LoadBalancingAnalyzer {
     fun recommendClientMoves(
         overloadedAp: String,
         candidates: List<ApMetrics>,
-        clients: List<ClientMetrics>
+        clients: List<ClientMetrics>,
     ): List<ClientMoveRecommendation> {
         if (candidates.isEmpty() || clients.isEmpty()) {
             return emptyList()
         }
 
         // Sort candidates by desirability (less loaded, good signal)
-        val sortedCandidates = candidates.sortedBy { ap ->
-            // Lower score is better
-            ap.clientCount * 10.0 + (100 - (ap.signalRssi ?: -80) + 80)
-        }
+        val sortedCandidates =
+            candidates.sortedBy { ap ->
+                // Lower score is better
+                ap.clientCount * 10.0 + (100 - (ap.signalRssi ?: -80) + 80)
+            }
 
         // Sort clients by ease of steering (stronger signal to candidates)
         val clientMoves = mutableListOf<ClientMoveRecommendation>()
 
         for (client in clients) {
-            val bestCandidate = sortedCandidates.firstOrNull { candidate ->
-                // Ensure candidate has acceptable signal
-                (candidate.signalRssi ?: -100) >= -75 &&
-                // Ensure we're not overloading the candidate
-                candidate.clientCount < clients.size / candidates.size + 2
-            }
+            val bestCandidate =
+                sortedCandidates.firstOrNull { candidate ->
+                    // Ensure candidate has acceptable signal
+                    (candidate.signalRssi ?: -100) >= -75 &&
+                        // Ensure we're not overloading the candidate
+                        candidate.clientCount < clients.size / candidates.size + 2
+                }
 
             if (bestCandidate != null) {
                 val signalDiff = (bestCandidate.signalRssi ?: -80) - client.signalStrength
@@ -136,8 +143,8 @@ class LoadBalancingAnalyzer {
                         toBssid = bestCandidate.bssid,
                         rationale = buildMoveRationale(client, bestCandidate),
                         signalDifference = signalDiff,
-                        priority = calculateMovePriority(client, bestCandidate, signalDiff)
-                    )
+                        priority = calculateMovePriority(client, bestCandidate, signalDiff),
+                    ),
                 )
             }
         }
@@ -157,7 +164,7 @@ class LoadBalancingAnalyzer {
      */
     fun calculateOptimalDistribution(
         apMetrics: List<ApMetrics>,
-        totalClients: Int
+        totalClients: Int,
     ): Map<String, Int> {
         if (apMetrics.isEmpty()) return emptyMap()
 
@@ -167,10 +174,11 @@ class LoadBalancingAnalyzer {
         val baseTarget = totalClients / apMetrics.size
         val remainder = totalClients % apMetrics.size
 
-        return apMetrics.mapIndexed { index, ap ->
-            val target = if (index < remainder) baseTarget + 1 else baseTarget
-            ap.bssid to target
-        }.toMap()
+        return apMetrics
+            .mapIndexed { index, ap ->
+                val target = if (index < remainder) baseTarget + 1 else baseTarget
+                ap.bssid to target
+            }.toMap()
     }
 
     // ========================================
@@ -195,14 +203,14 @@ class LoadBalancingAnalyzer {
         val variance = values.map { (it - mean).pow(2) }.average()
         val stdDev = sqrt(variance)
 
-        return (stdDev / mean).coerceIn(0.0, 2.0)  // Cap at 2.0 for practical purposes
+        return (stdDev / mean).coerceIn(0.0, 2.0) // Cap at 2.0 for practical purposes
     }
 
     private fun buildLoadBalancingRecommendations(
         imbalanceFactor: Double,
         overloadedCount: Int,
         underutilizedCount: Int,
-        totalAps: Int
+        totalAps: Int,
     ): List<String> {
         val recommendations = mutableListOf<String>()
 
@@ -237,7 +245,10 @@ class LoadBalancingAnalyzer {
         return recommendations
     }
 
-    private fun buildMoveRationale(client: ClientMetrics, targetAp: ApMetrics): String {
+    private fun buildMoveRationale(
+        client: ClientMetrics,
+        targetAp: ApMetrics,
+    ): String {
         val signalDiff = (targetAp.signalRssi ?: -80) - client.signalStrength
         val loadDiff = targetAp.clientCount
 
@@ -255,7 +266,7 @@ class LoadBalancingAnalyzer {
     private fun calculateMovePriority(
         client: ClientMetrics,
         targetAp: ApMetrics,
-        signalDiff: Int
+        signalDiff: Int,
     ): Int {
         var priority = 50
 
@@ -263,7 +274,7 @@ class LoadBalancingAnalyzer {
             signalDiff >= 15 -> priority += 30
             signalDiff >= 10 -> priority += 20
             signalDiff >= 5 -> priority += 10
-            signalDiff < 0 -> priority -= 20  // Worse signal = lower priority
+            signalDiff < 0 -> priority -= 20 // Worse signal = lower priority
         }
 
         // Current signal quality (weak clients more important to fix)
@@ -292,18 +303,19 @@ class LoadBalancingAnalyzer {
  */
 data class LoadBalancingAnalysis(
     val isBalanced: Boolean,
-    val imbalanceFactor: Double,  // 0.0-1.0+ (coefficient of variation)
+    val imbalanceFactor: Double, // 0.0-1.0+ (coefficient of variation)
     val overloadedAps: List<String>,
     val underutilizedAps: List<String>,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 ) {
     val needsRebalancing: Boolean get() = !isBalanced
-    val severity: LoadImbalanceSeverity get() = when {
-        imbalanceFactor < 0.3 -> LoadImbalanceSeverity.NONE
-        imbalanceFactor < 0.5 -> LoadImbalanceSeverity.MODERATE
-        imbalanceFactor < 0.7 -> LoadImbalanceSeverity.SIGNIFICANT
-        else -> LoadImbalanceSeverity.SEVERE
-    }
+    val severity: LoadImbalanceSeverity get() =
+        when {
+            imbalanceFactor < 0.3 -> LoadImbalanceSeverity.NONE
+            imbalanceFactor < 0.5 -> LoadImbalanceSeverity.MODERATE
+            imbalanceFactor < 0.7 -> LoadImbalanceSeverity.SIGNIFICANT
+            else -> LoadImbalanceSeverity.SEVERE
+        }
 }
 
 /**
@@ -313,7 +325,7 @@ enum class LoadImbalanceSeverity {
     NONE,
     MODERATE,
     SIGNIFICANT,
-    SEVERE
+    SEVERE,
 }
 
 /**
@@ -324,7 +336,7 @@ data class ApLoadMetrics(
     val clientCount: Int,
     val utilizationPercent: Int,
     val airtimePercent: Double,
-    val throughputMbps: Double
+    val throughputMbps: Double,
 )
 
 /**
@@ -335,8 +347,8 @@ data class ClientMoveRecommendation(
     val fromBssid: String,
     val toBssid: String,
     val rationale: String,
-    val signalDifference: Int,  // dB
-    val priority: Int  // 0-100, higher = more important
+    val signalDifference: Int, // dB
+    val priority: Int, // 0-100, higher = more important
 ) {
     val isHighPriority: Boolean get() = priority >= 70
 }

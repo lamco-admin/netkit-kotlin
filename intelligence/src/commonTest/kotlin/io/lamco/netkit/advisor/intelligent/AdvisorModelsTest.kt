@@ -9,7 +9,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
 
 class AdvisorModelsTest {
-
     // ========================================
     // UserExpertiseLevel Tests
     // ========================================
@@ -73,37 +72,39 @@ class AdvisorModelsTest {
                 title = "Test",
                 description = "Test",
                 category = RecommendationCategory.SECURITY,
-                priority = 11,  // Invalid
+                priority = 11, // Invalid
                 impact = Impact.HIGH,
-                effort = Difficulty.MEDIUM
+                effort = Difficulty.MEDIUM,
             )
         }
     }
 
     @Test
     fun `recommendation priority is 1-10`() {
-        val rec = Recommendation(
-            title = "Test",
-            description = "Test desc",
-            category = RecommendationCategory.PERFORMANCE,
-            priority = 5,
-            impact = Impact.MEDIUM,
-            effort = Difficulty.EASY
-        )
+        val rec =
+            Recommendation(
+                title = "Test",
+                description = "Test desc",
+                category = RecommendationCategory.PERFORMANCE,
+                priority = 5,
+                impact = Impact.MEDIUM,
+                effort = Difficulty.EASY,
+            )
 
         assertTrue(rec.priority in 1..10)
     }
 
     @Test
     fun `recommendation summary includes category and priority`() {
-        val rec = Recommendation(
-            title = "Enable WPA3",
-            description = "Upgrade to WPA3 encryption",
-            category = RecommendationCategory.SECURITY,
-            priority = 9,
-            impact = Impact.HIGH,
-            effort = Difficulty.MEDIUM
-        )
+        val rec =
+            Recommendation(
+                title = "Enable WPA3",
+                description = "Upgrade to WPA3 encryption",
+                category = RecommendationCategory.SECURITY,
+                priority = 9,
+                impact = Impact.HIGH,
+                effort = Difficulty.MEDIUM,
+            )
 
         val summary = rec.summary
         assertTrue(summary.contains("Security", ignoreCase = true))
@@ -112,15 +113,16 @@ class AdvisorModelsTest {
 
     @Test
     fun `recommendation can have implementation steps`() {
-        val rec = Recommendation(
-            title = "Configure QoS",
-            description = "Set up Quality of Service",
-            category = RecommendationCategory.PERFORMANCE,
-            priority = 7,
-            impact = Impact.MEDIUM,
-            effort = Difficulty.MEDIUM,
-            steps = listOf("Step 1", "Step 2", "Step 3")
-        )
+        val rec =
+            Recommendation(
+                title = "Configure QoS",
+                description = "Set up Quality of Service",
+                category = RecommendationCategory.PERFORMANCE,
+                priority = 7,
+                impact = Impact.MEDIUM,
+                effort = Difficulty.MEDIUM,
+                steps = listOf("Step 1", "Step 2", "Step 3"),
+            )
 
         assertEquals(3, rec.steps.size)
     }
@@ -145,37 +147,42 @@ class AdvisorModelsTest {
 
     @Test
     fun `advisor recommendations has top recommendation`() {
-        val recs = listOf(
-            Recommendation("Low", "desc", RecommendationCategory.SECURITY, 3, Impact.LOW, Difficulty.EASY),
-            Recommendation("High", "desc", RecommendationCategory.SECURITY, 9, Impact.HIGH, Difficulty.HARD)
-        )
+        val recs =
+            listOf(
+                Recommendation("Low", "desc", RecommendationCategory.SECURITY, 3, Impact.LOW, Difficulty.EASY),
+                Recommendation("High", "desc", RecommendationCategory.SECURITY, 9, Impact.HIGH, Difficulty.HARD),
+            )
 
-        val advice = AdvisorRecommendations(
-            recommendations = recs.sortedByDescending { it.priority }
-        )
+        val advice =
+            AdvisorRecommendations(
+                recommendations = recs.sortedByDescending { it.priority },
+            )
 
         assertEquals("High", advice.topRecommendation?.title)
     }
 
     @Test
     fun `advisor recommendations calculates total issues`() {
-        val advice = AdvisorRecommendations(
-            recommendations = emptyList(),
-            bestPracticeViolations = listOf("Issue 1", "Issue 2"),
-            securityIssues = listOf("Security 1")
-        )
+        val advice =
+            AdvisorRecommendations(
+                recommendations = emptyList(),
+                bestPracticeViolations = listOf("Issue 1", "Issue 2"),
+                securityIssues = listOf("Security 1"),
+            )
 
         assertEquals(3, advice.totalIssuesFound)
     }
 
     @Test
     fun `advisor recommendations summary is informative`() {
-        val advice = AdvisorRecommendations(
-            recommendations = listOf(
-                Recommendation("Test", "desc", RecommendationCategory.SECURITY, 8, Impact.HIGH, Difficulty.MEDIUM)
-            ),
-            bestPracticeViolations = listOf("Issue 1")
-        )
+        val advice =
+            AdvisorRecommendations(
+                recommendations =
+                    listOf(
+                        Recommendation("Test", "desc", RecommendationCategory.SECURITY, 8, Impact.HIGH, Difficulty.MEDIUM),
+                    ),
+                bestPracticeViolations = listOf("Issue 1"),
+            )
 
         val summary = advice.summary
         assertTrue(summary.contains("1 recommendation"))
@@ -191,62 +198,66 @@ class AdvisorModelsTest {
         assertThrows<IllegalArgumentException> {
             NetworkAssessment(
                 networkType = NetworkType.HOME_BASIC,
-                overallScore = 101,  // Invalid
+                overallScore = 101, // Invalid
                 scores = CategoryScores(80, 75, 70, 85),
                 strengths = emptyList(),
                 weaknesses = emptyList(),
-                risks = emptyList()
+                risks = emptyList(),
             )
         }
     }
 
     @Test
     fun `network assessment score is 0-100`() {
-        val assessment = NetworkAssessment(
-            networkType = NetworkType.HOME_BASIC,
-            overallScore = 85,
-            scores = CategoryScores(90, 85, 80, 85),
-            strengths = listOf("Good security"),
-            weaknesses = emptyList(),
-            risks = emptyList()
-        )
+        val assessment =
+            NetworkAssessment(
+                networkType = NetworkType.HOME_BASIC,
+                overallScore = 85,
+                scores = CategoryScores(90, 85, 80, 85),
+                strengths = listOf("Good security"),
+                weaknesses = emptyList(),
+                risks = emptyList(),
+            )
 
         assertTrue(assessment.overallScore in 0..100)
     }
 
     @Test
     fun `network assessment determines health level`() {
-        val excellent = NetworkAssessment(
-            networkType = NetworkType.HOME_BASIC,
-            overallScore = 95,
-            scores = CategoryScores(90, 90, 90, 90),
-            strengths = emptyList(),
-            weaknesses = emptyList(),
-            risks = emptyList()
-        )
+        val excellent =
+            NetworkAssessment(
+                networkType = NetworkType.HOME_BASIC,
+                overallScore = 95,
+                scores = CategoryScores(90, 90, 90, 90),
+                strengths = emptyList(),
+                weaknesses = emptyList(),
+                risks = emptyList(),
+            )
         assertEquals(HealthLevel.EXCELLENT, excellent.healthLevel)
 
-        val poor = NetworkAssessment(
-            networkType = NetworkType.HOME_BASIC,
-            overallScore = 50,
-            scores = CategoryScores(50, 50, 50, 50),
-            strengths = emptyList(),
-            weaknesses = emptyList(),
-            risks = emptyList()
-        )
+        val poor =
+            NetworkAssessment(
+                networkType = NetworkType.HOME_BASIC,
+                overallScore = 50,
+                scores = CategoryScores(50, 50, 50, 50),
+                strengths = emptyList(),
+                weaknesses = emptyList(),
+                risks = emptyList(),
+            )
         assertEquals(HealthLevel.POOR, poor.healthLevel)
     }
 
     @Test
     fun `network assessment summary includes type and score`() {
-        val assessment = NetworkAssessment(
-            networkType = NetworkType.ENTERPRISE,
-            overallScore = 80,
-            scores = CategoryScores(85, 80, 75, 80),
-            strengths = emptyList(),
-            weaknesses = emptyList(),
-            risks = emptyList()
-        )
+        val assessment =
+            NetworkAssessment(
+                networkType = NetworkType.ENTERPRISE,
+                overallScore = 80,
+                scores = CategoryScores(85, 80, 75, 80),
+                strengths = emptyList(),
+                weaknesses = emptyList(),
+                risks = emptyList(),
+            )
 
         val summary = assessment.summary
         assertTrue(summary.contains("Enterprise", ignoreCase = true))
@@ -261,22 +272,23 @@ class AdvisorModelsTest {
     fun `category scores require valid ranges`() {
         assertThrows<IllegalArgumentException> {
             CategoryScores(
-                security = 101,  // Invalid
+                security = 101, // Invalid
                 performance = 80,
                 reliability = 75,
-                coverage = 85
+                coverage = 85,
             )
         }
     }
 
     @Test
     fun `category scores all in 0-100`() {
-        val scores = CategoryScores(
-            security = 85,
-            performance = 80,
-            reliability = 75,
-            coverage = 90
-        )
+        val scores =
+            CategoryScores(
+                security = 85,
+                performance = 80,
+                reliability = 75,
+                coverage = 90,
+            )
 
         assertTrue(scores.security in 0..100)
         assertTrue(scores.performance in 0..100)
@@ -286,12 +298,13 @@ class AdvisorModelsTest {
 
     @Test
     fun `category scores calculates average`() {
-        val scores = CategoryScores(
-            security = 80,
-            performance = 80,
-            reliability = 80,
-            coverage = 80
-        )
+        val scores =
+            CategoryScores(
+                security = 80,
+                performance = 80,
+                reliability = 80,
+                coverage = 80,
+            )
 
         assertEquals(80, scores.average)
     }
@@ -315,37 +328,40 @@ class AdvisorModelsTest {
 
     @Test
     fun `wizard step with options is choice step`() {
-        val step = WizardStep(
-            step = 1,
-            title = "Choose option",
-            description = "Select one",
-            prompt = "Choose:",
-            options = listOf("A", "B", "C")
-        )
+        val step =
+            WizardStep(
+                step = 1,
+                title = "Choose option",
+                description = "Select one",
+                prompt = "Choose:",
+                options = listOf("A", "B", "C"),
+            )
 
         assertTrue(step.isChoice)
     }
 
     @Test
     fun `wizard step without options is not choice step`() {
-        val step = WizardStep(
-            step = 1,
-            title = "Enter value",
-            description = "Type value",
-            prompt = "Enter:"
-        )
+        val step =
+            WizardStep(
+                step = 1,
+                title = "Enter value",
+                description = "Type value",
+                prompt = "Enter:",
+            )
 
         assertFalse(step.isChoice)
     }
 
     @Test
     fun `wizard step summary includes step number`() {
-        val step = WizardStep(
-            step = 3,
-            title = "Security Settings",
-            description = "Configure security",
-            prompt = "Select:"
-        )
+        val step =
+            WizardStep(
+                step = 3,
+                title = "Security Settings",
+                description = "Configure security",
+                prompt = "Select:",
+            )
 
         assertTrue(step.summary.contains("Step 3"))
         assertTrue(step.summary.contains("Security Settings"))
@@ -357,26 +373,30 @@ class AdvisorModelsTest {
 
     @Test
     fun `wizard session starts at step 0`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 0,
-            steps = listOf(
-                WizardStep(1, "Step 1", "Desc", "Prompt")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 0,
+                steps =
+                    listOf(
+                        WizardStep(1, "Step 1", "Desc", "Prompt"),
+                    ),
             )
-        )
 
         assertEquals(0, session.currentStep)
     }
 
     @Test
     fun `wizard session current step is null when complete`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 2,  // Beyond last step
-            steps = listOf(
-                WizardStep(1, "Step 1", "Desc", "Prompt")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 2, // Beyond last step
+                steps =
+                    listOf(
+                        WizardStep(1, "Step 1", "Desc", "Prompt"),
+                    ),
             )
-        )
 
         assertNull(session.current)
         assertTrue(session.isComplete)
@@ -384,30 +404,34 @@ class AdvisorModelsTest {
 
     @Test
     fun `wizard session calculates progress`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 2,
-            steps = listOf(
-                WizardStep(1, "S1", "D", "P"),
-                WizardStep(2, "S2", "D", "P"),
-                WizardStep(3, "S3", "D", "P"),
-                WizardStep(4, "S4", "D", "P")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 2,
+                steps =
+                    listOf(
+                        WizardStep(1, "S1", "D", "P"),
+                        WizardStep(2, "S2", "D", "P"),
+                        WizardStep(3, "S3", "D", "P"),
+                        WizardStep(4, "S4", "D", "P"),
+                    ),
             )
-        )
 
-        assertEquals(50, session.progress)  // 2/4 = 50%
+        assertEquals(50, session.progress) // 2/4 = 50%
     }
 
     @Test
     fun `wizard session next advances step`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 0,
-            steps = listOf(
-                WizardStep(1, "S1", "D", "P"),
-                WizardStep(2, "S2", "D", "P")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 0,
+                steps =
+                    listOf(
+                        WizardStep(1, "S1", "D", "P"),
+                        WizardStep(2, "S2", "D", "P"),
+                    ),
             )
-        )
 
         val next = session.next("Response")
 
@@ -417,15 +441,17 @@ class AdvisorModelsTest {
 
     @Test
     fun `wizard session previous goes back`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 2,
-            steps = listOf(
-                WizardStep(1, "S1", "D", "P"),
-                WizardStep(2, "S2", "D", "P"),
-                WizardStep(3, "S3", "D", "P")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 2,
+                steps =
+                    listOf(
+                        WizardStep(1, "S1", "D", "P"),
+                        WizardStep(2, "S2", "D", "P"),
+                        WizardStep(3, "S3", "D", "P"),
+                    ),
             )
-        )
 
         val prev = session.previous()
 
@@ -434,13 +460,15 @@ class AdvisorModelsTest {
 
     @Test
     fun `wizard session cannot go before step 0`() {
-        val session = WizardSession(
-            wizardType = WizardType.NETWORK_SETUP,
-            currentStep = 0,
-            steps = listOf(
-                WizardStep(1, "S1", "D", "P")
+        val session =
+            WizardSession(
+                wizardType = WizardType.NETWORK_SETUP,
+                currentStep = 0,
+                steps =
+                    listOf(
+                        WizardStep(1, "S1", "D", "P"),
+                    ),
             )
-        )
 
         val prev = session.previous()
 
@@ -467,10 +495,11 @@ class AdvisorModelsTest {
 
     @Test
     fun `advice context with minimal data`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.BEGINNER,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.BEGINNER,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         assertEquals(UserExpertiseLevel.BEGINNER, context.userLevel)
         assertEquals(NetworkType.HOME_BASIC, context.networkType)
@@ -481,13 +510,14 @@ class AdvisorModelsTest {
 
     @Test
     fun `advice context with full data`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE,
-            currentIssues = listOf(Symptom.SlowSpeed(10.0, 100.0)),
-            goals = listOf("Better security", "Higher performance"),
-            constraints = listOf("Limited budget")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+                currentIssues = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+                goals = listOf("Better security", "Higher performance"),
+                constraints = listOf("Limited budget"),
+            )
 
         assertEquals(UserExpertiseLevel.ADVANCED, context.userLevel)
         assertEquals(NetworkType.ENTERPRISE, context.networkType)

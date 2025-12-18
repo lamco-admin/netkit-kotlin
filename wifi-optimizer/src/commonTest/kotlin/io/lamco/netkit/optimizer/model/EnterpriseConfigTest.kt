@@ -10,22 +10,23 @@ import kotlin.test.assertTrue
  * Comprehensive tests for EnterpriseConfig and related models
  */
 class EnterpriseConfigTest {
-
     // ========================================
     // EnterpriseConfig Tests
     // ========================================
 
     @Test
     fun `create config with valid parameters succeeds`() {
-        val config = EnterpriseConfig(
-            ssid = "CorporateWiFi",
-            has8021X = true,
-            hasVlanSupport = true,
-            enterpriseFeatures = setOf(
-                EnterpriseFeature.RADIUS_AUTHENTICATION,
-                EnterpriseFeature.VLAN_SEGMENTATION
+        val config =
+            EnterpriseConfig(
+                ssid = "CorporateWiFi",
+                has8021X = true,
+                hasVlanSupport = true,
+                enterpriseFeatures =
+                    setOf(
+                        EnterpriseFeature.RADIUS_AUTHENTICATION,
+                        EnterpriseFeature.VLAN_SEGMENTATION,
+                    ),
             )
-        )
 
         assertEquals("CorporateWiFi", config.ssid)
         assertTrue(config.has8021X)
@@ -41,33 +42,37 @@ class EnterpriseConfigTest {
 
     @Test
     fun `isEnterpriseGrade is true with 802_1X`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            has8021X = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                has8021X = true,
+            )
 
         assertTrue(config.isEnterpriseGrade)
     }
 
     @Test
     fun `isEnterpriseGrade is true with VLAN support`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            hasVlanSupport = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                hasVlanSupport = true,
+            )
 
         assertTrue(config.isEnterpriseGrade)
     }
 
     @Test
     fun `isEnterpriseGrade is true with multiple features`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            enterpriseFeatures = setOf(
-                EnterpriseFeature.FAST_ROAMING,
-                EnterpriseFeature.BAND_STEERING
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                enterpriseFeatures =
+                    setOf(
+                        EnterpriseFeature.FAST_ROAMING,
+                        EnterpriseFeature.BAND_STEERING,
+                    ),
             )
-        )
 
         assertTrue(config.isEnterpriseGrade)
     }
@@ -80,82 +85,91 @@ class EnterpriseConfigTest {
 
     @Test
     fun `enterpriseSecurityScore is 40 for 802_1X only`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            has8021X = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                has8021X = true,
+            )
 
         assertEquals(40, config.enterpriseSecurityScore)
     }
 
     @Test
     fun `enterpriseSecurityScore is 20 for VLAN only`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            hasVlanSupport = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                hasVlanSupport = true,
+            )
 
         assertEquals(20, config.enterpriseSecurityScore)
     }
 
     @Test
     fun `enterpriseSecurityScore increases with features`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            has8021X = true,
-            hasVlanSupport = true,
-            enterpriseFeatures = setOf(
-                EnterpriseFeature.RADIUS_AUTHENTICATION,
-                EnterpriseFeature.FAST_ROAMING
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                has8021X = true,
+                hasVlanSupport = true,
+                enterpriseFeatures =
+                    setOf(
+                        EnterpriseFeature.RADIUS_AUTHENTICATION,
+                        EnterpriseFeature.FAST_ROAMING,
+                    ),
             )
-        )
 
         assertTrue(config.enterpriseSecurityScore >= 60)
     }
 
     @Test
     fun `enterpriseSecurityScore bonus for guest with captive portal`() {
-        val config = EnterpriseConfig(
-            ssid = "Guest",
-            isGuestNetwork = true,
-            hasCaptivePortal = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Guest",
+                isGuestNetwork = true,
+                hasCaptivePortal = true,
+            )
 
-        assertEquals(25, config.enterpriseSecurityScore)  // 15 + 10
+        assertEquals(25, config.enterpriseSecurityScore) // 15 + 10
     }
 
     @Test
     fun `deploymentTier is FULL_ENTERPRISE for complete setup`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            has8021X = true,
-            hasVlanSupport = true,
-            enterpriseFeatures = setOf(
-                EnterpriseFeature.RADIUS_AUTHENTICATION,
-                EnterpriseFeature.VLAN_SEGMENTATION,
-                EnterpriseFeature.FAST_ROAMING
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                has8021X = true,
+                hasVlanSupport = true,
+                enterpriseFeatures =
+                    setOf(
+                        EnterpriseFeature.RADIUS_AUTHENTICATION,
+                        EnterpriseFeature.VLAN_SEGMENTATION,
+                        EnterpriseFeature.FAST_ROAMING,
+                    ),
             )
-        )
 
         assertEquals(EnterpriseDeploymentTier.FULL_ENTERPRISE, config.deploymentTier)
     }
 
     @Test
     fun `deploymentTier is PARTIAL_ENTERPRISE for 802_1X only`() {
-        val config = EnterpriseConfig(
-            ssid = "Corp",
-            has8021X = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Corp",
+                has8021X = true,
+            )
 
         assertEquals(EnterpriseDeploymentTier.PARTIAL_ENTERPRISE, config.deploymentTier)
     }
 
     @Test
     fun `deploymentTier is GUEST_CAPABLE for guest network`() {
-        val config = EnterpriseConfig(
-            ssid = "Guest",
-            isGuestNetwork = true
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "Guest",
+                isGuestNetwork = true,
+            )
 
         assertEquals(EnterpriseDeploymentTier.GUEST_CAPABLE, config.deploymentTier)
     }
@@ -168,13 +182,14 @@ class EnterpriseConfigTest {
 
     @Test
     fun `summary contains key information`() {
-        val config = EnterpriseConfig(
-            ssid = "CorporateWiFi",
-            has8021X = true,
-            hasVlanSupport = true,
-            isGuestNetwork = false,
-            hasCaptivePortal = false
-        )
+        val config =
+            EnterpriseConfig(
+                ssid = "CorporateWiFi",
+                has8021X = true,
+                hasVlanSupport = true,
+                isGuestNetwork = false,
+                hasCaptivePortal = false,
+            )
 
         val summary = config.summary
         assertTrue(summary.contains("CorporateWiFi"))
@@ -188,10 +203,11 @@ class EnterpriseConfigTest {
 
     @Test
     fun `create VLAN config with valid ID succeeds`() {
-        val vlan = VlanConfig(
-            vlanId = 10,
-            purpose = VlanPurpose.CORPORATE
-        )
+        val vlan =
+            VlanConfig(
+                vlanId = 10,
+                purpose = VlanPurpose.CORPORATE,
+            )
 
         assertEquals(10, vlan.vlanId)
         assertTrue(vlan.hasKnownId)
@@ -199,10 +215,11 @@ class EnterpriseConfigTest {
 
     @Test
     fun `create VLAN config without ID succeeds`() {
-        val vlan = VlanConfig(
-            vlanId = null,
-            purpose = VlanPurpose.GUEST
-        )
+        val vlan =
+            VlanConfig(
+                vlanId = null,
+                purpose = VlanPurpose.GUEST,
+            )
 
         assertFalse(vlan.hasKnownId)
     }
@@ -212,7 +229,7 @@ class EnterpriseConfigTest {
         assertThrows<IllegalArgumentException> {
             VlanConfig(
                 vlanId = 0,
-                purpose = VlanPurpose.CORPORATE
+                purpose = VlanPurpose.CORPORATE,
             )
         }
     }
@@ -222,7 +239,7 @@ class EnterpriseConfigTest {
         assertThrows<IllegalArgumentException> {
             VlanConfig(
                 vlanId = 4095,
-                purpose = VlanPurpose.CORPORATE
+                purpose = VlanPurpose.CORPORATE,
             )
         }
     }
@@ -247,30 +264,33 @@ class EnterpriseConfigTest {
 
     @Test
     fun `Dot1X with certificate has VERY_STRONG security`() {
-        val config = Dot1XConfiguration(
-            isEnabled = true,
-            requiresCertificate = true
-        )
+        val config =
+            Dot1XConfiguration(
+                isEnabled = true,
+                requiresCertificate = true,
+            )
 
         assertEquals(Dot1XSecurityStrength.VERY_STRONG, config.securityStrength)
     }
 
     @Test
     fun `Dot1X with secure EAP has STRONG security`() {
-        val config = Dot1XConfiguration(
-            isEnabled = true,
-            eapMethods = setOf(EapMethod.EAP_TLS, EapMethod.PEAP)
-        )
+        val config =
+            Dot1XConfiguration(
+                isEnabled = true,
+                eapMethods = setOf(EapMethod.EAP_TLS, EapMethod.PEAP),
+            )
 
         assertEquals(Dot1XSecurityStrength.STRONG, config.securityStrength)
     }
 
     @Test
     fun `Dot1X with weak EAP has MODERATE security`() {
-        val config = Dot1XConfiguration(
-            isEnabled = true,
-            eapMethods = setOf(EapMethod.EAP_MD5)
-        )
+        val config =
+            Dot1XConfiguration(
+                isEnabled = true,
+                eapMethods = setOf(EapMethod.EAP_MD5),
+            )
 
         assertEquals(Dot1XSecurityStrength.MODERATE, config.securityStrength)
     }
@@ -302,43 +322,47 @@ class EnterpriseConfigTest {
 
     @Test
     fun `captive portal with auth and terms has COMPLEX complexity`() {
-        val config = CaptivePortalConfig(
-            isDetected = true,
-            requiresAuth = true,
-            requiresTerms = true
-        )
+        val config =
+            CaptivePortalConfig(
+                isDetected = true,
+                requiresAuth = true,
+                requiresTerms = true,
+            )
 
         assertEquals(PortalComplexity.COMPLEX, config.complexity)
     }
 
     @Test
     fun `captive portal with auth only has MODERATE complexity`() {
-        val config = CaptivePortalConfig(
-            isDetected = true,
-            requiresAuth = true,
-            requiresTerms = false
-        )
+        val config =
+            CaptivePortalConfig(
+                isDetected = true,
+                requiresAuth = true,
+                requiresTerms = false,
+            )
 
         assertEquals(PortalComplexity.MODERATE, config.complexity)
     }
 
     @Test
     fun `captive portal with terms only has MODERATE complexity`() {
-        val config = CaptivePortalConfig(
-            isDetected = true,
-            requiresAuth = false,
-            requiresTerms = true
-        )
+        val config =
+            CaptivePortalConfig(
+                isDetected = true,
+                requiresAuth = false,
+                requiresTerms = true,
+            )
 
         assertEquals(PortalComplexity.MODERATE, config.complexity)
     }
 
     @Test
     fun `captive portal click-through has SIMPLE complexity`() {
-        val config = CaptivePortalConfig(
-            isDetected = true,
-            portalType = CaptivePortalType.CLICK_THROUGH
-        )
+        val config =
+            CaptivePortalConfig(
+                isDetected = true,
+                portalType = CaptivePortalType.CLICK_THROUGH,
+            )
 
         assertEquals(PortalComplexity.SIMPLE, config.complexity)
     }
@@ -349,13 +373,15 @@ class EnterpriseConfigTest {
 
     @Test
     fun `isolated guest network has positive isolation score`() {
-        val validation = GuestIsolationValidation(
-            isIsolated = true,
-            isolationMethods = setOf(
-                IsolationMethod.VLAN_SEPARATION,
-                IsolationMethod.CLIENT_ISOLATION
+        val validation =
+            GuestIsolationValidation(
+                isIsolated = true,
+                isolationMethods =
+                    setOf(
+                        IsolationMethod.VLAN_SEPARATION,
+                        IsolationMethod.CLIENT_ISOLATION,
+                    ),
             )
-        )
 
         assertTrue(validation.isolationScore >= 60)
     }
@@ -368,35 +394,40 @@ class EnterpriseConfigTest {
 
     @Test
     fun `isolation score increases with methods`() {
-        val basic = GuestIsolationValidation(
-            isIsolated = true,
-            isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION)
-        )
-
-        val advanced = GuestIsolationValidation(
-            isIsolated = true,
-            isolationMethods = setOf(
-                IsolationMethod.VLAN_SEPARATION,
-                IsolationMethod.CLIENT_ISOLATION,
-                IsolationMethod.FIREWALL
+        val basic =
+            GuestIsolationValidation(
+                isIsolated = true,
+                isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION),
             )
-        )
+
+        val advanced =
+            GuestIsolationValidation(
+                isIsolated = true,
+                isolationMethods =
+                    setOf(
+                        IsolationMethod.VLAN_SEPARATION,
+                        IsolationMethod.CLIENT_ISOLATION,
+                        IsolationMethod.FIREWALL,
+                    ),
+            )
 
         assertTrue(advanced.isolationScore > basic.isolationScore)
     }
 
     @Test
     fun `isolation score decreases with security issues`() {
-        val withIssues = GuestIsolationValidation(
-            isIsolated = true,
-            isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION),
-            securityIssues = listOf("Weak encryption", "No firewall")
-        )
+        val withIssues =
+            GuestIsolationValidation(
+                isIsolated = true,
+                isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION),
+                securityIssues = listOf("Weak encryption", "No firewall"),
+            )
 
-        val withoutIssues = GuestIsolationValidation(
-            isIsolated = true,
-            isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION)
-        )
+        val withoutIssues =
+            GuestIsolationValidation(
+                isIsolated = true,
+                isolationMethods = setOf(IsolationMethod.CLIENT_ISOLATION),
+            )
 
         assertTrue(withIssues.isolationScore < withoutIssues.isolationScore)
     }

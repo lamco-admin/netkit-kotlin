@@ -16,22 +16,22 @@ import org.junit.jupiter.api.assertThrows
  * - Risk level categorization
  */
 class WpsRiskTest {
-
     // ============================================
     // WpsInfo TESTS
     // ============================================
 
     @Test
     fun `create WpsInfo with all fields`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON, WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = "Router-5G",
-            manufacturer = "TestCorp",
-            modelName = "AC1900",
-            version = "2.0"
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON, WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = "Router-5G",
+                manufacturer = "TestCorp",
+                modelName = "AC1900",
+                version = "2.0",
+            )
 
         assertEquals(2, wpsInfo.configMethods.size)
         assertEquals(WpsState.CONFIGURED, wpsInfo.wpsState)
@@ -44,142 +44,152 @@ class WpsRiskTest {
 
     @Test
     fun `supportsPinMethod true when PIN methods present`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL, WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL, WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertTrue(wpsInfo.supportsPinMethod)
     }
 
     @Test
     fun `supportsPinMethod false when only push-button`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertFalse(wpsInfo.supportsPinMethod)
     }
 
     @Test
     fun `isPushButtonOnly true for push-button only config`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertTrue(wpsInfo.isPushButtonOnly)
     }
 
     @Test
     fun `isPushButtonOnly false when PIN methods present`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON, WpsConfigMethod.DISPLAY),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON, WpsConfigMethod.DISPLAY),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertFalse(wpsInfo.isPushButtonOnly)
     }
 
     @Test
     fun `isDisabled true for NOT_CONFIGURED with no methods`() {
-        val wpsInfo = WpsInfo(
-            configMethods = emptySet(),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = null,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = emptySet(),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = null,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertTrue(wpsInfo.isDisabled)
     }
 
     @Test
     fun `isConfigured true for CONFIGURED state`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertTrue(wpsInfo.isConfigured)
     }
 
     @Test
     fun `isLocked true when locked is true`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         assertTrue(wpsInfo.isLocked)
     }
 
     @Test
     fun `statusSummary describes WPS state correctly`() {
-        val disabled = WpsInfo(
-            configMethods = emptySet(),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = null,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val disabled =
+            WpsInfo(
+                configMethods = emptySet(),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = null,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
         assertTrue(disabled.statusSummary.contains("Disabled", ignoreCase = true))
 
-        val locked = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val locked =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
         assertTrue(locked.statusSummary.contains("Locked", ignoreCase = true))
 
-        val pushButtonOnly = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val pushButtonOnly =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
         assertTrue(pushButtonOnly.statusSummary.contains("Push-button", ignoreCase = true))
     }
 
@@ -247,22 +257,24 @@ class WpsRiskTest {
 
     @Test
     fun `create WpsRiskScore with valid parameters`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.8,
-            issues = listOf(WpsIssue.PinSupported, WpsIssue.UnlockedState),
-            wpsInfo = wpsInfo
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.8,
+                issues = listOf(WpsIssue.PinSupported, WpsIssue.UnlockedState),
+                wpsInfo = wpsInfo,
+            )
 
         assertEquals("00:11:22:33:44:55", riskScore.bssid)
         assertEquals(0.8, riskScore.riskScore, 0.001)
@@ -277,7 +289,7 @@ class WpsRiskTest {
                 bssid = "",
                 riskScore = 0.5,
                 issues = emptyList(),
-                wpsInfo = null
+                wpsInfo = null,
             )
         }
     }
@@ -287,18 +299,18 @@ class WpsRiskTest {
         assertThrows<IllegalArgumentException> {
             WpsRiskScore(
                 bssid = "00:11:22:33:44:55",
-                riskScore = 1.5,  // Invalid
+                riskScore = 1.5, // Invalid
                 issues = emptyList(),
-                wpsInfo = null
+                wpsInfo = null,
             )
         }
 
         assertThrows<IllegalArgumentException> {
             WpsRiskScore(
                 bssid = "00:11:22:33:44:55",
-                riskScore = -0.1,  // Invalid
+                riskScore = -0.1, // Invalid
                 issues = emptyList(),
-                wpsInfo = null
+                wpsInfo = null,
             )
         }
     }
@@ -315,15 +327,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 0 point 0 for disabled WPS`() {
-        val wpsInfo = WpsInfo(
-            configMethods = emptySet(),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = null,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = emptySet(),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = null,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(0.0, score, 0.001)
@@ -331,15 +344,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 1 point 0 for PIN unlocked configured`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(1.0, score, 0.001)
@@ -347,15 +361,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 0 point 8 for PIN unlocked not configured`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.DISPLAY),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.DISPLAY),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(0.8, score, 0.001)
@@ -363,15 +378,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 0 point 6 for PIN locked`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.KEYPAD),
-            wpsState = WpsState.CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.KEYPAD),
+                wpsState = WpsState.CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(0.6, score, 0.001)
@@ -379,15 +395,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 0 point 4 for push-button only unlocked configured`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(0.4, score, 0.001)
@@ -395,15 +412,16 @@ class WpsRiskTest {
 
     @Test
     fun `calculateRiskScore returns 0 point 2 for push-button only locked`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val score = WpsRiskScore.calculateRiskScore(wpsInfo)
         assertEquals(0.2, score, 0.001)
@@ -421,15 +439,16 @@ class WpsRiskTest {
 
     @Test
     fun `detectIssues returns empty for disabled WPS`() {
-        val wpsInfo = WpsInfo(
-            configMethods = emptySet(),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = null,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = emptySet(),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = null,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val issues = WpsRiskScore.detectIssues(wpsInfo)
         assertTrue(issues.isEmpty())
@@ -437,15 +456,16 @@ class WpsRiskTest {
 
     @Test
     fun `detectIssues detects PIN support`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.NOT_CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.NOT_CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val issues = WpsRiskScore.detectIssues(wpsInfo)
         assertTrue(issues.any { it is WpsIssue.PinSupported })
@@ -453,15 +473,16 @@ class WpsRiskTest {
 
     @Test
     fun `detectIssues detects unlocked state`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.DISPLAY),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.DISPLAY),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val issues = WpsRiskScore.detectIssues(wpsInfo)
         assertTrue(issues.any { it is WpsIssue.UnlockedState })
@@ -469,15 +490,16 @@ class WpsRiskTest {
 
     @Test
     fun `detectIssues detects configured but still active`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val issues = WpsRiskScore.detectIssues(wpsInfo)
         assertTrue(issues.any { it is WpsIssue.ConfiguredButStillActive })
@@ -485,15 +507,16 @@ class WpsRiskTest {
 
     @Test
     fun `detectIssues detects unknown lock state`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.KEYPAD),
-            wpsState = WpsState.CONFIGURED,
-            locked = null,  // Unknown
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.KEYPAD),
+                wpsState = WpsState.CONFIGURED,
+                locked = null, // Unknown
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val issues = WpsRiskScore.detectIssues(wpsInfo)
         assertTrue(issues.any { it is WpsIssue.UnknownLockState })
@@ -505,20 +528,21 @@ class WpsRiskTest {
 
     @Test
     fun `fromWpsInfo creates complete risk score`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = "TestDevice",
-            manufacturer = "TestCorp",
-            modelName = "X100",
-            version = "2.0"
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = "TestDevice",
+                manufacturer = "TestCorp",
+                modelName = "X100",
+                version = "2.0",
+            )
 
         val riskScore = WpsRiskScore.fromWpsInfo("AA:BB:CC:DD:EE:FF", wpsInfo)
 
         assertEquals("AA:BB:CC:DD:EE:FF", riskScore.bssid)
-        assertEquals(1.0, riskScore.riskScore, 0.001)  // PIN unlocked configured = max risk
+        assertEquals(1.0, riskScore.riskScore, 0.001) // PIN unlocked configured = max risk
         assertTrue(riskScore.issues.any { it is WpsIssue.PinSupported })
         assertTrue(riskScore.issues.any { it is WpsIssue.UnlockedState })
         assertNotNull(riskScore.wpsInfo)
@@ -539,84 +563,91 @@ class WpsRiskTest {
 
     @Test
     fun `riskLevel CRITICAL for score above 0 point 9`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 1.0,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 1.0,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertEquals(RiskLevel.CRITICAL, riskScore.riskLevel)
     }
 
     @Test
     fun `riskLevel HIGH for score 0 point 6 to 0 point 89`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.7,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.7,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertEquals(RiskLevel.HIGH, riskScore.riskLevel)
     }
 
     @Test
     fun `riskLevel MEDIUM for score 0 point 3 to 0 point 59`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.4,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.4,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertEquals(RiskLevel.MEDIUM, riskScore.riskLevel)
     }
 
     @Test
     fun `riskLevel LOW for score below 0 point 3`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.2,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.2,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertEquals(RiskLevel.LOW, riskScore.riskLevel)
     }
 
     @Test
     fun `isCriticalRisk true for CRITICAL level`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.95,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.95,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertTrue(riskScore.isCriticalRisk)
     }
 
     @Test
     fun `hasSignificantRisk true for score above 0 point 5`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.6,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.6,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertTrue(riskScore.hasSignificantRisk)
     }
 
     @Test
     fun `hasSignificantRisk false for score below 0 point 5`() {
-        val riskScore = WpsRiskScore(
-            bssid = "00:11:22:33:44:55",
-            riskScore = 0.3,
-            issues = emptyList(),
-            wpsInfo = null
-        )
+        val riskScore =
+            WpsRiskScore(
+                bssid = "00:11:22:33:44:55",
+                riskScore = 0.3,
+                issues = emptyList(),
+                wpsInfo = null,
+            )
 
         assertFalse(riskScore.hasSignificantRisk)
     }
@@ -647,15 +678,16 @@ class WpsRiskTest {
 
     @Test
     fun `riskSummary includes level and status`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val riskScore = WpsRiskScore.fromWpsInfo("00:11:22:33:44:55", wpsInfo)
         val summary = riskScore.riskSummary

@@ -10,16 +10,16 @@ import kotlin.test.assertTrue
  * Comprehensive tests for QosGoals
  */
 class QosGoalsTest {
-
     @Test
     fun `create goals with valid parameters succeeds`() {
-        val goals = QosGoals(
-            enableWmm = true,
-            voicePriority = 3,
-            videoPriority = 2,
-            dataPriority = 1,
-            backgroundPriority = 0
-        )
+        val goals =
+            QosGoals(
+                enableWmm = true,
+                voicePriority = 3,
+                videoPriority = 2,
+                dataPriority = 1,
+                backgroundPriority = 0,
+            )
 
         assertTrue(goals.enableWmm)
         assertEquals(3, goals.voicePriority)
@@ -92,7 +92,7 @@ class QosGoalsTest {
             QosGoals(
                 enableWmm = true,
                 voicePriority = 1,
-                videoPriority = 2
+                videoPriority = 2,
             )
         }
     }
@@ -103,7 +103,7 @@ class QosGoalsTest {
             QosGoals(
                 enableWmm = true,
                 videoPriority = 0,
-                dataPriority = 1
+                dataPriority = 1,
             )
         }
     }
@@ -114,32 +114,34 @@ class QosGoalsTest {
             QosGoals(
                 enableWmm = true,
                 dataPriority = 0,
-                backgroundPriority = 1
+                backgroundPriority = 1,
             )
         }
     }
 
     @Test
     fun `hasStrictHierarchy is true for 3-2-1-0 priorities`() {
-        val goals = QosGoals(
-            voicePriority = 3,
-            videoPriority = 2,
-            dataPriority = 1,
-            backgroundPriority = 0
-        )
+        val goals =
+            QosGoals(
+                voicePriority = 3,
+                videoPriority = 2,
+                dataPriority = 1,
+                backgroundPriority = 0,
+            )
 
         assertTrue(goals.hasStrictHierarchy)
     }
 
     @Test
     fun `hasStrictHierarchy is false for equal priorities`() {
-        val goals = QosGoals(
-            enableWmm = false,
-            voicePriority = 1,
-            videoPriority = 1,
-            dataPriority = 1,
-            backgroundPriority = 1
-        )
+        val goals =
+            QosGoals(
+                enableWmm = false,
+                voicePriority = 1,
+                videoPriority = 1,
+                dataPriority = 1,
+                backgroundPriority = 1,
+            )
 
         assertFalse(goals.hasStrictHierarchy)
     }

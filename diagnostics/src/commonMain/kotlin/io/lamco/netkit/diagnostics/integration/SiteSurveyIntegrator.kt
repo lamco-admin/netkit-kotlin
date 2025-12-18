@@ -155,11 +155,14 @@ class SiteSurveyIntegrator(
 
         // Low RF + High packet loss = RF issue (CAUSAL)
         if (rfQuality < 60.0 && diag.worstPacketLoss >= 5.0) {
+            val recommendation =
+                "Improve RF coverage: move closer to AP, remove obstacles, add access points, " +
+                    "or switch to less congested channel"
             correlations.add(
                 Correlation(
                     finding = "Packet loss (${diag.worstPacketLoss}%) correlates with poor RF quality (${rfQuality.toInt()}/100)",
                     rootCause = "Weak WiFi signal or RF interference causing packet drops",
-                    recommendation = "Improve RF coverage: move closer to AP, remove obstacles, add access points, or switch to less congested channel",
+                    recommendation = recommendation,
                     type = CorrelationType.CAUSAL,
                     confidence = calculateConfidence(rfQuality, diag.worstPacketLoss, inverse = true),
                     severity = CorrelationSeverity.HIGH,
@@ -491,9 +494,12 @@ class SiteSurveyIntegrator(
 
         // Poor security + Good performance = Security risk
         if (securityScore < 60.0 && diag.connectivityQuality.toScore() >= 80) {
+            val finding =
+                "Network performs well (${diag.connectivityQuality}) but has security weaknesses " +
+                    "(${securityScore.toInt()}/100)"
             correlations.add(
                 Correlation(
-                    finding = "Network performs well (${diag.connectivityQuality}) but has security weaknesses (${securityScore.toInt()}/100)",
+                    finding = finding,
                     rootCause = "Weak encryption, outdated protocols, or security misconfigurations",
                     recommendation = "Upgrade to WPA3, enable Protected Management Frames (PMF), disable WPS, update firmware",
                     type = CorrelationType.CONFLICTING,
@@ -595,11 +601,17 @@ class SiteSurveyIntegrator(
             downloadSpeed != null &&
             downloadSpeed < 25.0
         ) {
+            val finding =
+                "Poor RF (${rfQuality.toInt()}/100), high latency (${avgLatencyMs.toInt()}ms), " +
+                    "and low bandwidth ($downloadSpeed Mbps)"
+            val recommendation =
+                "PRIORITY: Fix RF immediately - move closer to AP, reduce obstacles, add access points, " +
+                    "optimize channel"
             correlations.add(
                 Correlation(
-                    finding = "Poor RF (${rfQuality.toInt()}/100), high latency (${avgLatencyMs.toInt()}ms), and low bandwidth ($downloadSpeed Mbps)",
+                    finding = finding,
                     rootCause = "Comprehensive WiFi connectivity breakdown - RF is root cause affecting all metrics",
-                    recommendation = "PRIORITY: Fix RF immediately - move closer to AP, reduce obstacles, add access points, optimize channel",
+                    recommendation = recommendation,
                     type = CorrelationType.CAUSAL,
                     confidence = 0.95,
                     severity = CorrelationSeverity.CRITICAL,
@@ -639,9 +651,13 @@ class SiteSurveyIntegrator(
             context.securityScore != null &&
             context.securityScore!! >= 80.0
         ) {
+            val finding =
+                "Excellent across all metrics: RF (${rfQuality.toInt()}), " +
+                    "latency (${avgLatencyMs.toInt()}ms), bandwidth ($downloadSpeed Mbps), " +
+                    "security (${context.securityScore!!.toInt()})"
             correlations.add(
                 Correlation(
-                    finding = "Excellent across all metrics: RF (${rfQuality.toInt()}), latency (${avgLatencyMs.toInt()}ms), bandwidth ($downloadSpeed Mbps), security (${context.securityScore!!.toInt()})",
+                    finding = finding,
                     rootCause = "Comprehensive network optimization - RF, ISP, routing, and security all optimal",
                     recommendation = "Network is performing at peak - document configuration for future reference",
                     type = CorrelationType.RELATED,

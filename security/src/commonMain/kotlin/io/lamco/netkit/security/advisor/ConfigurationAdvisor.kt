@@ -145,14 +145,13 @@ class ConfigurationAdvisor(
 
         val uniqueAuthTypes = bssAnalyses.map { it.securityScore.authType }.distinct()
         if (uniqueAuthTypes.size > 1) {
+            val authTypesList = uniqueAuthTypes.joinToString { it.displayName }
             recommendations.add(
                 ConfigurationRecommendation(
                     category = RecommendationCategory.SECURITY,
                     priority = RecommendationPriority.HIGH,
                     title = "Inconsistent Authentication Types",
-                    description = "APs in '$ssid' use ${uniqueAuthTypes.size} different authentication types: ${uniqueAuthTypes.joinToString {
-                        it.displayName
-                    }}",
+                    description = "APs in '$ssid' use ${uniqueAuthTypes.size} different authentication types: $authTypesList",
                     recommendation = "Configure all APs to use the same authentication type",
                     rationale = "Inconsistent authentication causes roaming failures and security gaps",
                     effort = EffortLevel.MEDIUM,

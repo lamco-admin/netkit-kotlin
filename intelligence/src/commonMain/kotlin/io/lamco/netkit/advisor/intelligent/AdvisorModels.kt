@@ -18,7 +18,9 @@ enum class UserExpertiseLevel {
     ADVANCED,
 
     /** Expert/professional with deep networking expertise */
-    EXPERT;
+    EXPERT,
+
+    ;
 
     /**
      * Display name
@@ -30,12 +32,13 @@ enum class UserExpertiseLevel {
      * Maximum recommended solution difficulty
      */
     val maxDifficulty: Difficulty
-        get() = when (this) {
-            BEGINNER -> Difficulty.EASY
-            INTERMEDIATE -> Difficulty.MEDIUM
-            ADVANCED -> Difficulty.HARD
-            EXPERT -> Difficulty.HARD
-        }
+        get() =
+            when (this) {
+                BEGINNER -> Difficulty.EASY
+                INTERMEDIATE -> Difficulty.MEDIUM
+                ADVANCED -> Difficulty.HARD
+                EXPERT -> Difficulty.HARD
+            }
 
     /**
      * Whether technical details should be shown
@@ -60,7 +63,7 @@ data class AdvisorRecommendations(
     val optimizationSuggestions: List<String> = emptyList(),
     val securityIssues: List<String> = emptyList(),
     val quickWins: List<Recommendation> = emptyList(),
-    val longTermImprovements: List<Recommendation> = emptyList()
+    val longTermImprovements: List<Recommendation> = emptyList(),
 ) {
     /**
      * Top priority recommendation
@@ -78,7 +81,7 @@ data class AdvisorRecommendations(
      * Summary of recommendations
      */
     val summary: String
-        get() = "${recommendations.size} recommendation(s), ${totalIssuesFound} issue(s) found"
+        get() = "${recommendations.size} recommendation(s), $totalIssuesFound issue(s) found"
 }
 
 /**
@@ -99,7 +102,7 @@ data class Recommendation(
     val priority: Int,
     val impact: Impact,
     val effort: Difficulty,
-    val steps: List<String> = emptyList()
+    val steps: List<String> = emptyList(),
 ) {
     init {
         require(priority in 1..10) { "Priority must be 1-10" }
@@ -121,7 +124,8 @@ enum class RecommendationCategory {
     RELIABILITY,
     CONFIGURATION,
     OPTIMIZATION,
-    TROUBLESHOOTING;
+    TROUBLESHOOTING,
+    ;
 
     /**
      * Display name
@@ -146,7 +150,7 @@ data class NetworkAssessment(
     val scores: CategoryScores,
     val strengths: List<String>,
     val weaknesses: List<String>,
-    val risks: List<String>
+    val risks: List<String>,
 ) {
     init {
         require(overallScore in 0..100) { "Overall score must be 0-100" }
@@ -156,13 +160,14 @@ data class NetworkAssessment(
      * Health level classification
      */
     val healthLevel: HealthLevel
-        get() = when {
-            overallScore >= 90 -> HealthLevel.EXCELLENT
-            overallScore >= 75 -> HealthLevel.GOOD
-            overallScore >= 60 -> HealthLevel.FAIR
-            overallScore >= 40 -> HealthLevel.POOR
-            else -> HealthLevel.CRITICAL
-        }
+        get() =
+            when {
+                overallScore >= 90 -> HealthLevel.EXCELLENT
+                overallScore >= 75 -> HealthLevel.GOOD
+                overallScore >= 60 -> HealthLevel.FAIR
+                overallScore >= 40 -> HealthLevel.POOR
+                else -> HealthLevel.CRITICAL
+            }
 
     /**
      * Summary of assessment
@@ -183,7 +188,7 @@ data class CategoryScores(
     val security: Int,
     val performance: Int,
     val reliability: Int,
-    val coverage: Int
+    val coverage: Int,
 ) {
     init {
         require(security in 0..100) { "Security score must be 0-100" }
@@ -207,7 +212,8 @@ enum class HealthLevel {
     GOOD,
     FAIR,
     POOR,
-    CRITICAL;
+    CRITICAL,
+    ;
 
     /**
      * Display name
@@ -234,7 +240,7 @@ data class WizardStep(
     val prompt: String,
     val options: List<String> = emptyList(),
     val defaultValue: String? = null,
-    val validation: String? = null
+    val validation: String? = null,
 ) {
     /**
      * Whether this is a choice step (multiple options)
@@ -263,7 +269,7 @@ data class WizardSession(
     val currentStep: Int,
     val steps: List<WizardStep>,
     val responses: Map<Int, String> = emptyMap(),
-    val context: MutableMap<String, Any> = mutableMapOf()
+    val context: MutableMap<String, Any> = mutableMapOf(),
 ) {
     /**
      * Current wizard step
@@ -286,23 +292,21 @@ data class WizardSession(
     /**
      * Advance to next step with response
      */
-    fun next(response: String): WizardSession {
-        return copy(
+    fun next(response: String): WizardSession =
+        copy(
             currentStep = currentStep + 1,
-            responses = responses + (currentStep to response)
+            responses = responses + (currentStep to response),
         )
-    }
 
     /**
      * Go back to previous step
      */
-    fun previous(): WizardSession {
-        return if (currentStep > 0) {
+    fun previous(): WizardSession =
+        if (currentStep > 0) {
             copy(currentStep = currentStep - 1)
         } else {
             this
         }
-    }
 }
 
 /**
@@ -325,7 +329,9 @@ enum class WizardType {
     GUEST_NETWORK,
 
     /** Mesh network setup wizard */
-    MESH_SETUP;
+    MESH_SETUP,
+
+    ;
 
     /**
      * Display name
@@ -348,5 +354,5 @@ data class AdviceContext(
     val networkType: NetworkType,
     val currentIssues: List<Symptom> = emptyList(),
     val goals: List<String> = emptyList(),
-    val constraints: List<String> = emptyList()
+    val constraints: List<String> = emptyList(),
 )

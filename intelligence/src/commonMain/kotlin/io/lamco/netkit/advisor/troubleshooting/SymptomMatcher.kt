@@ -26,7 +26,6 @@ package io.lamco.netkit.advisor.troubleshooting
  * ```
  */
 class SymptomMatcher {
-
     /**
      * Match symptom patterns
      *
@@ -59,7 +58,7 @@ class SymptomMatcher {
      */
     fun findCorrelatedSymptoms(
         primarySymptom: Symptom,
-        allSymptoms: List<Symptom>
+        allSymptoms: List<Symptom>,
     ): List<SymptomCorrelation> {
         val correlations = mutableListOf<SymptomCorrelation>()
 
@@ -67,43 +66,51 @@ class SymptomMatcher {
             is Symptom.SlowSpeed -> {
                 // Slow speed often correlates with high latency
                 allSymptoms.filterIsInstance<Symptom.HighLatency>().forEach {
-                    correlations.add(SymptomCorrelation(
-                        symptom1 = primarySymptom,
-                        symptom2 = it,
-                        correlation = 0.85,
-                        explanation = "Slow speed and high latency often indicate network congestion"
-                    ))
+                    correlations.add(
+                        SymptomCorrelation(
+                            symptom1 = primarySymptom,
+                            symptom2 = it,
+                            correlation = 0.85,
+                            explanation = "Slow speed and high latency often indicate network congestion",
+                        ),
+                    )
                 }
 
                 // Slow speed with poor coverage indicates signal issues
                 allSymptoms.filterIsInstance<Symptom.PoorCoverage>().forEach {
-                    correlations.add(SymptomCorrelation(
-                        symptom1 = primarySymptom,
-                        symptom2 = it,
-                        correlation = 0.8,
-                        explanation = "Slow speed with weak signal indicates coverage problem"
-                    ))
+                    correlations.add(
+                        SymptomCorrelation(
+                            symptom1 = primarySymptom,
+                            symptom2 = it,
+                            correlation = 0.8,
+                            explanation = "Slow speed with weak signal indicates coverage problem",
+                        ),
+                    )
                 }
             }
 
             is Symptom.FrequentDisconnects -> {
                 // Disconnects with poor coverage = signal issue
                 allSymptoms.filterIsInstance<Symptom.PoorCoverage>().forEach {
-                    correlations.add(SymptomCorrelation(
-                        symptom1 = primarySymptom,
-                        symptom2 = it,
-                        correlation = 0.9,
-                        explanation = "Frequent disconnects with weak signal strongly indicates coverage issue"
-                    ))
+                    correlations.add(
+                        SymptomCorrelation(
+                            symptom1 = primarySymptom,
+                            symptom2 = it,
+                            correlation = 0.9,
+                            explanation = "Frequent disconnects with weak signal strongly indicates coverage issue",
+                        ),
+                    )
                 }
 
                 allSymptoms.filterIsInstance<Symptom.InterferenceDetected>().forEach {
-                    correlations.add(SymptomCorrelation(
-                        symptom1 = primarySymptom,
-                        symptom2 = it,
-                        correlation = 0.85,
-                        explanation = "Disconnects with interference suggest RF environment problems"
-                    ))
+                    correlations.add(
+                        SymptomCorrelation(
+                            symptom1 = primarySymptom,
+                            symptom2 = it,
+                            correlation = 0.85,
+                            explanation = "Disconnects with interference suggest RF environment problems",
+                        ),
+                    )
                 }
             }
 
@@ -135,67 +142,69 @@ class SymptomMatcher {
         /**
          * Pre-defined symptom patterns
          */
-        private val SYMPTOM_PATTERNS = listOf(
-            // Pattern: WiFi Dead Zone
-            SymptomPattern(
-                name = "WiFi Dead Zone",
-                description = "Area with no WiFi coverage or very weak signal",
-                requiredSymptoms = listOf(
-                    SymptomPattern.SymptomType.POOR_COVERAGE,
-                    SymptomPattern.SymptomType.CANNOT_CONNECT
+        private val SYMPTOM_PATTERNS =
+            listOf(
+                // Pattern: WiFi Dead Zone
+                SymptomPattern(
+                    name = "WiFi Dead Zone",
+                    description = "Area with no WiFi coverage or very weak signal",
+                    requiredSymptoms =
+                        listOf(
+                            SymptomPattern.SymptomType.POOR_COVERAGE,
+                            SymptomPattern.SymptomType.CANNOT_CONNECT,
+                        ),
+                    confidence = 0.95,
+                    likelyIssues = listOf(NetworkIssue.INSUFFICIENT_COVERAGE, NetworkIssue.POOR_AP_PLACEMENT),
                 ),
-                confidence = 0.95,
-                likelyIssues = listOf(NetworkIssue.INSUFFICIENT_COVERAGE, NetworkIssue.POOR_AP_PLACEMENT)
-            ),
-
-            // Pattern: Network Congestion
-            SymptomPattern(
-                name = "Network Congestion",
-                description = "Network overloaded with traffic",
-                requiredSymptoms = listOf(
-                    SymptomPattern.SymptomType.SLOW_SPEED,
-                    SymptomPattern.SymptomType.HIGH_LATENCY
+                // Pattern: Network Congestion
+                SymptomPattern(
+                    name = "Network Congestion",
+                    description = "Network overloaded with traffic",
+                    requiredSymptoms =
+                        listOf(
+                            SymptomPattern.SymptomType.SLOW_SPEED,
+                            SymptomPattern.SymptomType.HIGH_LATENCY,
+                        ),
+                    confidence = 0.85,
+                    likelyIssues = listOf(NetworkIssue.CHANNEL_CONGESTION, NetworkIssue.AP_OVERLOADED),
                 ),
-                confidence = 0.85,
-                likelyIssues = listOf(NetworkIssue.CHANNEL_CONGESTION, NetworkIssue.AP_OVERLOADED)
-            ),
-
-            // Pattern: Signal Degradation
-            SymptomPattern(
-                name = "Signal Degradation",
-                description = "Weak signal causing connectivity issues",
-                requiredSymptoms = listOf(
-                    SymptomPattern.SymptomType.POOR_COVERAGE,
-                    SymptomPattern.SymptomType.FREQUENT_DISCONNECTS
+                // Pattern: Signal Degradation
+                SymptomPattern(
+                    name = "Signal Degradation",
+                    description = "Weak signal causing connectivity issues",
+                    requiredSymptoms =
+                        listOf(
+                            SymptomPattern.SymptomType.POOR_COVERAGE,
+                            SymptomPattern.SymptomType.FREQUENT_DISCONNECTS,
+                        ),
+                    confidence = 0.9,
+                    likelyIssues = listOf(NetworkIssue.WEAK_SIGNAL, NetworkIssue.INSUFFICIENT_COVERAGE),
                 ),
-                confidence = 0.9,
-                likelyIssues = listOf(NetworkIssue.WEAK_SIGNAL, NetworkIssue.INSUFFICIENT_COVERAGE)
-            ),
-
-            // Pattern: RF Interference
-            SymptomPattern(
-                name = "RF Interference",
-                description = "External interference affecting WiFi",
-                requiredSymptoms = listOf(
-                    SymptomPattern.SymptomType.INTERFERENCE,
-                    SymptomPattern.SymptomType.FREQUENT_DISCONNECTS
+                // Pattern: RF Interference
+                SymptomPattern(
+                    name = "RF Interference",
+                    description = "External interference affecting WiFi",
+                    requiredSymptoms =
+                        listOf(
+                            SymptomPattern.SymptomType.INTERFERENCE,
+                            SymptomPattern.SymptomType.FREQUENT_DISCONNECTS,
+                        ),
+                    confidence = 0.9,
+                    likelyIssues = listOf(NetworkIssue.INTERFERENCE),
                 ),
-                confidence = 0.9,
-                likelyIssues = listOf(NetworkIssue.INTERFERENCE)
-            ),
-
-            // Pattern: Intermittent Connectivity
-            SymptomPattern(
-                name = "Intermittent Connectivity",
-                description = "Periodic connection problems",
-                requiredSymptoms = listOf(
-                    SymptomPattern.SymptomType.INTERMITTENT,
-                    SymptomPattern.SymptomType.FREQUENT_DISCONNECTS
+                // Pattern: Intermittent Connectivity
+                SymptomPattern(
+                    name = "Intermittent Connectivity",
+                    description = "Periodic connection problems",
+                    requiredSymptoms =
+                        listOf(
+                            SymptomPattern.SymptomType.INTERMITTENT,
+                            SymptomPattern.SymptomType.FREQUENT_DISCONNECTS,
+                        ),
+                    confidence = 0.8,
+                    likelyIssues = listOf(NetworkIssue.INTERFERENCE, NetworkIssue.FAILING_HARDWARE),
                 ),
-                confidence = 0.8,
-                likelyIssues = listOf(NetworkIssue.INTERFERENCE, NetworkIssue.FAILING_HARDWARE)
             )
-        )
     }
 }
 
@@ -207,7 +216,7 @@ data class SymptomPattern(
     val description: String,
     val requiredSymptoms: List<SymptomType>,
     val confidence: Double,
-    val likelyIssues: List<NetworkIssue>
+    val likelyIssues: List<NetworkIssue>,
 ) {
     /**
      * Check if symptoms match this pattern
@@ -218,11 +227,11 @@ data class SymptomPattern(
         val matchedCount = requiredSymptoms.count { it in symptomTypes }
         val matchRatio = matchedCount.toDouble() / requiredSymptoms.size
 
-        return if (matchRatio >= 0.5) {  // At least 50% of required symptoms
+        return if (matchRatio >= 0.5) { // At least 50% of required symptoms
             SymptomPatternMatch(
                 pattern = this,
                 matchedSymptoms = symptoms.filter { it.toType() in requiredSymptoms },
-                confidence = confidence * matchRatio
+                confidence = confidence * matchRatio,
             )
         } else {
             null
@@ -240,15 +249,15 @@ data class SymptomPattern(
         CANNOT_CONNECT,
         INTERMITTENT,
         INTERFERENCE,
-        CUSTOM
+        CUSTOM,
     }
 }
 
 /**
  * Convert symptom to type
  */
-private fun Symptom.toType(): SymptomPattern.SymptomType {
-    return when (this) {
+private fun Symptom.toType(): SymptomPattern.SymptomType =
+    when (this) {
         is Symptom.SlowSpeed -> SymptomPattern.SymptomType.SLOW_SPEED
         is Symptom.FrequentDisconnects -> SymptomPattern.SymptomType.FREQUENT_DISCONNECTS
         is Symptom.PoorCoverage -> SymptomPattern.SymptomType.POOR_COVERAGE
@@ -258,7 +267,6 @@ private fun Symptom.toType(): SymptomPattern.SymptomType {
         is Symptom.InterferenceDetected -> SymptomPattern.SymptomType.INTERFERENCE
         is Symptom.Custom -> SymptomPattern.SymptomType.CUSTOM
     }
-}
 
 /**
  * Matched symptom pattern
@@ -266,7 +274,7 @@ private fun Symptom.toType(): SymptomPattern.SymptomType {
 data class SymptomPatternMatch(
     val pattern: SymptomPattern,
     val matchedSymptoms: List<Symptom>,
-    val confidence: Double
+    val confidence: Double,
 ) {
     /**
      * Summary of the match
@@ -281,8 +289,8 @@ data class SymptomPatternMatch(
 data class SymptomCorrelation(
     val symptom1: Symptom,
     val symptom2: Symptom,
-    val correlation: Double,  // 0.0-1.0
-    val explanation: String
+    val correlation: Double, // 0.0-1.0
+    val explanation: String,
 ) {
     init {
         require(correlation in 0.0..1.0) { "Correlation must be between 0.0 and 1.0" }

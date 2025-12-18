@@ -62,7 +62,7 @@ data class ConfigurationTemplate(
     val powerSettings: String,
     val qosSettings: String?,
     val additionalSettings: Map<String, String> = emptyMap(),
-    val vendor: RouterVendor? = null
+    val vendor: RouterVendor? = null,
 ) {
     init {
         require(name.isNotBlank()) { "Template name cannot be blank" }
@@ -112,25 +112,28 @@ enum class UseCase {
     STREAMING_OPTIMIZED,
 
     /** IoT-focused (many low-bandwidth devices) */
-    IOT_FOCUSED;
+    IOT_FOCUSED,
+
+    ;
 
     /**
      * User-friendly display name
      */
     val displayName: String
-        get() = when (this) {
-            HOME_BASIC -> "Home (Basic)"
-            HOME_ADVANCED -> "Home (Advanced)"
-            SMALL_OFFICE -> "Small Office"
-            ENTERPRISE -> "Enterprise"
-            GUEST_NETWORK -> "Guest Network"
-            HIGH_DENSITY -> "High-Density"
-            OUTDOOR -> "Outdoor"
-            MESH_NETWORK -> "Mesh Network"
-            GAMING_OPTIMIZED -> "Gaming Optimized"
-            STREAMING_OPTIMIZED -> "Streaming Optimized"
-            IOT_FOCUSED -> "IoT Focused"
-        }
+        get() =
+            when (this) {
+                HOME_BASIC -> "Home (Basic)"
+                HOME_ADVANCED -> "Home (Advanced)"
+                SMALL_OFFICE -> "Small Office"
+                ENTERPRISE -> "Enterprise"
+                GUEST_NETWORK -> "Guest Network"
+                HIGH_DENSITY -> "High-Density"
+                OUTDOOR -> "Outdoor"
+                MESH_NETWORK -> "Mesh Network"
+                GAMING_OPTIMIZED -> "Gaming Optimized"
+                STREAMING_OPTIMIZED -> "Streaming Optimized"
+                IOT_FOCUSED -> "IoT Focused"
+            }
 }
 
 /**
@@ -147,7 +150,7 @@ data class ChannelRecommendation(
     val band24GHz: ChannelPlan?,
     val band5GHz: ChannelPlan?,
     val band6GHz: ChannelPlan? = null,
-    val rationale: String = ""
+    val rationale: String = "",
 ) {
     /**
      * Whether any band is enabled
@@ -166,7 +169,7 @@ data class ChannelRecommendation(
 data class ChannelPlan(
     val channel: Int,
     val width: Int,
-    val dfsAllowed: Boolean = false
+    val dfsAllowed: Boolean = false,
 ) {
     init {
         require(channel >= 0) { "Channel must be non-negative (0 means auto)" }
@@ -183,17 +186,22 @@ data class ChannelPlan(
      * Human-readable channel plan
      */
     val description: String
-        get() = if (isAuto) "Auto @ ${width}MHz${if (dfsAllowed) " (DFS)" else ""}"
-                else "Channel $channel @ ${width}MHz${if (dfsAllowed) " (DFS)" else ""}"
+        get() =
+            if (isAuto) {
+                "Auto @ ${width}MHz${if (dfsAllowed) " (DFS)" else ""}"
+            } else {
+                "Channel $channel @ ${width}MHz${if (dfsAllowed) " (DFS)" else ""}"
+            }
 
     companion object {
         /** Disable this band */
         val DISABLE: ChannelPlan? = null
 
         /** Auto channel selection */
-        fun auto(width: Int, dfsAllowed: Boolean = false): ChannelPlan {
-            return ChannelPlan(channel = 0, width = width, dfsAllowed = dfsAllowed)
-        }
+        fun auto(
+            width: Int,
+            dfsAllowed: Boolean = false,
+        ): ChannelPlan = ChannelPlan(channel = 0, width = width, dfsAllowed = dfsAllowed)
     }
 }
 
@@ -220,35 +228,39 @@ enum class SecurityTemplate {
     WPA3_ENTERPRISE,
 
     /** Enhanced Open (OWE) for guest networks */
-    ENHANCED_OPEN;
+    ENHANCED_OPEN,
+
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            OPEN -> "Open (No Security)"
-            WPA2_PERSONAL -> "WPA2-Personal"
-            WPA3_PERSONAL -> "WPA3-Personal"
-            WPA2_WPA3_TRANSITION -> "WPA2/WPA3 Transition"
-            WPA2_ENTERPRISE -> "WPA2-Enterprise"
-            WPA3_ENTERPRISE -> "WPA3-Enterprise"
-            ENHANCED_OPEN -> "Enhanced Open (OWE)"
-        }
+        get() =
+            when (this) {
+                OPEN -> "Open (No Security)"
+                WPA2_PERSONAL -> "WPA2-Personal"
+                WPA3_PERSONAL -> "WPA3-Personal"
+                WPA2_WPA3_TRANSITION -> "WPA2/WPA3 Transition"
+                WPA2_ENTERPRISE -> "WPA2-Enterprise"
+                WPA3_ENTERPRISE -> "WPA3-Enterprise"
+                ENHANCED_OPEN -> "Enhanced Open (OWE)"
+            }
 
     /**
      * Security level rating (0-100)
      */
     val securityScore: Int
-        get() = when (this) {
-            OPEN -> 0
-            ENHANCED_OPEN -> 40
-            WPA2_PERSONAL -> 70
-            WPA2_WPA3_TRANSITION -> 75
-            WPA3_PERSONAL -> 85
-            WPA2_ENTERPRISE -> 90
-            WPA3_ENTERPRISE -> 100
-        }
+        get() =
+            when (this) {
+                OPEN -> 0
+                ENHANCED_OPEN -> 40
+                WPA2_PERSONAL -> 70
+                WPA2_WPA3_TRANSITION -> 75
+                WPA3_PERSONAL -> 85
+                WPA2_ENTERPRISE -> 90
+                WPA3_ENTERPRISE -> 100
+            }
 }
 
 /**
@@ -271,7 +283,7 @@ data class NetworkRequirements(
     val primaryUse: UseCase,
     val securityLevel: SecurityRequirement,
     val budgetLevel: BudgetLevel,
-    val vendor: RouterVendor? = null
+    val vendor: RouterVendor? = null,
 ) {
     init {
         require(expectedDeviceCount > 0) { "Expected device count must be positive" }
@@ -293,18 +305,21 @@ enum class SecurityRequirement {
     HIGH,
 
     /** Maximum security (government, healthcare) */
-    MAXIMUM;
+    MAXIMUM,
+
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            BASIC -> "Basic"
-            STANDARD -> "Standard"
-            HIGH -> "High"
-            MAXIMUM -> "Maximum"
-        }
+        get() =
+            when (this) {
+                BASIC -> "Basic"
+                STANDARD -> "Standard"
+                HIGH -> "High"
+                MAXIMUM -> "Maximum"
+            }
 }
 
 /**
@@ -318,15 +333,18 @@ enum class BudgetLevel {
     SMALL_BUSINESS,
 
     /** Enterprise grade */
-    ENTERPRISE;
+    ENTERPRISE,
+
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            CONSUMER -> "Consumer"
-            SMALL_BUSINESS -> "Small Business"
-            ENTERPRISE -> "Enterprise"
-        }
+        get() =
+            when (this) {
+                CONSUMER -> "Consumer"
+                SMALL_BUSINESS -> "Small Business"
+                ENTERPRISE -> "Enterprise"
+            }
 }

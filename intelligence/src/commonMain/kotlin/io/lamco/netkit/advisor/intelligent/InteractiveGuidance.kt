@@ -37,7 +37,6 @@ import io.lamco.netkit.advisor.model.UseCase
  * ```
  */
 class InteractiveGuidance {
-
     /**
      * Start an interactive wizard
      *
@@ -47,22 +46,23 @@ class InteractiveGuidance {
      */
     fun startWizard(
         wizardType: WizardType,
-        initialContext: Map<String, Any> = emptyMap()
+        initialContext: Map<String, Any> = emptyMap(),
     ): WizardSession {
-        val steps = when (wizardType) {
-            WizardType.NETWORK_SETUP -> createNetworkSetupSteps()
-            WizardType.TROUBLESHOOTING -> createTroubleshootingSteps()
-            WizardType.SECURITY_SETUP -> createSecuritySetupSteps()
-            WizardType.PERFORMANCE_TUNING -> createPerformanceTuningSteps()
-            WizardType.GUEST_NETWORK -> createGuestNetworkSteps()
-            WizardType.MESH_SETUP -> createMeshSetupSteps()
-        }
+        val steps =
+            when (wizardType) {
+                WizardType.NETWORK_SETUP -> createNetworkSetupSteps()
+                WizardType.TROUBLESHOOTING -> createTroubleshootingSteps()
+                WizardType.SECURITY_SETUP -> createSecuritySetupSteps()
+                WizardType.PERFORMANCE_TUNING -> createPerformanceTuningSteps()
+                WizardType.GUEST_NETWORK -> createGuestNetworkSteps()
+                WizardType.MESH_SETUP -> createMeshSetupSteps()
+            }
 
         return WizardSession(
             wizardType = wizardType,
             currentStep = 0,
             steps = steps,
-            context = initialContext.toMutableMap()
+            context = initialContext.toMutableMap(),
         )
     }
 
@@ -83,7 +83,7 @@ class InteractiveGuidance {
             responses = session.responses,
             context = session.context,
             recommendations = recommendations,
-            nextSteps = nextSteps
+            nextSteps = nextSteps,
         )
     }
 
@@ -125,15 +125,15 @@ class InteractiveGuidance {
     /**
      * Network setup wizard steps
      */
-    private fun createNetworkSetupSteps(): List<WizardStep> {
-        return listOf(
+    private fun createNetworkSetupSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Network Type",
                 description = "What type of network are you setting up?",
                 prompt = "Select your network type:",
                 options = listOf("Home", "Small Office", "Enterprise", "Retail", "Hospitality"),
-                defaultValue = "Home"
+                defaultValue = "Home",
             ),
             WizardStep(
                 step = 2,
@@ -141,7 +141,7 @@ class InteractiveGuidance {
                 description = "How large is the area you need to cover?",
                 prompt = "Enter coverage area in square meters:",
                 defaultValue = "100",
-                validation = "Must be a positive number"
+                validation = "Must be a positive number",
             ),
             WizardStep(
                 step = 3,
@@ -149,7 +149,7 @@ class InteractiveGuidance {
                 description = "How many devices will connect to this network?",
                 prompt = "Enter expected number of devices:",
                 defaultValue = "10",
-                validation = "Must be between 1 and 1000"
+                validation = "Must be between 1 and 1000",
             ),
             WizardStep(
                 step = 4,
@@ -157,7 +157,7 @@ class InteractiveGuidance {
                 description = "What level of security do you need?",
                 prompt = "Select security level:",
                 options = listOf("Basic (WPA2)", "High (WPA3)", "Very High (Enterprise with 802.1X)"),
-                defaultValue = "High (WPA3)"
+                defaultValue = "High (WPA3)",
             ),
             WizardStep(
                 step = 5,
@@ -165,7 +165,7 @@ class InteractiveGuidance {
                 description = "Do you need a separate guest network?",
                 prompt = "Enable guest network?",
                 options = listOf("Yes", "No"),
-                defaultValue = "No"
+                defaultValue = "No",
             ),
             WizardStep(
                 step = 6,
@@ -173,171 +173,174 @@ class InteractiveGuidance {
                 description = "Will you have IoT devices (smart home, cameras, etc.)?",
                 prompt = "Enable separate IoT network?",
                 options = listOf("Yes", "No"),
-                defaultValue = "No"
-            )
+                defaultValue = "No",
+            ),
         )
-    }
 
     /**
      * Troubleshooting wizard steps
      */
-    private fun createTroubleshootingSteps(): List<WizardStep> {
-        return listOf(
+    private fun createTroubleshootingSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Primary Issue",
                 description = "What problem are you experiencing?",
                 prompt = "Select the main issue:",
-                options = listOf(
-                    "Slow speeds",
-                    "Cannot connect",
-                    "Frequent disconnects",
-                    "Poor coverage in some areas",
-                    "High latency"
-                )
+                options =
+                    listOf(
+                        "Slow speeds",
+                        "Cannot connect",
+                        "Frequent disconnects",
+                        "Poor coverage in some areas",
+                        "High latency",
+                    ),
             ),
             WizardStep(
                 step = 2,
                 title = "When It Occurs",
                 description = "When does this problem happen?",
                 prompt = "Select timing:",
-                options = listOf("Always", "During specific times", "Intermittently", "With certain devices")
+                options = listOf("Always", "During specific times", "Intermittently", "With certain devices"),
             ),
             WizardStep(
                 step = 3,
                 title = "Affected Devices",
                 description = "Which devices are affected?",
                 prompt = "Select devices:",
-                options = listOf("All devices", "Some devices", "Specific device types", "One device")
+                options = listOf("All devices", "Some devices", "Specific device types", "One device"),
             ),
             WizardStep(
                 step = 4,
                 title = "Recent Changes",
                 description = "Have you made any recent changes?",
                 prompt = "Select any recent changes:",
-                options = listOf(
-                    "No changes",
-                    "Added new devices",
-                    "Changed settings",
-                    "Moved equipment",
-                    "Updated firmware"
-                )
-            )
+                options =
+                    listOf(
+                        "No changes",
+                        "Added new devices",
+                        "Changed settings",
+                        "Moved equipment",
+                        "Updated firmware",
+                    ),
+            ),
         )
-    }
 
     /**
      * Security setup wizard steps
      */
-    private fun createSecuritySetupSteps(): List<WizardStep> {
-        return listOf(
+    private fun createSecuritySetupSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Current Security",
                 description = "What security are you currently using?",
                 prompt = "Select current encryption:",
-                options = listOf("WPA3", "WPA2", "WPA/WPA2 Mixed", "Open (None)", "Don't know")
+                options = listOf("WPA3", "WPA2", "WPA/WPA2 Mixed", "Open (None)", "Don't know"),
             ),
             WizardStep(
                 step = 2,
                 title = "Compliance Needs",
                 description = "Do you need to meet compliance requirements?",
                 prompt = "Select applicable compliance standards:",
-                options = listOf("None", "PCI-DSS", "HIPAA", "GDPR", "Multiple standards")
+                options = listOf("None", "PCI-DSS", "HIPAA", "GDPR", "Multiple standards"),
             ),
             WizardStep(
                 step = 3,
                 title = "Authentication",
                 description = "How should users authenticate?",
                 prompt = "Select authentication method:",
-                options = listOf(
-                    "Shared password (PSK)",
-                    "Individual user accounts (802.1X)",
-                    "Captive portal",
-                    "MAC address filtering"
-                )
+                options =
+                    listOf(
+                        "Shared password (PSK)",
+                        "Individual user accounts (802.1X)",
+                        "Captive portal",
+                        "MAC address filtering",
+                    ),
             ),
             WizardStep(
                 step = 4,
                 title = "Additional Features",
                 description = "What additional security features do you need?",
                 prompt = "Select features to enable:",
-                options = listOf(
-                    "Rogue AP detection",
-                    "Intrusion detection",
-                    "Content filtering",
-                    "Client isolation",
-                    "MAC filtering"
-                )
-            )
+                options =
+                    listOf(
+                        "Rogue AP detection",
+                        "Intrusion detection",
+                        "Content filtering",
+                        "Client isolation",
+                        "MAC filtering",
+                    ),
+            ),
         )
-    }
 
     /**
      * Performance tuning wizard steps
      */
-    private fun createPerformanceTuningSteps(): List<WizardStep> {
-        return listOf(
+    private fun createPerformanceTuningSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Current Performance",
                 description = "What speeds are you currently getting?",
                 prompt = "Enter current WiFi speed (Mbps):",
-                validation = "Must be a positive number"
+                validation = "Must be a positive number",
             ),
             WizardStep(
                 step = 2,
                 title = "Expected Performance",
                 description = "What speeds do you expect?",
                 prompt = "Enter expected/ISP speed (Mbps):",
-                validation = "Must be greater than current speed"
+                validation = "Must be greater than current speed",
             ),
             WizardStep(
                 step = 3,
                 title = "Primary Use Case",
                 description = "What is the network primarily used for?",
                 prompt = "Select primary usage:",
-                options = listOf(
-                    "Video calls/conferencing",
-                    "Streaming video",
-                    "Gaming",
-                    "General browsing",
-                    "File transfers",
-                    "Mixed usage"
-                )
+                options =
+                    listOf(
+                        "Video calls/conferencing",
+                        "Streaming video",
+                        "Gaming",
+                        "General browsing",
+                        "File transfers",
+                        "Mixed usage",
+                    ),
             ),
             WizardStep(
                 step = 4,
                 title = "Environment",
                 description = "Describe your environment:",
                 prompt = "Select environment type:",
-                options = listOf(
-                    "Dense urban (many neighbors)",
-                    "Suburban",
-                    "Rural",
-                    "Office building",
-                    "Industrial"
-                )
-            )
+                options =
+                    listOf(
+                        "Dense urban (many neighbors)",
+                        "Suburban",
+                        "Rural",
+                        "Office building",
+                        "Industrial",
+                    ),
+            ),
         )
-    }
 
     /**
      * Guest network wizard steps
      */
-    private fun createGuestNetworkSteps(): List<WizardStep> {
-        return listOf(
+    private fun createGuestNetworkSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Guest Access Type",
                 description = "How should guests access the network?",
                 prompt = "Select access method:",
-                options = listOf(
-                    "Shared password",
-                    "Captive portal with terms",
-                    "Voucher/ticket system",
-                    "Self-registration"
-                )
+                options =
+                    listOf(
+                        "Shared password",
+                        "Captive portal with terms",
+                        "Voucher/ticket system",
+                        "Self-registration",
+                    ),
             ),
             WizardStep(
                 step = 2,
@@ -345,7 +348,7 @@ class InteractiveGuidance {
                 description = "How long should guest sessions last?",
                 prompt = "Select session timeout:",
                 options = listOf("1 hour", "4 hours", "24 hours", "7 days", "No limit"),
-                defaultValue = "24 hours"
+                defaultValue = "24 hours",
             ),
             WizardStep(
                 step = 3,
@@ -353,7 +356,7 @@ class InteractiveGuidance {
                 description = "Should you limit guest bandwidth?",
                 prompt = "Select bandwidth limit per guest:",
                 options = listOf("No limit", "5 Mbps", "10 Mbps", "20 Mbps", "Custom"),
-                defaultValue = "10 Mbps"
+                defaultValue = "10 Mbps",
             ),
             WizardStep(
                 step = 4,
@@ -361,22 +364,21 @@ class InteractiveGuidance {
                 description = "Security and isolation settings:",
                 prompt = "Enable client isolation?",
                 options = listOf("Yes", "No"),
-                defaultValue = "Yes"
-            )
+                defaultValue = "Yes",
+            ),
         )
-    }
 
     /**
      * Mesh setup wizard steps
      */
-    private fun createMeshSetupSteps(): List<WizardStep> {
-        return listOf(
+    private fun createMeshSetupSteps(): List<WizardStep> =
+        listOf(
             WizardStep(
                 step = 1,
                 title = "Mesh Nodes",
                 description = "How many mesh nodes will you deploy?",
                 prompt = "Enter number of mesh nodes:",
-                validation = "Must be at least 2"
+                validation = "Must be at least 2",
             ),
             WizardStep(
                 step = 2,
@@ -384,19 +386,20 @@ class InteractiveGuidance {
                 description = "How will nodes connect to each other?",
                 prompt = "Select backhaul type:",
                 options = listOf("Wireless", "Wired (Ethernet)", "Mixed"),
-                defaultValue = "Wireless"
+                defaultValue = "Wireless",
             ),
             WizardStep(
                 step = 3,
                 title = "Placement",
                 description = "Have you planned node placement?",
                 prompt = "Node placement strategy:",
-                options = listOf(
-                    "Need help with placement",
-                    "Already planned",
-                    "Will test and adjust"
-                ),
-                defaultValue = "Need help with placement"
+                options =
+                    listOf(
+                        "Need help with placement",
+                        "Already planned",
+                        "Will test and adjust",
+                    ),
+                defaultValue = "Need help with placement",
             ),
             WizardStep(
                 step = 4,
@@ -404,10 +407,9 @@ class InteractiveGuidance {
                 description = "Should all nodes use the same SSID?",
                 prompt = "Unified SSID across all nodes?",
                 options = listOf("Yes (recommended)", "No (separate SSIDs)"),
-                defaultValue = "Yes (recommended)"
-            )
+                defaultValue = "Yes (recommended)",
+            ),
         )
-    }
 
     // ========================================
     // Result Generation
@@ -524,10 +526,11 @@ class InteractiveGuidance {
      * Generate guest network recommendations.
      */
     private fun generateGuestNetworkRecommendations(session: WizardSession): List<String> {
-        val recommendations = mutableListOf(
-            "Enable client isolation on guest network",
-            "Configure chosen access method and session timeout",
-        )
+        val recommendations =
+            mutableListOf(
+                "Enable client isolation on guest network",
+                "Configure chosen access method and session timeout",
+            )
 
         val bandwidth = session.responses[2] ?: ""
         if (!bandwidth.contains("No limit")) {
@@ -562,14 +565,13 @@ class InteractiveGuidance {
     /**
      * Generate next steps
      */
-    private fun generateNextSteps(session: WizardSession): List<String> {
-        return listOf(
+    private fun generateNextSteps(session: WizardSession): List<String> =
+        listOf(
             "Review and implement the recommendations above",
             "Test the configuration in a staging environment if possible",
             "Monitor network performance after implementation",
-            "Document the configuration for future reference"
+            "Document the configuration for future reference",
         )
-    }
 }
 
 /**
@@ -580,7 +582,7 @@ data class WizardResult(
     val responses: Map<Int, String>,
     val context: Map<String, Any>,
     val recommendations: List<String>,
-    val nextSteps: List<String>
+    val nextSteps: List<String>,
 ) {
     /**
      * Summary of wizard result

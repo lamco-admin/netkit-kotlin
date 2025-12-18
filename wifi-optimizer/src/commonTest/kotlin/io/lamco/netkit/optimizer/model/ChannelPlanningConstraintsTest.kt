@@ -18,20 +18,20 @@ import kotlin.test.assertTrue
  * - Band-specific width validation
  */
 class ChannelPlanningConstraintsTest {
-
     // ========================================
     // Constructor Validation Tests
     // ========================================
 
     @Test
     fun `create constraints with valid parameters succeeds`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            supportsDfs = true,
-            minChannelSeparation = 5,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ, ChannelWidth.WIDTH_40MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                supportsDfs = true,
+                minChannelSeparation = 5,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ, ChannelWidth.WIDTH_40MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(WiFiBand.BAND_5GHZ, constraints.band)
         assertTrue(constraints.supportsDfs)
@@ -44,7 +44,7 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.UNKNOWN,
                 preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -56,7 +56,7 @@ class ChannelPlanningConstraintsTest {
                 band = WiFiBand.BAND_5GHZ,
                 minChannelSeparation = 0,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -68,7 +68,7 @@ class ChannelPlanningConstraintsTest {
                 band = WiFiBand.BAND_5GHZ,
                 minChannelSeparation = -1,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -79,7 +79,7 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_5GHZ,
                 preferredWidths = emptyList(),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -90,7 +90,7 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_5GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ, ChannelWidth.UNKNOWN),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -102,7 +102,7 @@ class ChannelPlanningConstraintsTest {
                 band = WiFiBand.BAND_5GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
                 regulatoryDomain = RegulatoryDomain.FCC,
-                maxApCountPerChannel = 0
+                maxApCountPerChannel = 0,
             )
         }
     }
@@ -114,7 +114,7 @@ class ChannelPlanningConstraintsTest {
                 band = WiFiBand.BAND_5GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
                 regulatoryDomain = RegulatoryDomain.FCC,
-                allowedChannels = emptySet()
+                allowedChannels = emptySet(),
             )
         }
     }
@@ -127,7 +127,7 @@ class ChannelPlanningConstraintsTest {
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
                 regulatoryDomain = RegulatoryDomain.FCC,
                 allowedChannels = setOf(36, 40, 44),
-                excludedChannels = setOf(40, 48)
+                excludedChannels = setOf(40, 48),
             )
         }
     }
@@ -142,7 +142,7 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_2_4GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_320MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -153,7 +153,7 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_2_4GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_160MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
@@ -164,29 +164,31 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_2_4GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
 
     @Test
     fun `2_4 GHz with 20 MHz width succeeds`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(ChannelWidth.WIDTH_20MHZ, constraints.preferredWidth)
     }
 
     @Test
     fun `2_4 GHz with 40 MHz width succeeds`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(ChannelWidth.WIDTH_40MHZ, constraints.preferredWidth)
         assertTrue(constraints.allows40MHzIn24GHz)
@@ -194,16 +196,18 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `5 GHz with all valid widths succeeds`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(
-                ChannelWidth.WIDTH_160MHZ,
-                ChannelWidth.WIDTH_80MHZ,
-                ChannelWidth.WIDTH_40MHZ,
-                ChannelWidth.WIDTH_20MHZ
-            ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths =
+                    listOf(
+                        ChannelWidth.WIDTH_160MHZ,
+                        ChannelWidth.WIDTH_80MHZ,
+                        ChannelWidth.WIDTH_40MHZ,
+                        ChannelWidth.WIDTH_20MHZ,
+                    ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(ChannelWidth.WIDTH_160MHZ, constraints.preferredWidth)
         assertTrue(constraints.prefersWideChannels)
@@ -215,18 +219,19 @@ class ChannelPlanningConstraintsTest {
             ChannelPlanningConstraints(
                 band = WiFiBand.BAND_5GHZ,
                 preferredWidths = listOf(ChannelWidth.WIDTH_320MHZ),
-                regulatoryDomain = RegulatoryDomain.FCC
+                regulatoryDomain = RegulatoryDomain.FCC,
             )
         }
     }
 
     @Test
     fun `6 GHz with 320 MHz width succeeds`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_6GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_320MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_6GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_320MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(ChannelWidth.WIDTH_320MHZ, constraints.preferredWidth)
         assertTrue(constraints.prefersWideChannels)
@@ -238,11 +243,12 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `FCC 2_4 GHz channels are 1-11`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(11, channels.size)
@@ -254,11 +260,12 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `ETSI 2_4 GHz channels are 1-13`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.ETSI
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.ETSI,
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(13, channels.size)
@@ -268,11 +275,12 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `MKK 2_4 GHz channels are 1-14`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.MKK
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.MKK,
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(14, channels.size)
@@ -281,46 +289,49 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `FCC 5 GHz includes DFS channels when supported`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            supportsDfs = true,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                supportsDfs = true,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         val channels = constraints.getAvailableChannels()
         // FCC has 9 non-DFS + 16 DFS = 25 channels
         assertTrue(channels.size >= 20)
-        assertTrue(channels.contains(36))  // U-NII-1
-        assertTrue(channels.contains(52))  // U-NII-2A (DFS)
+        assertTrue(channels.contains(36)) // U-NII-1
+        assertTrue(channels.contains(52)) // U-NII-2A (DFS)
         assertTrue(channels.contains(100)) // U-NII-2C (DFS)
         assertTrue(channels.contains(149)) // U-NII-3
     }
 
     @Test
     fun `FCC 5 GHz excludes DFS channels when not supported`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            supportsDfs = false,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                supportsDfs = false,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(9, channels.size)
         assertTrue(channels.contains(36))
         assertTrue(channels.contains(149))
-        assertFalse(channels.contains(52))  // DFS channel
+        assertFalse(channels.contains(52)) // DFS channel
         assertFalse(channels.contains(100)) // DFS channel
     }
 
     @Test
     fun `FCC 6 GHz has many channels available`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_6GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_160MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_6GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_160MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         val channels = constraints.getAvailableChannels()
         // FCC 6 GHz PSC channels
@@ -331,11 +342,12 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `ETSI 6 GHz has limited channels`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_6GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.ETSI
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_6GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.ETSI,
+            )
 
         val channels = constraints.getAvailableChannels()
         // ETSI has limited 6 GHz
@@ -344,11 +356,12 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `CN 6 GHz has no channels`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_6GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.CN
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_6GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.CN,
+            )
 
         val channels = constraints.getAvailableChannels()
         assertTrue(channels.isEmpty())
@@ -360,12 +373,13 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `allowedChannels filters channels correctly`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            allowedChannels = setOf(36, 40, 44, 48)
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                allowedChannels = setOf(36, 40, 44, 48),
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(4, channels.size)
@@ -375,12 +389,13 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `excludedChannels removes channels correctly`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            excludedChannels = setOf(1, 6, 11)
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                excludedChannels = setOf(1, 6, 11),
+            )
 
         val channels = constraints.getAvailableChannels()
         assertEquals(8, channels.size)
@@ -393,12 +408,13 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `isChannelUsable returns true for available channel`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            allowedChannels = setOf(36, 40, 44)
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                allowedChannels = setOf(36, 40, 44),
+            )
 
         assertTrue(constraints.isChannelUsable(36))
         assertTrue(constraints.isChannelUsable(40))
@@ -412,71 +428,78 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `allows40MHzIn24GHz is true when 40 MHz included`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ, ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ, ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertTrue(constraints.allows40MHzIn24GHz)
     }
 
     @Test
     fun `allows40MHzIn24GHz is false when only 20 MHz`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_2_4GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_2_4GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertFalse(constraints.allows40MHzIn24GHz)
     }
 
     @Test
     fun `preferredWidth returns first width in list`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(
-                ChannelWidth.WIDTH_160MHZ,
-                ChannelWidth.WIDTH_80MHZ,
-                ChannelWidth.WIDTH_40MHZ
-            ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths =
+                    listOf(
+                        ChannelWidth.WIDTH_160MHZ,
+                        ChannelWidth.WIDTH_80MHZ,
+                        ChannelWidth.WIDTH_40MHZ,
+                    ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertEquals(ChannelWidth.WIDTH_160MHZ, constraints.preferredWidth)
     }
 
     @Test
     fun `prefersWideChannels is true for 80 MHz and above`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertTrue(constraints.prefersWideChannels)
     }
 
     @Test
     fun `prefersWideChannels is false for 40 MHz only`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ, ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_40MHZ, ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         assertFalse(constraints.prefersWideChannels)
     }
 
     @Test
     fun `summary contains key information`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            supportsDfs = true,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ, ChannelWidth.WIDTH_40MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                supportsDfs = true,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ, ChannelWidth.WIDTH_40MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+            )
 
         val summary = constraints.summary
         assertTrue(summary.contains("5 GHz"))
@@ -524,36 +547,39 @@ class ChannelPlanningConstraintsTest {
 
     @Test
     fun `constraints with prioritizeStability flag works`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            prioritizeStability = true
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                prioritizeStability = true,
+            )
 
         assertTrue(constraints.prioritizeStability)
     }
 
     @Test
     fun `constraints with high maxApCountPerChannel works`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            maxApCountPerChannel = 10
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_80MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                maxApCountPerChannel = 10,
+            )
 
         assertEquals(10, constraints.maxApCountPerChannel)
     }
 
     @Test
     fun `constraints with minChannelSeparation 1 works`() {
-        val constraints = ChannelPlanningConstraints(
-            band = WiFiBand.BAND_5GHZ,
-            preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
-            regulatoryDomain = RegulatoryDomain.FCC,
-            minChannelSeparation = 1
-        )
+        val constraints =
+            ChannelPlanningConstraints(
+                band = WiFiBand.BAND_5GHZ,
+                preferredWidths = listOf(ChannelWidth.WIDTH_20MHZ),
+                regulatoryDomain = RegulatoryDomain.FCC,
+                minChannelSeparation = 1,
+            )
 
         assertEquals(1, constraints.minChannelSeparation)
     }

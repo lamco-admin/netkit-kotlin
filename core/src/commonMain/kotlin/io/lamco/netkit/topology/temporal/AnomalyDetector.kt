@@ -134,12 +134,15 @@ class AnomalyDetector(
         if (history.disconnectionCount >= 5 && history.connectionCount > 0) {
             val disconnectRate = history.disconnectionCount.toDouble() / history.connectionCount
             if (disconnectRate >= 0.5) {
+                val desc =
+                    "Frequent disconnections: ${history.bssid} has " +
+                        "${history.disconnectionCount} disconnects vs ${history.connectionCount} connections"
                 anomalies.add(
                     Anomaly(
                         type = AnomalyType.FREQUENT_DISCONNECTIONS,
                         severity = AnomalySeverity.HIGH,
                         timestampMillis = history.lastSeenTimestamp,
-                        description = "Frequent disconnections: ${history.bssid} has ${history.disconnectionCount} disconnects vs ${history.connectionCount} connections",
+                        description = desc,
                         affectedBssids = setOf(history.bssid),
                         value = disconnectRate * 100.0,
                     ),

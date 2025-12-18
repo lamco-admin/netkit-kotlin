@@ -19,7 +19,6 @@ import kotlin.math.abs
  * Based on IEEE 802.11e QoS enhancements and airtime fairness research.
  */
 class QosAnalyzer {
-
     /**
      * Analyze WMM (WiFi Multimedia) effectiveness
      *
@@ -32,12 +31,11 @@ class QosAnalyzer {
      */
     fun analyzeWmm(
         wmmConfig: WmmConfiguration?,
-        trafficProfile: TrafficProfile
+        trafficProfile: TrafficProfile,
     ): WmmAnalysisResult {
         val issues = mutableListOf<WmmIssue>()
         val recommendations = mutableListOf<String>()
 
-        
         if (wmmConfig == null) {
             issues.add(WmmIssue.WmmDisabled)
             recommendations.add("Enable WMM (802.11e) for QoS support")
@@ -45,23 +43,20 @@ class QosAnalyzer {
                 isEffective = false,
                 issues = issues,
                 recommendations = recommendations,
-                expectedImprovement = "WMM can improve voice/video quality by 30-50%"
+                expectedImprovement = "WMM can improve voice/video quality by 30-50%",
             )
         }
 
-        
         if (trafficProfile.voicePercent > 10.0 && !wmmConfig.voiceEnabled) {
             issues.add(WmmIssue.InsufficientPrioritization("Voice"))
             recommendations.add("Enable voice (AC_VO) queue for VoIP traffic (${trafficProfile.voicePercent.toInt()}% of traffic)")
         }
 
-        
         if (trafficProfile.videoPercent > 20.0 && !wmmConfig.videoEnabled) {
             issues.add(WmmIssue.InsufficientPrioritization("Video"))
             recommendations.add("Enable video (AC_VI) queue for video streaming (${trafficProfile.videoPercent.toInt()}% of traffic)")
         }
 
-        
         wmmConfig.queueParameters.forEach { (queue, params) ->
             if (!isQueueConfiguredCorrectly(queue, params)) {
                 issues.add(WmmIssue.QueueMisconfigured(queue, "Parameters not optimal for $queue traffic"))
@@ -71,21 +66,22 @@ class QosAnalyzer {
 
         val isEffective = issues.isEmpty() || issues.all { it is WmmIssue.QueueMisconfigured }
 
-        val improvement = if (!isEffective) {
-            when {
-                trafficProfile.voicePercent > 20 -> "Voice quality improvement: 40-60%, latency reduction: 50%"
-                trafficProfile.videoPercent > 30 -> "Video quality improvement: 30-40%, jitter reduction: 40%"
-                else -> "Overall QoS improvement: 20-30%"
+        val improvement =
+            if (!isEffective) {
+                when {
+                    trafficProfile.voicePercent > 20 -> "Voice quality improvement: 40-60%, latency reduction: 50%"
+                    trafficProfile.videoPercent > 30 -> "Video quality improvement: 30-40%, jitter reduction: 40%"
+                    else -> "Overall QoS improvement: 20-30%"
+                }
+            } else {
+                "WMM is configured effectively"
             }
-        } else {
-            "WMM is configured effectively"
-        }
 
         return WmmAnalysisResult(
             isEffective = isEffective,
             issues = issues,
             recommendations = recommendations,
-            expectedImprovement = improvement
+            expectedImprovement = improvement,
         )
     }
 
@@ -102,20 +98,15 @@ class QosAnalyzer {
      * @param clients List of client airtime metrics
      * @return Airtime fairness analysis with hog detection
      */
-    fun assessAirtimeFairness(
-        clients: List<ClientAirtimeMetrics>
-    ): AirtimeFairnessResult {
+    fun assessAirtimeFairness(clients: List<ClientAirtimeMetrics>): AirtimeFairnessResult {
         require(clients.isNotEmpty()) {
             "Cannot assess fairness with no clients"
         }
 
-        
         val totalAirtime = clients.sumOf { it.airtimeMs }
 
-        
         val percentages = clients.map { (it.airtimeMs.toDouble() / totalAirtime) * 100.0 }
 
-        
         val gini = calculateGiniCoefficient(percentages)
 
         val fairnessScore = ((1.0 - gini) * 100).coerceIn(0.0, 100.0)
@@ -127,7 +118,7 @@ class QosAnalyzer {
             fairnessScore = fairnessScore,
             airtimeHogs = hogs,
             isFair = gini < 0.4,
-            recommendations = buildFairnessRecommendations(gini, hogs)
+            recommendations = buildFairnessRecommendations(gini, hogs),
         )
     }
 
@@ -143,7 +134,7 @@ class QosAnalyzer {
      */
     fun recommendPrioritization(
         clients: List<ClientMetrics>,
-        goals: QosGoals
+        goals: QosGoals,
     ): PrioritizationRecommendations {
         val highPriority = mutableListOf<String>()
         val mediumPriority = mutableListOf<String>()
@@ -163,7 +154,7 @@ class QosAnalyzer {
             highPriority = highPriority,
             mediumPriority = mediumPriority,
             lowPriority = lowPriority,
-            rationale = buildPrioritizationRationale(goals)
+            rationale = buildPrioritizationRationale(goals),
         )
     }
 
@@ -198,37 +189,42 @@ class QosAnalyzer {
      */
     private fun detectAirtimeHogs(
         clients: List<ClientAirtimeMetrics>,
-        totalAirtime: Long
+        totalAirtime: Long,
     ): List<AirtimeHog> {
         val fairShare = 100.0 / clients.size
-        val hogThreshold = (fairShare * 2.0).coerceAtLeast(30.0)  // At least 2x fair share or 30%
+        val hogThreshold = (fairShare * 2.0).coerceAtLeast(30.0) // At least 2x fair share or 30%
 
-        return clients.mapNotNull { client ->
-            val percent = (client.airtimeMs.toDouble() / totalAirtime) * 100.0
+        return clients
+            .mapNotNull { client ->
+                val percent = (client.airtimeMs.toDouble() / totalAirtime) * 100.0
 
-            if (percent > hogThreshold) {
-                val reason = determineHogReason(client)
-                AirtimeHog(
-                    macAddress = client.macAddress,
-                    airtimePercent = percent,
-                    expectedPercent = fairShare,
-                    excessPercent = percent - fairShare,
-                    reason = reason
-                )
-            } else null
-        }.sortedByDescending { it.airtimePercent }
+                if (percent > hogThreshold) {
+                    val reason = determineHogReason(client)
+                    AirtimeHog(
+                        macAddress = client.macAddress,
+                        airtimePercent = percent,
+                        expectedPercent = fairShare,
+                        excessPercent = percent - fairShare,
+                        reason = reason,
+                    )
+                } else {
+                    null
+                }
+            }.sortedByDescending { it.airtimePercent }
     }
 
-    private fun determineHogReason(client: ClientAirtimeMetrics): AirtimeHogReason {
-        return when {
+    private fun determineHogReason(client: ClientAirtimeMetrics): AirtimeHogReason =
+        when {
             client.isLegacyDevice -> AirtimeHogReason.LEGACY_DEVICE
             client.signalStrength < -75 -> AirtimeHogReason.INEFFICIENT_CLIENT
             client.dataRate < 50.0 -> AirtimeHogReason.MISCONFIGURED
             else -> AirtimeHogReason.HIGH_TRAFFIC
         }
-    }
 
-    private fun isQueueConfiguredCorrectly(queue: String, params: QueueParams): Boolean {
+    private fun isQueueConfiguredCorrectly(
+        queue: String,
+        params: QueueParams,
+    ): Boolean {
         // Validate against IEEE 802.11e recommended values
         return when (queue) {
             "AC_VO" -> params.aifsn == 2 && params.cwMin in 3..7
@@ -239,17 +235,22 @@ class QosAnalyzer {
         }
     }
 
-    private fun determinePriority(client: ClientMetrics, goals: QosGoals): ClientPriority {
-        return when {
+    private fun determinePriority(
+        client: ClientMetrics,
+        goals: QosGoals,
+    ): ClientPriority =
+        when {
             client.hasVoipTraffic && goals.voicePriority >= 3 -> ClientPriority.HIGH
             client.hasVideoTraffic && goals.videoPriority >= 2 -> ClientPriority.HIGH
             client.isLegacyDevice -> ClientPriority.LOW
             client.signalStrength < -75 -> ClientPriority.LOW
             else -> ClientPriority.MEDIUM
         }
-    }
 
-    private fun buildFairnessRecommendations(gini: Double, hogs: List<AirtimeHog>): List<String> {
+    private fun buildFairnessRecommendations(
+        gini: Double,
+        hogs: List<AirtimeHog>,
+    ): List<String> {
         val recommendations = mutableListOf<String>()
 
         when {
@@ -260,7 +261,10 @@ class QosAnalyzer {
         hogs.forEach { hog ->
             when (hog.reason) {
                 AirtimeHogReason.LEGACY_DEVICE -> recommendations.add("Upgrade or isolate legacy 802.11b/g device ${hog.macAddress}")
-                AirtimeHogReason.INEFFICIENT_CLIENT -> recommendations.add("Improve signal for client ${hog.macAddress} (move closer or add AP)")
+                AirtimeHogReason.INEFFICIENT_CLIENT ->
+                    recommendations.add(
+                        "Improve signal for client ${hog.macAddress} (move closer or add AP)",
+                    )
                 AirtimeHogReason.MISCONFIGURED -> recommendations.add("Check band steering for client ${hog.macAddress}")
                 AirtimeHogReason.HIGH_TRAFFIC -> recommendations.add("Client ${hog.macAddress} has legitimate high usage")
             }
@@ -269,13 +273,12 @@ class QosAnalyzer {
         return recommendations
     }
 
-    private fun buildPrioritizationRationale(goals: QosGoals): String {
-        return when {
+    private fun buildPrioritizationRationale(goals: QosGoals): String =
+        when {
             goals.voicePriority >= 3 -> "Prioritizing voice traffic for VoIP quality"
             goals.videoPriority >= 3 -> "Prioritizing video traffic for streaming quality"
             else -> "Balanced prioritization for general traffic"
         }
-    }
 }
 
 // ========================================
@@ -287,34 +290,42 @@ data class WmmConfiguration(
     val videoEnabled: Boolean,
     val bestEffortEnabled: Boolean,
     val backgroundEnabled: Boolean,
-    val queueParameters: Map<String, QueueParams>
+    val queueParameters: Map<String, QueueParams>,
 )
 
 data class QueueParams(
     val cwMin: Int,
     val cwMax: Int,
     val aifsn: Int,
-    val txopLimit: Int
+    val txopLimit: Int,
 )
 
 data class TrafficProfile(
     val voicePercent: Double,
     val videoPercent: Double,
     val dataPercent: Double,
-    val backgroundPercent: Double
+    val backgroundPercent: Double,
 )
 
 data class WmmAnalysisResult(
     val isEffective: Boolean,
     val issues: List<WmmIssue>,
     val recommendations: List<String>,
-    val expectedImprovement: String
+    val expectedImprovement: String,
 )
 
 sealed class WmmIssue {
-    data class QueueMisconfigured(val queue: String, val problem: String) : WmmIssue()
-    data class InsufficientPrioritization(val trafficType: String) : WmmIssue()
+    data class QueueMisconfigured(
+        val queue: String,
+        val problem: String,
+    ) : WmmIssue()
+
+    data class InsufficientPrioritization(
+        val trafficType: String,
+    ) : WmmIssue()
+
     object WmmDisabled : WmmIssue()
+
     object ClientsNotWmmCapable : WmmIssue()
 }
 
@@ -323,7 +334,7 @@ data class ClientAirtimeMetrics(
     val airtimeMs: Long,
     val isLegacyDevice: Boolean,
     val signalStrength: Int,
-    val dataRate: Double
+    val dataRate: Double,
 )
 
 data class AirtimeFairnessResult(
@@ -331,7 +342,7 @@ data class AirtimeFairnessResult(
     val fairnessScore: Double,
     val airtimeHogs: List<AirtimeHog>,
     val isFair: Boolean,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 )
 
 data class AirtimeHog(
@@ -339,14 +350,14 @@ data class AirtimeHog(
     val airtimePercent: Double,
     val expectedPercent: Double,
     val excessPercent: Double,
-    val reason: AirtimeHogReason
+    val reason: AirtimeHogReason,
 )
 
 enum class AirtimeHogReason {
     LEGACY_DEVICE,
     HIGH_TRAFFIC,
     INEFFICIENT_CLIENT,
-    MISCONFIGURED
+    MISCONFIGURED,
 }
 
 data class ClientMetrics(
@@ -354,16 +365,18 @@ data class ClientMetrics(
     val signalStrength: Int,
     val hasVoipTraffic: Boolean,
     val hasVideoTraffic: Boolean,
-    val isLegacyDevice: Boolean
+    val isLegacyDevice: Boolean,
 )
 
 data class PrioritizationRecommendations(
     val highPriority: List<String>,
     val mediumPriority: List<String>,
     val lowPriority: List<String>,
-    val rationale: String
+    val rationale: String,
 )
 
 enum class ClientPriority {
-    HIGH, MEDIUM, LOW
+    HIGH,
+    MEDIUM,
+    LOW,
 }

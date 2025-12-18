@@ -47,7 +47,7 @@ import io.lamco.netkit.advisor.model.*
  * @see BestPracticeValidationResult
  */
 class BestPracticesKnowledgeBase(
-    private val rules: List<BestPracticeRule>
+    private val rules: List<BestPracticeRule>,
 ) {
     init {
         require(rules.isNotEmpty()) { "Knowledge base must contain at least one rule" }
@@ -67,12 +67,11 @@ class BestPracticesKnowledgeBase(
     fun getBestPractices(
         networkType: NetworkType,
         vendor: RouterVendor? = null,
-        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6
-    ): List<BestPracticeRule> {
-        return rules
+        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6,
+    ): List<BestPracticeRule> =
+        rules
             .filter { it.appliesTo(networkType, vendor, wifiGeneration) }
             .sortedByDescending { it.severity.priority }
-    }
 
     /**
      * Get rules by category
@@ -83,15 +82,16 @@ class BestPracticesKnowledgeBase(
      */
     fun getRulesByCategory(
         category: RuleCategory,
-        networkType: NetworkType? = null
+        networkType: NetworkType? = null,
     ): List<BestPracticeRule> {
         var filtered = rules.filter { it.category == category }
 
         if (networkType != null) {
-            filtered = filtered.filter {
-                it.applicability.networkTypes.isEmpty() ||
-                networkType in it.applicability.networkTypes
-            }
+            filtered =
+                filtered.filter {
+                    it.applicability.networkTypes.isEmpty() ||
+                        networkType in it.applicability.networkTypes
+                }
         }
 
         return filtered.sortedByDescending { it.severity.priority }
@@ -108,11 +108,10 @@ class BestPracticesKnowledgeBase(
      */
     fun getCriticalRules(
         networkType: NetworkType,
-        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6
-    ): List<BestPracticeRule> {
-        return getBestPractices(networkType, wifiGeneration = wifiGeneration)
+        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6,
+    ): List<BestPracticeRule> =
+        getBestPractices(networkType, wifiGeneration = wifiGeneration)
             .filter { it.severity == RuleSeverity.MUST }
-    }
 
     /**
      * Get recommended rules (SHOULD severity)
@@ -126,11 +125,10 @@ class BestPracticesKnowledgeBase(
      */
     fun getRecommendedRules(
         networkType: NetworkType,
-        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6
-    ): List<BestPracticeRule> {
-        return getBestPractices(networkType, wifiGeneration = wifiGeneration)
+        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6,
+    ): List<BestPracticeRule> =
+        getBestPractices(networkType, wifiGeneration = wifiGeneration)
             .filter { it.severity == RuleSeverity.SHOULD }
-    }
 
     /**
      * Get optional rules (MAY severity)
@@ -143,11 +141,10 @@ class BestPracticesKnowledgeBase(
      */
     fun getOptionalRules(
         networkType: NetworkType,
-        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6
-    ): List<BestPracticeRule> {
-        return getBestPractices(networkType, wifiGeneration = wifiGeneration)
+        wifiGeneration: WifiGeneration = WifiGeneration.WIFI_6,
+    ): List<BestPracticeRule> =
+        getBestPractices(networkType, wifiGeneration = wifiGeneration)
             .filter { it.severity == RuleSeverity.MAY }
-    }
 
     /**
      * Validate configuration against best practices
@@ -159,11 +156,12 @@ class BestPracticesKnowledgeBase(
      * @return Validation result with violations and score
      */
     fun validate(context: NetworkContext): BestPracticeValidationResult {
-        val applicableRules = getBestPractices(
-            networkType = context.networkType,
-            vendor = context.vendor,
-            wifiGeneration = context.wifiGeneration
-        )
+        val applicableRules =
+            getBestPractices(
+                networkType = context.networkType,
+                vendor = context.vendor,
+                wifiGeneration = context.wifiGeneration,
+            )
 
         val violations = mutableListOf<RuleViolation>()
 
@@ -176,18 +174,19 @@ class BestPracticesKnowledgeBase(
 
         val totalWeight = applicableRules.sumOf { it.severity.priority }
         val violationWeight = violations.sumOf { it.rule.severity.priority }
-        val complianceScore = if (totalWeight > 0) {
-            ((totalWeight - violationWeight).toDouble() / totalWeight) * 100.0
-        } else {
-            100.0
-        }
+        val complianceScore =
+            if (totalWeight > 0) {
+                ((totalWeight - violationWeight).toDouble() / totalWeight) * 100.0
+            } else {
+                100.0
+            }
 
         return BestPracticeValidationResult(
             networkType = context.networkType,
             totalRulesChecked = applicableRules.size,
             violations = violations,
             complianceScore = complianceScore,
-            complianceLevel = determineComplianceLevel(complianceScore)
+            complianceLevel = determineComplianceLevel(complianceScore),
         )
     }
 
@@ -199,25 +198,28 @@ class BestPracticesKnowledgeBase(
      * @param rule Custom best practice rule
      * @return New knowledge base with added rule
      */
-    fun addCustomRule(rule: BestPracticeRule): BestPracticesKnowledgeBase {
-        return BestPracticesKnowledgeBase(rules + rule)
-    }
+    fun addCustomRule(rule: BestPracticeRule): BestPracticesKnowledgeBase = BestPracticesKnowledgeBase(rules + rule)
 
     /**
      * Get summary statistics about the knowledge base
      */
-    fun getSummary(): KnowledgeBaseSummary {
-        return KnowledgeBaseSummary(
+    fun getSummary(): KnowledgeBaseSummary =
+        KnowledgeBaseSummary(
             totalRules = rules.size,
-            rulesByCategory = rules.groupBy { it.category }
-                .mapValues { it.value.size },
-            rulesBySeverity = rules.groupBy { it.severity }
-                .mapValues { it.value.size },
-            networkTypeCoverage = rules.flatMap { it.applicability.networkTypes }
-                .distinct()
-                .size
+            rulesByCategory =
+                rules
+                    .groupBy { it.category }
+                    .mapValues { it.value.size },
+            rulesBySeverity =
+                rules
+                    .groupBy { it.severity }
+                    .mapValues { it.value.size },
+            networkTypeCoverage =
+                rules
+                    .flatMap { it.applicability.networkTypes }
+                    .distinct()
+                    .size,
         )
-    }
 
     // ========================================
     // Private Helper Methods
@@ -228,92 +230,103 @@ class BestPracticesKnowledgeBase(
      */
     private fun checkRuleViolation(
         rule: BestPracticeRule,
-        context: NetworkContext
+        context: NetworkContext,
     ): RuleViolation? {
-        val isViolated = when (rule.category) {
-            RuleCategory.SECURITY -> checkSecurityRule(rule, context)
-            RuleCategory.PERFORMANCE -> checkPerformanceRule(rule, context)
-            RuleCategory.RELIABILITY -> checkReliabilityRule(rule, context)
-            RuleCategory.CONFIGURATION -> checkConfigurationRule(rule, context)
-            RuleCategory.COMPLIANCE -> checkComplianceRule(rule, context)
-        }
+        val isViolated =
+            when (rule.category) {
+                RuleCategory.SECURITY -> checkSecurityRule(rule, context)
+                RuleCategory.PERFORMANCE -> checkPerformanceRule(rule, context)
+                RuleCategory.RELIABILITY -> checkReliabilityRule(rule, context)
+                RuleCategory.CONFIGURATION -> checkConfigurationRule(rule, context)
+                RuleCategory.COMPLIANCE -> checkComplianceRule(rule, context)
+            }
 
         return if (isViolated) {
             RuleViolation(
                 rule = rule,
                 description = "Violation: ${rule.title}",
-                recommendation = rule.description
+                recommendation = rule.description,
             )
         } else {
             null
         }
     }
 
-    private fun checkSecurityRule(rule: BestPracticeRule, context: NetworkContext): Boolean {
-        return when {
+    private fun checkSecurityRule(
+        rule: BestPracticeRule,
+        context: NetworkContext,
+    ): Boolean =
+        when {
             rule.title.contains("WPA3", ignoreCase = true) ->
                 !context.securityType.contains("WPA3", ignoreCase = true)
 
             rule.title.contains("WPA2", ignoreCase = true) ->
                 !context.securityType.contains("WPA2", ignoreCase = true) &&
-                !context.securityType.contains("WPA3", ignoreCase = true)
+                    !context.securityType.contains("WPA3", ignoreCase = true)
 
             rule.title.contains("Open", ignoreCase = true) && rule.severity == RuleSeverity.MUST ->
                 context.securityType.contains("Open", ignoreCase = true)
 
-            else -> false  // Unknown rule, assume compliant
+            else -> false // Unknown rule, assume compliant
         }
-    }
 
-    private fun checkPerformanceRule(rule: BestPracticeRule, context: NetworkContext): Boolean {
-        return when {
+    private fun checkPerformanceRule(
+        rule: BestPracticeRule,
+        context: NetworkContext,
+    ): Boolean =
+        when {
             rule.title.contains("5 GHz", ignoreCase = true) ->
                 context.band5GHzEnabled == false
 
             rule.title.contains("channel width", ignoreCase = true) ->
-                context.channelWidth != null && context.channelWidth < 40  // Example threshold
+                context.channelWidth != null && context.channelWidth < 40 // Example threshold
 
             rule.title.contains("2.4 GHz.*high density", ignoreCase = true) ->
                 context.networkType == NetworkType.HIGH_DENSITY && context.band24GHzEnabled == true
 
             else -> false
         }
-    }
 
-    private fun checkReliabilityRule(rule: BestPracticeRule, context: NetworkContext): Boolean {
-        return when {
+    private fun checkReliabilityRule(
+        rule: BestPracticeRule,
+        context: NetworkContext,
+    ): Boolean =
+        when {
             rule.title.contains("redundant AP", ignoreCase = true) ->
                 (context.networkType == NetworkType.ENTERPRISE || context.networkType == NetworkType.MEDIUM_BUSINESS) &&
-                context.apCount < 2
+                    context.apCount < 2
 
             else -> false
         }
+
+    private fun checkConfigurationRule(
+        rule: BestPracticeRule,
+        context: NetworkContext,
+    ): Boolean {
+        return false // Placeholder - most config rules need specific context
     }
 
-    private fun checkConfigurationRule(rule: BestPracticeRule, context: NetworkContext): Boolean {
-        return false  // Placeholder - most config rules need specific context
-    }
-
-    private fun checkComplianceRule(rule: BestPracticeRule, context: NetworkContext): Boolean {
-        return when {
+    private fun checkComplianceRule(
+        rule: BestPracticeRule,
+        context: NetworkContext,
+    ): Boolean =
+        when {
             rule.title.contains("PCI", ignoreCase = true) ->
                 context.networkType == NetworkType.ENTERPRISE &&
-                !context.securityType.contains("WPA3", ignoreCase = true) &&
-                !context.securityType.contains("Enterprise", ignoreCase = true)
+                    !context.securityType.contains("WPA3", ignoreCase = true) &&
+                    !context.securityType.contains("Enterprise", ignoreCase = true)
 
             else -> false
         }
-    }
 
-    private fun determineComplianceLevel(score: Double): ComplianceLevel {
-        return when {
+    private fun determineComplianceLevel(score: Double): ComplianceLevel =
+        when {
             score >= 95.0 -> ComplianceLevel.EXCELLENT
             score >= 80.0 -> ComplianceLevel.GOOD
             score >= 60.0 -> ComplianceLevel.FAIR
             score >= 40.0 -> ComplianceLevel.POOR
             else -> ComplianceLevel.FAILING
         }
-    }
 
     companion object {
         /**
@@ -324,9 +337,7 @@ class BestPracticesKnowledgeBase(
          *
          * @return Knowledge base with comprehensive ruleset
          */
-        fun create(): BestPracticesKnowledgeBase {
-            return BestPracticesKnowledgeBase(DEFAULT_RULES)
-        }
+        fun create(): BestPracticesKnowledgeBase = BestPracticesKnowledgeBase(DEFAULT_RULES)
 
         /**
          * Create knowledge base for specific compliance standard
@@ -335,11 +346,12 @@ class BestPracticesKnowledgeBase(
          * @return Knowledge base with compliance-focused rules
          */
         fun forCompliance(standard: ComplianceStandard): BestPracticesKnowledgeBase {
-            val complianceRules = when (standard) {
-                ComplianceStandard.PCI_DSS -> PCI_DSS_RULES
-                ComplianceStandard.HIPAA -> HIPAA_RULES
-                ComplianceStandard.GDPR -> GDPR_RULES
-            }
+            val complianceRules =
+                when (standard) {
+                    ComplianceStandard.PCI_DSS -> PCI_DSS_RULES
+                    ComplianceStandard.HIPAA -> HIPAA_RULES
+                    ComplianceStandard.GDPR -> GDPR_RULES
+                }
             return BestPracticesKnowledgeBase(DEFAULT_RULES + complianceRules)
         }
     }
@@ -365,7 +377,7 @@ data class NetworkContext(
     val band24GHzEnabled: Boolean? = null,
     val band5GHzEnabled: Boolean? = null,
     val channelWidth: Int? = null,
-    val apCount: Int = 1
+    val apCount: Int = 1,
 )
 
 /**
@@ -382,7 +394,7 @@ data class BestPracticeValidationResult(
     val totalRulesChecked: Int,
     val violations: List<RuleViolation>,
     val complianceScore: Double,
-    val complianceLevel: ComplianceLevel
+    val complianceLevel: ComplianceLevel,
 ) {
     /**
      * Whether configuration is fully compliant (no violations)
@@ -400,14 +412,15 @@ data class BestPracticeValidationResult(
      * Summary of validation result
      */
     val summary: String
-        get() = buildString {
-            append("$networkType validation: ")
-            if (isCompliant) {
-                append("COMPLIANT")
-            } else {
-                append("${violations.size} violation(s) - $complianceLevel (${complianceScore.toInt()}%)")
+        get() =
+            buildString {
+                append("$networkType validation: ")
+                if (isCompliant) {
+                    append("COMPLIANT")
+                } else {
+                    append("${violations.size} violation(s) - $complianceLevel (${complianceScore.toInt()}%)")
+                }
             }
-        }
 }
 
 /**
@@ -420,7 +433,7 @@ data class BestPracticeValidationResult(
 data class RuleViolation(
     val rule: BestPracticeRule,
     val description: String,
-    val recommendation: String
+    val recommendation: String,
 )
 
 /**
@@ -440,7 +453,9 @@ enum class ComplianceLevel {
     POOR,
 
     /** Failing compliance (<40%) */
-    FAILING;
+    FAILING,
+
+    ;
 
     /**
      * Display name
@@ -461,7 +476,7 @@ data class KnowledgeBaseSummary(
     val totalRules: Int,
     val rulesByCategory: Map<RuleCategory, Int>,
     val rulesBySeverity: Map<RuleSeverity, Int>,
-    val networkTypeCoverage: Int
+    val networkTypeCoverage: Int,
 )
 
 /**
@@ -475,17 +490,20 @@ enum class ComplianceStandard {
     HIPAA,
 
     /** General Data Protection Regulation */
-    GDPR;
+    GDPR,
+
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            PCI_DSS -> "PCI-DSS"
-            HIPAA -> "HIPAA"
-            GDPR -> "GDPR"
-        }
+        get() =
+            when (this) {
+                PCI_DSS -> "PCI-DSS"
+                HIPAA -> "HIPAA"
+                GDPR -> "GDPR"
+            }
 }
 
 // ========================================
@@ -495,128 +513,139 @@ enum class ComplianceStandard {
 /**
  * Default best practice rules
  */
-private val DEFAULT_RULES = listOf(
-    // Security rules
-    BestPracticeRule(
-        category = RuleCategory.SECURITY,
-        title = "Use WPA3 or WPA2-Enterprise for enterprise networks",
-        description = "Enterprise networks must use WPA3-Enterprise or at minimum WPA2-Enterprise with 802.1X authentication",
-        rationale = "Personal/PSK authentication is insufficient for enterprise security. Shared passwords cannot be revoked per-user.",
-        severity = RuleSeverity.MUST,
-        source = "IEEE 802.11-2020, WiFi Alliance WPA3 Specification",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS)
-        )
-    ),
-
-    BestPracticeRule(
-        category = RuleCategory.SECURITY,
-        title = "Disable WEP and WPA1",
-        description = "WEP and WPA1 (TKIP) must not be used due to known security vulnerabilities",
-        rationale = "WEP can be cracked in minutes. WPA1/TKIP is vulnerable to dictionary attacks and has been deprecated since 2012.",
-        severity = RuleSeverity.MUST,
-        source = "WiFi Alliance, IEEE 802.11-2020",
-        applicability = RuleApplicability()  // Universal
-    ),
-
-    BestPracticeRule(
-        category = RuleCategory.SECURITY,
-        title = "Enable WPA3 for new deployments",
-        description = "Use WPA3-Personal or WPA3-Enterprise for new network deployments",
-        rationale = "WPA3 provides enhanced security with SAE authentication, forward secrecy, and stronger encryption",
-        severity = RuleSeverity.SHOULD,
-        source = "WiFi Alliance WPA3 Specification",
-        applicability = RuleApplicability(
-            wifiGenerations = listOf(WifiGeneration.WIFI_6, WifiGeneration.WIFI_6E, WifiGeneration.WIFI_7)
-        )
-    ),
-
-    // Performance rules
-    BestPracticeRule(
-        category = RuleCategory.PERFORMANCE,
-        title = "Disable 2.4 GHz for high-density deployments",
-        description = "In high-density environments, disable 2.4 GHz and use only 5/6 GHz bands",
-        rationale = "2.4 GHz has only 3 non-overlapping channels and suffers from interference. 5/6 GHz provides more channels and better capacity.",
-        severity = RuleSeverity.SHOULD,
-        source = "Cisco High-Density WiFi Design Guide",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.HIGH_DENSITY, NetworkType.ENTERPRISE)
-        )
-    ),
-
-    BestPracticeRule(
-        category = RuleCategory.PERFORMANCE,
-        title = "Use 20 MHz channels in high-density",
-        description = "Use 20 MHz channel width in high-density deployments to maximize channel availability",
-        rationale = "Wider channels reduce the number of available non-overlapping channels, increasing interference in high-density scenarios",
-        severity = RuleSeverity.SHOULD,
-        source = "IEEE 802.11ac/ax Design Recommendations",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.HIGH_DENSITY)
-        )
-    ),
-
-    // Reliability rules
-    BestPracticeRule(
-        category = RuleCategory.RELIABILITY,
-        title = "Deploy redundant APs for enterprise",
-        description = "Enterprise networks should have overlapping AP coverage for seamless roaming",
-        rationale = "Redundant coverage prevents dead zones and enables fast roaming for mobile clients",
-        severity = RuleSeverity.SHOULD,
-        source = "Industry Best Practice",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS)
-        )
+private val DEFAULT_RULES =
+    listOf(
+        // Security rules
+        BestPracticeRule(
+            category = RuleCategory.SECURITY,
+            title = "Use WPA3 or WPA2-Enterprise for enterprise networks",
+            description = "Enterprise networks must use WPA3-Enterprise or at minimum WPA2-Enterprise with 802.1X authentication",
+            rationale = "Personal/PSK authentication is insufficient for enterprise security. Shared passwords cannot be revoked per-user.",
+            severity = RuleSeverity.MUST,
+            source = "IEEE 802.11-2020, WiFi Alliance WPA3 Specification",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS),
+                ),
+        ),
+        BestPracticeRule(
+            category = RuleCategory.SECURITY,
+            title = "Disable WEP and WPA1",
+            description = "WEP and WPA1 (TKIP) must not be used due to known security vulnerabilities",
+            rationale = "WEP can be cracked in minutes. WPA1/TKIP is vulnerable to dictionary attacks and has been deprecated since 2012.",
+            severity = RuleSeverity.MUST,
+            source = "WiFi Alliance, IEEE 802.11-2020",
+            applicability = RuleApplicability(), // Universal
+        ),
+        BestPracticeRule(
+            category = RuleCategory.SECURITY,
+            title = "Enable WPA3 for new deployments",
+            description = "Use WPA3-Personal or WPA3-Enterprise for new network deployments",
+            rationale = "WPA3 provides enhanced security with SAE authentication, forward secrecy, and stronger encryption",
+            severity = RuleSeverity.SHOULD,
+            source = "WiFi Alliance WPA3 Specification",
+            applicability =
+                RuleApplicability(
+                    wifiGenerations = listOf(WifiGeneration.WIFI_6, WifiGeneration.WIFI_6E, WifiGeneration.WIFI_7),
+                ),
+        ),
+        // Performance rules
+        BestPracticeRule(
+            category = RuleCategory.PERFORMANCE,
+            title = "Disable 2.4 GHz for high-density deployments",
+            description = "In high-density environments, disable 2.4 GHz and use only 5/6 GHz bands",
+            rationale =
+                "2.4 GHz has only 3 non-overlapping channels and suffers from interference. " +
+                    "5/6 GHz provides more channels and better capacity.",
+            severity = RuleSeverity.SHOULD,
+            source = "Cisco High-Density WiFi Design Guide",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.HIGH_DENSITY, NetworkType.ENTERPRISE),
+                ),
+        ),
+        BestPracticeRule(
+            category = RuleCategory.PERFORMANCE,
+            title = "Use 20 MHz channels in high-density",
+            description = "Use 20 MHz channel width in high-density deployments to maximize channel availability",
+            rationale =
+                "Wider channels reduce the number of available non-overlapping channels, " +
+                    "increasing interference in high-density scenarios",
+            severity = RuleSeverity.SHOULD,
+            source = "IEEE 802.11ac/ax Design Recommendations",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.HIGH_DENSITY),
+                ),
+        ),
+        // Reliability rules
+        BestPracticeRule(
+            category = RuleCategory.RELIABILITY,
+            title = "Deploy redundant APs for enterprise",
+            description = "Enterprise networks should have overlapping AP coverage for seamless roaming",
+            rationale = "Redundant coverage prevents dead zones and enables fast roaming for mobile clients",
+            severity = RuleSeverity.SHOULD,
+            source = "Industry Best Practice",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS),
+                ),
+        ),
     )
-)
 
 /**
  * PCI-DSS compliance rules
  */
-private val PCI_DSS_RULES = listOf(
-    BestPracticeRule(
-        category = RuleCategory.COMPLIANCE,
-        title = "PCI-DSS: Use strong encryption (WPA2/WPA3)",
-        description = "Networks handling payment card data must use WPA2-Enterprise or WPA3-Enterprise",
-        rationale = "PCI-DSS Requirement 4.1: Use strong cryptography and security protocols to safeguard sensitive cardholder data",
-        severity = RuleSeverity.MUST,
-        source = "PCI-DSS v4.0 Requirement 4.1",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS, NetworkType.SMALL_OFFICE)
-        )
+private val PCI_DSS_RULES =
+    listOf(
+        BestPracticeRule(
+            category = RuleCategory.COMPLIANCE,
+            title = "PCI-DSS: Use strong encryption (WPA2/WPA3)",
+            description = "Networks handling payment card data must use WPA2-Enterprise or WPA3-Enterprise",
+            rationale = "PCI-DSS Requirement 4.1: Use strong cryptography and security protocols to safeguard sensitive cardholder data",
+            severity = RuleSeverity.MUST,
+            source = "PCI-DSS v4.0 Requirement 4.1",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS, NetworkType.SMALL_OFFICE),
+                ),
+        ),
     )
-)
 
 /**
  * HIPAA compliance rules
  */
-private val HIPAA_RULES = listOf(
-    BestPracticeRule(
-        category = RuleCategory.COMPLIANCE,
-        title = "HIPAA: Encrypt PHI in transit",
-        description = "Networks transmitting Protected Health Information must use WPA3-Enterprise or WPA2-Enterprise",
-        rationale = "HIPAA Security Rule requires encryption of ePHI during transmission",
-        severity = RuleSeverity.MUST,
-        source = "HIPAA Security Rule 45 CFR § 164.312(e)(1)",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.ENTERPRISE)
-        )
+private val HIPAA_RULES =
+    listOf(
+        BestPracticeRule(
+            category = RuleCategory.COMPLIANCE,
+            title = "HIPAA: Encrypt PHI in transit",
+            description = "Networks transmitting Protected Health Information must use WPA3-Enterprise or WPA2-Enterprise",
+            rationale = "HIPAA Security Rule requires encryption of ePHI during transmission",
+            severity = RuleSeverity.MUST,
+            source = "HIPAA Security Rule 45 CFR § 164.312(e)(1)",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.ENTERPRISE),
+                ),
+        ),
     )
-)
 
 /**
  * GDPR compliance rules
  */
-private val GDPR_RULES = listOf(
-    BestPracticeRule(
-        category = RuleCategory.COMPLIANCE,
-        title = "GDPR: Secure personal data transmission",
-        description = "Networks handling personal data must implement appropriate technical security measures",
-        rationale = "GDPR Article 32 requires appropriate security measures including encryption of personal data",
-        severity = RuleSeverity.MUST,
-        source = "GDPR Article 32",
-        applicability = RuleApplicability(
-            networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS)
-        )
+private val GDPR_RULES =
+    listOf(
+        BestPracticeRule(
+            category = RuleCategory.COMPLIANCE,
+            title = "GDPR: Secure personal data transmission",
+            description = "Networks handling personal data must implement appropriate technical security measures",
+            rationale = "GDPR Article 32 requires appropriate security measures including encryption of personal data",
+            severity = RuleSeverity.MUST,
+            source = "GDPR Article 32",
+            applicability =
+                RuleApplicability(
+                    networkTypes = listOf(NetworkType.ENTERPRISE, NetworkType.MEDIUM_BUSINESS),
+                ),
+        ),
     )
-)

@@ -352,11 +352,9 @@ class StandardMcsRateTable : McsRateTable {
 }
 
 /**
- * Helper extensions for MCS rate calculations
- */
-
-/**
  * Calculate effective throughput accounting for protocol overhead
+ *
+ * Helper function for MCS rate calculations.
  *
  * @param phyRateMbps PHY layer rate
  * @param standard WiFi standard (affects overhead)

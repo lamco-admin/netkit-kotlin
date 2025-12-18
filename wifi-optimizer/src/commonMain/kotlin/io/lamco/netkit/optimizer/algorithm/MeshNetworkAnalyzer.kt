@@ -24,7 +24,6 @@ import io.lamco.netkit.optimizer.model.MeshTopology
  * - Vendor mesh systems (Google WiFi, eero, Orbi, Deco, etc.)
  */
 class MeshNetworkAnalyzer {
-
     /**
      * Analyze mesh backhaul quality
      *
@@ -40,9 +39,7 @@ class MeshNetworkAnalyzer {
      * @param meshTopology Complete mesh topology with nodes and links
      * @return Backhaul analysis with bottlenecks and recommendations
      */
-    fun analyzeBackhaul(
-        meshTopology: MeshTopology
-    ): BackhaulAnalysisResult {
+    fun analyzeBackhaul(meshTopology: MeshTopology): BackhaulAnalysisResult {
         require(meshTopology.nodes.isNotEmpty()) {
             "Cannot analyze empty mesh topology"
         }
@@ -51,11 +48,12 @@ class MeshNetworkAnalyzer {
 
         val bottlenecks = identifyBottlenecks(meshTopology)
 
-        val recommendations = buildBackhaulRecommendations(
-            topology = meshTopology,
-            quality = overallQuality,
-            bottlenecks = bottlenecks
-        )
+        val recommendations =
+            buildBackhaulRecommendations(
+                topology = meshTopology,
+                quality = overallQuality,
+                bottlenecks = bottlenecks,
+            )
 
         return BackhaulAnalysisResult(
             quality = overallQuality,
@@ -63,7 +61,7 @@ class MeshNetworkAnalyzer {
             recommendations = recommendations,
             wiredPercent = meshTopology.wiredBackhaulPercent,
             averageLinkQuality = meshTopology.averageLinkQuality,
-            maxHopCount = meshTopology.maxHopCount
+            maxHopCount = meshTopology.maxHopCount,
         )
     }
 
@@ -80,9 +78,7 @@ class MeshNetworkAnalyzer {
      * @param meshTopology Mesh topology to analyze
      * @return List of detected loops
      */
-    fun detectLoops(
-        meshTopology: MeshTopology
-    ): List<MeshLoop> {
+    fun detectLoops(meshTopology: MeshTopology): List<MeshLoop> {
         val loops = mutableListOf<MeshLoop>()
 
         val adjacency = buildAdjacencyList(meshTopology)
@@ -92,13 +88,14 @@ class MeshNetworkAnalyzer {
 
         for (node in meshTopology.nodes) {
             if (node.bssid !in visited) {
-                val cycleNodes = detectCycleDFS(
-                    current = node.bssid,
-                    visited = visited,
-                    recursionStack = recursionStack,
-                    adjacency = adjacency,
-                    parent = null
-                )
+                val cycleNodes =
+                    detectCycleDFS(
+                        current = node.bssid,
+                        visited = visited,
+                        recursionStack = recursionStack,
+                        adjacency = adjacency,
+                        parent = null,
+                    )
 
                 if (cycleNodes.isNotEmpty()) {
                     loops.add(
@@ -106,8 +103,8 @@ class MeshNetworkAnalyzer {
                             nodes = cycleNodes,
                             type = MeshLoopType.SIMPLE_CYCLE,
                             severity = assessLoopSeverity(cycleNodes.size),
-                            recommendation = "Review topology - cycle detected: ${cycleNodes.joinToString(" → ")}"
-                        )
+                            recommendation = "Review topology - cycle detected: ${cycleNodes.joinToString(" → ")}",
+                        ),
                     )
                 }
             }
@@ -131,43 +128,50 @@ class MeshNetworkAnalyzer {
      */
     fun assessSelfHealing(
         meshTopology: MeshTopology,
-        failureScenarios: List<FailureScenario>
+        failureScenarios: List<FailureScenario>,
     ): SelfHealingAssessment {
         if (failureScenarios.isEmpty()) {
             // Default scenarios: single node failure, single link failure
-            val defaultScenarios = listOf(
-                FailureScenario.SingleNodeFailure(meshTopology.nodes.firstOrNull()?.bssid ?: ""),
-                FailureScenario.SingleLinkFailure(meshTopology.links.firstOrNull()?.sourceBssid ?: "",
-                    meshTopology.links.firstOrNull()?.targetBssid ?: "")
-            )
+            val defaultScenarios =
+                listOf(
+                    FailureScenario.SingleNodeFailure(meshTopology.nodes.firstOrNull()?.bssid ?: ""),
+                    FailureScenario.SingleLinkFailure(
+                        meshTopology.links.firstOrNull()?.sourceBssid ?: "",
+                        meshTopology.links.firstOrNull()?.targetBssid ?: "",
+                    ),
+                )
             return assessSelfHealing(meshTopology, defaultScenarios)
         }
 
-        val results = failureScenarios.map { scenario ->
-            testFailureScenario(meshTopology, scenario)
-        }
+        val results =
+            failureScenarios.map { scenario ->
+                testFailureScenario(meshTopology, scenario)
+            }
 
         val canRecover = results.all { it.canRecover }
         val avgRecoveryTime = results.mapNotNull { it.estimatedRecoveryTime }.average()
         val avgServiceImpact = results.map { it.serviceImpact }.average()
 
-        val capability = when {
-            !canRecover -> SelfHealingCapability.NONE
-            avgServiceImpact < 0.2 -> SelfHealingCapability.EXCELLENT
-            avgServiceImpact < 0.5 -> SelfHealingCapability.GOOD
-            else -> SelfHealingCapability.LIMITED
-        }
+        val capability =
+            when {
+                !canRecover -> SelfHealingCapability.NONE
+                avgServiceImpact < 0.2 -> SelfHealingCapability.EXCELLENT
+                avgServiceImpact < 0.5 -> SelfHealingCapability.GOOD
+                else -> SelfHealingCapability.LIMITED
+            }
 
         return SelfHealingAssessment(
             capability = capability,
-            canRecoverFromSingleNodeFailure = results.any {
-                it.scenario is FailureScenario.SingleNodeFailure && it.canRecover
-            },
-            canRecoverFromSingleLinkFailure = results.any {
-                it.scenario is FailureScenario.SingleLinkFailure && it.canRecover
-            },
+            canRecoverFromSingleNodeFailure =
+                results.any {
+                    it.scenario is FailureScenario.SingleNodeFailure && it.canRecover
+                },
+            canRecoverFromSingleLinkFailure =
+                results.any {
+                    it.scenario is FailureScenario.SingleLinkFailure && it.canRecover
+                },
             averageRecoveryTimeSeconds = avgRecoveryTime,
-            recommendations = buildSelfHealingRecommendations(capability, meshTopology)
+            recommendations = buildSelfHealingRecommendations(capability, meshTopology),
         )
     }
 
@@ -178,8 +182,8 @@ class MeshNetworkAnalyzer {
     /**
      * Assess overall backhaul quality based on topology metrics
      */
-    private fun assessOverallBackhaulQuality(topology: MeshTopology): BackhaulQuality {
-        return when {
+    private fun assessOverallBackhaulQuality(topology: MeshTopology): BackhaulQuality =
+        when {
             // All wired = excellent
             topology.allWiredBackhaul -> BackhaulQuality.EXCELLENT
 
@@ -201,7 +205,6 @@ class MeshNetworkAnalyzer {
             // Critical: very poor quality or excessive hops
             else -> BackhaulQuality.CRITICAL
         }
-    }
 
     /**
      * Identify bottleneck links in mesh
@@ -210,7 +213,8 @@ class MeshNetworkAnalyzer {
         val bottlenecks = mutableListOf<BackhaulBottleneck>()
 
         for (link in topology.links) {
-            val isBottleneck = link.isBottleneck ||
+            val isBottleneck =
+                link.isBottleneck ||
                     link.throughputMbps < 100.0 ||
                     link.quality < 0.5 ||
                     link.latencyMs > 20.0
@@ -221,8 +225,8 @@ class MeshNetworkAnalyzer {
                         link = link,
                         reason = identifyBottleneckReason(link),
                         impact = estimateBottleneckImpact(link, topology),
-                        recommendation = recommendBottleneckFix(link)
-                    )
+                        recommendation = recommendBottleneckFix(link),
+                    ),
                 )
             }
         }
@@ -230,17 +234,19 @@ class MeshNetworkAnalyzer {
         return bottlenecks.sortedByDescending { it.impact }
     }
 
-    private fun identifyBottleneckReason(link: MeshLink): String {
-        return when {
+    private fun identifyBottleneckReason(link: MeshLink): String =
+        when {
             link.quality < 0.4 -> "Very poor link quality (${(link.quality * 100).toInt()}%)"
             link.throughputMbps < 50.0 -> "Low throughput (${link.throughputMbps.toInt()} Mbps)"
             link.latencyMs > 30.0 -> "High latency (${link.latencyMs.toInt()} ms)"
             link.packetLoss > 2.0 -> "Excessive packet loss (${link.packetLoss}%)"
             else -> "Suboptimal performance"
         }
-    }
 
-    private fun estimateBottleneckImpact(link: MeshLink, topology: MeshTopology): Double {
+    private fun estimateBottleneckImpact(
+        link: MeshLink,
+        topology: MeshTopology,
+    ): Double {
         // Count how many downstream nodes depend on this link
         val downstreamNodes = countDownstreamNodes(link.targetBssid, topology)
 
@@ -251,15 +257,18 @@ class MeshNetworkAnalyzer {
         return (nodeImpact * 0.6 + qualityImpact * 0.4).coerceIn(0.0, 1.0)
     }
 
-    private fun countDownstreamNodes(nodeBssid: String, topology: MeshTopology): Int {
+    private fun countDownstreamNodes(
+        nodeBssid: String,
+        topology: MeshTopology,
+    ): Int {
         // Count nodes that have this node as parent or ancestor
         val node = topology.getNode(nodeBssid) ?: return 0
 
         return topology.nodes.count { it.hopCount > node.hopCount }
     }
 
-    private fun recommendBottleneckFix(link: MeshLink): String {
-        return when (link.linkType) {
+    private fun recommendBottleneckFix(link: MeshLink): String =
+        when (link.linkType) {
             BackhaulType.WIRELESS_5GHZ, BackhaulType.WIRELESS_6GHZ -> {
                 when {
                     link.quality < 0.5 -> "Replace wireless backhaul with wired (Ethernet or powerline)"
@@ -272,12 +281,11 @@ class MeshNetworkAnalyzer {
             }
             else -> "Investigate link quality issues"
         }
-    }
 
     private fun buildBackhaulRecommendations(
         topology: MeshTopology,
         quality: BackhaulQuality,
-        bottlenecks: List<BackhaulBottleneck>
+        bottlenecks: List<BackhaulBottleneck>,
     ): List<String> {
         val recommendations = mutableListOf<String>()
 
@@ -332,13 +340,13 @@ class MeshNetworkAnalyzer {
         visited: MutableSet<String>,
         recursionStack: MutableSet<String>,
         adjacency: Map<String, List<String>>,
-        parent: String?
+        parent: String?,
     ): List<String> {
         visited.add(current)
         recursionStack.add(current)
 
         for (neighbor in adjacency[current] ?: emptyList()) {
-            if (neighbor == parent) continue  // Skip parent in undirected graph
+            if (neighbor == parent) continue // Skip parent in undirected graph
 
             if (neighbor in recursionStack) {
                 // Cycle detected
@@ -367,25 +375,26 @@ class MeshNetworkAnalyzer {
                     nodes = topology.nodes.filter { it.role == MeshRole.ROOT }.map { it.bssid },
                     type = MeshLoopType.REDUNDANT_PATHS,
                     severity = LoopSeverity.INFO,
-                    recommendation = "Multiple gateway nodes provide redundancy (good for reliability)"
-                )
+                    recommendation = "Multiple gateway nodes provide redundancy (good for reliability)",
+                ),
             )
-        } else emptyList()
+        } else {
+            emptyList()
+        }
     }
 
-    private fun assessLoopSeverity(cycleLength: Int): LoopSeverity {
-        return when {
+    private fun assessLoopSeverity(cycleLength: Int): LoopSeverity =
+        when {
             cycleLength <= 3 -> LoopSeverity.WARNING
             cycleLength <= 5 -> LoopSeverity.MODERATE
             else -> LoopSeverity.SEVERE
         }
-    }
 
     private fun testFailureScenario(
         topology: MeshTopology,
-        scenario: FailureScenario
-    ): FailureTestResult {
-        return when (scenario) {
+        scenario: FailureScenario,
+    ): FailureTestResult =
+        when (scenario) {
             is FailureScenario.SingleNodeFailure -> {
                 testNodeFailure(topology, scenario.nodeBssid)
             }
@@ -393,18 +402,21 @@ class MeshNetworkAnalyzer {
                 testLinkFailure(topology, scenario.sourceBssid, scenario.targetBssid)
             }
         }
-    }
 
-    private fun testNodeFailure(topology: MeshTopology, nodeBssid: String): FailureTestResult {
+    private fun testNodeFailure(
+        topology: MeshTopology,
+        nodeBssid: String,
+    ): FailureTestResult {
         val node = topology.getNode(nodeBssid)
 
         // If ROOT node fails, only recoverable if multiple roots
-        val canRecover = if (node?.role == MeshRole.ROOT) {
-            topology.rootCount > 1
-        } else {
-            // Non-root failure: recoverable if alternate paths exist
-            topology.hasRedundancy
-        }
+        val canRecover =
+            if (node?.role == MeshRole.ROOT) {
+                topology.rootCount > 1
+            } else {
+                // Non-root failure: recoverable if alternate paths exist
+                topology.hasRedundancy
+            }
 
         val downstreamNodes = countDownstreamNodes(nodeBssid, topology)
         val serviceImpact = downstreamNodes.toDouble() / topology.nodeCount
@@ -412,12 +424,16 @@ class MeshNetworkAnalyzer {
         return FailureTestResult(
             scenario = FailureScenario.SingleNodeFailure(nodeBssid),
             canRecover = canRecover,
-            estimatedRecoveryTime = if (canRecover) 60.0 else null,  // 60 seconds typical
-            serviceImpact = if (canRecover) serviceImpact * 0.5 else serviceImpact  // Partial impact if recoverable
+            estimatedRecoveryTime = if (canRecover) 60.0 else null, // 60 seconds typical
+            serviceImpact = if (canRecover) serviceImpact * 0.5 else serviceImpact, // Partial impact if recoverable
         )
     }
 
-    private fun testLinkFailure(topology: MeshTopology, source: String, target: String): FailureTestResult {
+    private fun testLinkFailure(
+        topology: MeshTopology,
+        source: String,
+        target: String,
+    ): FailureTestResult {
         // Link failure is recoverable if alternate paths exist
         val canRecover = topology.hasRedundancy || topology.rootCount > 1
 
@@ -428,16 +444,16 @@ class MeshNetworkAnalyzer {
         return FailureTestResult(
             scenario = FailureScenario.SingleLinkFailure(source, target),
             canRecover = canRecover,
-            estimatedRecoveryTime = if (canRecover) 30.0 else null,  // 30 seconds for link reroute
-            serviceImpact = if (canRecover) serviceImpact * 0.3 else serviceImpact
+            estimatedRecoveryTime = if (canRecover) 30.0 else null, // 30 seconds for link reroute
+            serviceImpact = if (canRecover) serviceImpact * 0.3 else serviceImpact,
         )
     }
 
     private fun buildSelfHealingRecommendations(
         capability: SelfHealingCapability,
-        topology: MeshTopology
-    ): List<String> {
-        return when (capability) {
+        topology: MeshTopology,
+    ): List<String> =
+        when (capability) {
             SelfHealingCapability.EXCELLENT -> {
                 listOf("Mesh has excellent self-healing capability with redundant paths")
             }
@@ -448,18 +464,17 @@ class MeshNetworkAnalyzer {
                 listOf(
                     "Limited self-healing - some failures may cause service disruption",
                     "Add redundant paths by creating mesh between nodes",
-                    "Consider adding additional gateway nodes"
+                    "Consider adding additional gateway nodes",
                 )
             }
             SelfHealingCapability.NONE -> {
                 listOf(
                     "CRITICAL: No self-healing capability - single point of failure",
                     "Add redundant gateway nodes immediately",
-                    "Create mesh connections between nodes for alternate paths"
+                    "Create mesh connections between nodes for alternate paths",
                 )
             }
         }
-    }
 }
 
 // ========================================
@@ -472,7 +487,7 @@ data class BackhaulAnalysisResult(
     val recommendations: List<String>,
     val wiredPercent: Int,
     val averageLinkQuality: Double,
-    val maxHopCount: Int
+    val maxHopCount: Int,
 )
 
 enum class BackhaulQuality {
@@ -480,14 +495,14 @@ enum class BackhaulQuality {
     GOOD,
     FAIR,
     POOR,
-    CRITICAL
+    CRITICAL,
 }
 
 data class BackhaulBottleneck(
     val link: MeshLink,
     val reason: String,
-    val impact: Double,  // 0.0-1.0
-    val recommendation: String
+    val impact: Double, // 0.0-1.0
+    val recommendation: String,
 ) {
     val isCritical: Boolean get() = impact > 0.7
 }
@@ -496,31 +511,37 @@ data class MeshLoop(
     val nodes: List<String>,
     val type: MeshLoopType,
     val severity: LoopSeverity,
-    val recommendation: String
+    val recommendation: String,
 )
 
 enum class MeshLoopType {
     SIMPLE_CYCLE,
-    REDUNDANT_PATHS
+    REDUNDANT_PATHS,
 }
 
 enum class LoopSeverity {
     INFO,
     WARNING,
     MODERATE,
-    SEVERE
+    SEVERE,
 }
 
 sealed class FailureScenario {
-    data class SingleNodeFailure(val nodeBssid: String) : FailureScenario()
-    data class SingleLinkFailure(val sourceBssid: String, val targetBssid: String) : FailureScenario()
+    data class SingleNodeFailure(
+        val nodeBssid: String,
+    ) : FailureScenario()
+
+    data class SingleLinkFailure(
+        val sourceBssid: String,
+        val targetBssid: String,
+    ) : FailureScenario()
 }
 
 data class FailureTestResult(
     val scenario: FailureScenario,
     val canRecover: Boolean,
-    val estimatedRecoveryTime: Double?,  // Seconds
-    val serviceImpact: Double  // 0.0-1.0 (percentage of network affected)
+    val estimatedRecoveryTime: Double?, // Seconds
+    val serviceImpact: Double, // 0.0-1.0 (percentage of network affected)
 )
 
 data class SelfHealingAssessment(
@@ -528,12 +549,12 @@ data class SelfHealingAssessment(
     val canRecoverFromSingleNodeFailure: Boolean,
     val canRecoverFromSingleLinkFailure: Boolean,
     val averageRecoveryTimeSeconds: Double,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 )
 
 enum class SelfHealingCapability {
     EXCELLENT,
     GOOD,
     LIMITED,
-    NONE
+    NONE,
 }

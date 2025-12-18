@@ -33,7 +33,6 @@ import io.lamco.netkit.advisor.model.*
  * ```
  */
 class ConfigurationGenerator {
-
     private val templateLibrary = ConfigurationTemplateLibrary.create()
     private val knowledgeBase = BestPracticesKnowledgeBase.create()
     private val vendorKnowledge = VendorSpecificKnowledgeBase.create()
@@ -47,7 +46,7 @@ class ConfigurationGenerator {
      */
     fun generateConfiguration(
         requirements: NetworkRequirements,
-        vendor: String? = null
+        vendor: String? = null,
     ): GeneratedConfiguration {
         val template = templateLibrary.generateConfiguration(requirements)
 
@@ -59,26 +58,27 @@ class ConfigurationGenerator {
 
         val qosConfig = generateQoSConfiguration(requirements, template)
 
-        val optimizedConfig = if (vendor != null) {
-            applyVendorOptimizations(
+        val optimizedConfig =
+            if (vendor != null) {
+                applyVendorOptimizations(
+                    GeneratedConfiguration(
+                        ssidConfigs = ssidConfigs,
+                        channelPlan = channelPlan,
+                        securityConfig = securityConfig,
+                        qosConfig = qosConfig,
+                        recommendations = emptyList(),
+                    ),
+                    vendor,
+                )
+            } else {
                 GeneratedConfiguration(
                     ssidConfigs = ssidConfigs,
                     channelPlan = channelPlan,
                     securityConfig = securityConfig,
                     qosConfig = qosConfig,
-                    recommendations = emptyList()
-                ),
-                vendor
-            )
-        } else {
-            GeneratedConfiguration(
-                ssidConfigs = ssidConfigs,
-                channelPlan = channelPlan,
-                securityConfig = securityConfig,
-                qosConfig = qosConfig,
-                recommendations = emptyList()
-            )
-        }
+                    recommendations = emptyList(),
+                )
+            }
 
         val recommendations = generateImplementationRecommendations(requirements, optimizedConfig)
 
@@ -94,15 +94,16 @@ class ConfigurationGenerator {
      */
     fun generateChannelPlan(
         apCount: Int,
-        band: String = "5GHz"
+        band: String = "5GHz",
     ): ChannelPlanConfig {
-        val channels = if (band == "2.4GHz") {
-            // Non-overlapping channels for 2.4GHz
-            listOf(1, 6, 11)
-        } else {
-            // DFS and non-DFS channels for 5GHz
-            listOf(36, 40, 44, 48, 149, 153, 157, 161)
-        }
+        val channels =
+            if (band == "2.4GHz") {
+                // Non-overlapping channels for 2.4GHz
+                listOf(1, 6, 11)
+            } else {
+                // DFS and non-DFS channels for 5GHz
+                listOf(36, 40, 44, 48, 149, 153, 157, 161)
+            }
 
         val assignments = mutableMapOf<Int, Int>()
         for (apIndex in 0 until apCount) {
@@ -118,10 +119,11 @@ class ConfigurationGenerator {
             channelAssignments = assignments,
             dfsEnabled = band == "5GHz",
             autoChannelEnabled = false,
-            recommendations = listOf(
-                "Monitor channel utilization and adjust if needed",
-                "Consider enabling auto-channel for dynamic environments"
-            )
+            recommendations =
+                listOf(
+                    "Monitor channel utilization and adjust if needed",
+                    "Consider enabling auto-channel for dynamic environments",
+                ),
         )
     }
 
@@ -134,7 +136,7 @@ class ConfigurationGenerator {
      */
     fun validateConfiguration(
         config: GeneratedConfiguration,
-        networkType: NetworkType
+        networkType: NetworkType,
     ): ConfigurationValidationResult {
         val issues = mutableListOf<String>()
         val warnings = mutableListOf<String>()
@@ -149,10 +151,12 @@ class ConfigurationGenerator {
             warnings.add("Consider using 80MHz bandwidth on 5GHz for better performance")
         }
 
-        if (config.qosConfig == null && networkType in listOf(
+        if (config.qosConfig == null &&
+            networkType in
+            listOf(
                 NetworkType.ENTERPRISE,
                 NetworkType.HEALTHCARE,
-                NetworkType.EDUCATION
+                NetworkType.EDUCATION,
             )
         ) {
             warnings.add("QoS recommended for ${networkType.displayName} networks")
@@ -164,7 +168,7 @@ class ConfigurationGenerator {
             isValid = isValid,
             issues = issues,
             warnings = warnings,
-            score = calculateConfigScore(config, issues.size, warnings.size)
+            score = calculateConfigScore(config, issues.size, warnings.size),
         )
     }
 
@@ -177,7 +181,7 @@ class ConfigurationGenerator {
      */
     private fun generateSSIDConfigurations(
         requirements: NetworkRequirements,
-        template: ConfigurationTemplate
+        template: ConfigurationTemplate,
     ): List<SSIDConfig> {
         val configs = mutableListOf<SSIDConfig>()
 
@@ -189,20 +193,24 @@ class ConfigurationGenerator {
                 hiddenSSID = false,
                 guestIsolation = false,
                 bandSteering = true,
-                fastRoaming = requirements.primaryUse in listOf(
-                    UseCase.ENTERPRISE,
-                    UseCase.HIGH_DENSITY,
-                    UseCase.OUTDOOR
-                ),
-                maxClients = requirements.expectedDeviceCount
-            )
+                fastRoaming =
+                    requirements.primaryUse in
+                        listOf(
+                            UseCase.ENTERPRISE,
+                            UseCase.HIGH_DENSITY,
+                            UseCase.OUTDOOR,
+                        ),
+                maxClients = requirements.expectedDeviceCount,
+            ),
         )
 
         // Guest SSID (if applicable)
-        if (requirements.primaryUse in listOf(
+        if (requirements.primaryUse in
+            listOf(
                 UseCase.SMALL_OFFICE,
-                UseCase.ENTERPRISE
-            ) || requirements.networkType == NetworkType.HOSPITALITY
+                UseCase.ENTERPRISE,
+            ) ||
+            requirements.networkType == NetworkType.HOSPITALITY
         ) {
             configs.add(
                 SSIDConfig(
@@ -212,8 +220,8 @@ class ConfigurationGenerator {
                     guestIsolation = true,
                     bandSteering = true,
                     fastRoaming = false,
-                    maxClients = 50
-                )
+                    maxClients = 50,
+                ),
             )
         }
 
@@ -222,13 +230,13 @@ class ConfigurationGenerator {
             configs.add(
                 SSIDConfig(
                     name = generateSSIDName(requirements.networkType, "iot"),
-                    encryptionType = "WPA2",  // Some IoT devices don't support WPA3
+                    encryptionType = "WPA2", // Some IoT devices don't support WPA3
                     hiddenSSID = false,
                     guestIsolation = true,
-                    bandSteering = false,  // Many IoT devices are 2.4GHz only
+                    bandSteering = false, // Many IoT devices are 2.4GHz only
                     fastRoaming = false,
-                    maxClients = 100
-                )
+                    maxClients = 100,
+                ),
             )
         }
 
@@ -240,7 +248,7 @@ class ConfigurationGenerator {
      */
     private fun generateChannelPlan(
         requirements: NetworkRequirements,
-        template: ConfigurationTemplate
+        template: ConfigurationTemplate,
     ): ChannelPlanConfig {
         val apCount = calculateRequiredAPs(requirements.coverageArea.toDouble())
         val preferredBand = if (requirements.primaryUse == UseCase.HIGH_DENSITY) "5GHz" else "5GHz"
@@ -253,34 +261,46 @@ class ConfigurationGenerator {
      */
     private fun generateSecurityConfiguration(
         requirements: NetworkRequirements,
-        template: ConfigurationTemplate
+        template: ConfigurationTemplate,
     ): SecurityConfigurationDetails {
-        val securityLevel = when {
-            requirements.primaryUse == UseCase.ENTERPRISE || requirements.networkType == NetworkType.HEALTHCARE -> SecurityLevel.VERY_HIGH
-            requirements.primaryUse == UseCase.SMALL_OFFICE || requirements.networkType == NetworkType.RETAIL -> SecurityLevel.HIGH
-            else -> SecurityLevel.MEDIUM
-        }
+        val securityLevel =
+            when {
+                requirements.primaryUse == UseCase.ENTERPRISE ||
+                    requirements.networkType == NetworkType.HEALTHCARE -> SecurityLevel.VERY_HIGH
+                requirements.primaryUse == UseCase.SMALL_OFFICE ||
+                    requirements.networkType == NetworkType.RETAIL -> SecurityLevel.HIGH
+                else -> SecurityLevel.MEDIUM
+            }
 
         return SecurityConfigurationDetails(
             encryptionStandard = template.securityRecommendation.displayName,
-            authenticationMethod = if (template.securityRecommendation in listOf(SecurityTemplate.WPA2_ENTERPRISE, SecurityTemplate.WPA3_ENTERPRISE)) "802.1X" else "PSK",
+            authenticationMethod =
+                if (template.securityRecommendation in
+                    listOf(SecurityTemplate.WPA2_ENTERPRISE, SecurityTemplate.WPA3_ENTERPRISE)
+                ) {
+                    "802.1X"
+                } else {
+                    "PSK"
+                },
             securityLevel = securityLevel,
-            enabledFeatures = buildList {
-                add("WPA3 encryption")
-                add("PMF (Protected Management Frames)")
-                if (securityLevel == SecurityLevel.VERY_HIGH) {
-                    add("802.1X authentication")
-                    add("MAC address filtering")
-                }
-                add("Rogue AP detection")
-            },
-            recommendations = listOf(
-                "Enable WPA3 encryption for all SSIDs",
-                "Use strong passphrase (16+ characters)",
-                "Enable Protected Management Frames (PMF)",
-                "Disable WPS for security",
-                "Regular security audits recommended"
-            )
+            enabledFeatures =
+                buildList {
+                    add("WPA3 encryption")
+                    add("PMF (Protected Management Frames)")
+                    if (securityLevel == SecurityLevel.VERY_HIGH) {
+                        add("802.1X authentication")
+                        add("MAC address filtering")
+                    }
+                    add("Rogue AP detection")
+                },
+            recommendations =
+                listOf(
+                    "Enable WPA3 encryption for all SSIDs",
+                    "Use strong passphrase (16+ characters)",
+                    "Enable Protected Management Frames (PMF)",
+                    "Disable WPS for security",
+                    "Regular security audits recommended",
+                ),
         )
     }
 
@@ -289,7 +309,7 @@ class ConfigurationGenerator {
      */
     private fun generateQoSConfiguration(
         requirements: NetworkRequirements,
-        template: ConfigurationTemplate
+        template: ConfigurationTemplate,
     ): QoSConfigurationDetails? {
         // QoS not needed for basic home networks
         if (requirements.primaryUse == UseCase.HOME_BASIC) {
@@ -298,21 +318,24 @@ class ConfigurationGenerator {
 
         return QoSConfigurationDetails(
             enabled = true,
-            priorityLevels = mapOf(
-                "Voice/Video Calls" to 7,
-                "Video Streaming" to 5,
-                "Web Browsing" to 3,
-                "File Downloads" to 1
-            ),
-            bandwidthLimits = if (requirements.networkType == NetworkType.HOSPITALITY) {
-                mapOf("Guest Network" to 5.0)  // 5 Mbps per guest
-            } else {
-                emptyMap()
-            },
-            recommendations = listOf(
-                "Prioritize real-time applications (voice, video)",
-                "Monitor QoS effectiveness and adjust as needed"
-            )
+            priorityLevels =
+                mapOf(
+                    "Voice/Video Calls" to 7,
+                    "Video Streaming" to 5,
+                    "Web Browsing" to 3,
+                    "File Downloads" to 1,
+                ),
+            bandwidthLimits =
+                if (requirements.networkType == NetworkType.HOSPITALITY) {
+                    mapOf("Guest Network" to 5.0) // 5 Mbps per guest
+                } else {
+                    emptyMap()
+                },
+            recommendations =
+                listOf(
+                    "Prioritize real-time applications (voice, video)",
+                    "Monitor QoS effectiveness and adjust as needed",
+                ),
         )
     }
 
@@ -321,7 +344,7 @@ class ConfigurationGenerator {
      */
     private fun applyVendorOptimizations(
         config: GeneratedConfiguration,
-        vendor: String
+        vendor: String,
     ): GeneratedConfiguration {
         val vendorEnum = RouterVendor.values().find { it.displayName.equals(vendor, ignoreCase = true) } ?: RouterVendor.GENERIC
         val vendorInfo = vendorKnowledge.getVendorKnowledge(vendorEnum)
@@ -329,7 +352,7 @@ class ConfigurationGenerator {
         val optimizedRecommendations = config.recommendations.toMutableList()
         if (vendorInfo != null) {
             optimizedRecommendations.addAll(
-                vendorInfo.bestPractices.take(3).map { "Vendor optimization: $it" }
+                vendorInfo.bestPractices.take(3).map { "Vendor optimization: $it" },
             )
         }
 
@@ -341,11 +364,13 @@ class ConfigurationGenerator {
      */
     private fun generateImplementationRecommendations(
         requirements: NetworkRequirements,
-        config: GeneratedConfiguration
+        config: GeneratedConfiguration,
     ): List<String> {
         val recommendations = mutableListOf<String>()
 
-        recommendations.add("Deploy ${calculateRequiredAPs(requirements.coverageArea.toDouble())} AP(s) for ${requirements.coverageArea}m² coverage")
+        recommendations.add(
+            "Deploy ${calculateRequiredAPs(requirements.coverageArea.toDouble())} AP(s) for ${requirements.coverageArea}m² coverage",
+        )
         recommendations.add("Configure SSIDs in this order: ${config.ssidConfigs.joinToString(", ") { it.name }}")
         recommendations.add("Use channel plan: ${config.channelPlan.bandwidth} bandwidth on ${config.channelPlan.band}")
         recommendations.add("Enable ${config.securityConfig.encryptionStandard} encryption on all SSIDs")
@@ -363,13 +388,16 @@ class ConfigurationGenerator {
     /**
      * Generate SSID name based on network type and purpose
      */
-    private fun generateSSIDName(networkType: NetworkType, purpose: String): String {
+    private fun generateSSIDName(
+        networkType: NetworkType,
+        purpose: String,
+    ): String {
         val prefix = networkType.displayName.replace(" ", "")
         return when (purpose) {
-            "primary" -> "${prefix}-WiFi"
-            "guest" -> "${prefix}-Guest"
-            "iot" -> "${prefix}-IoT"
-            else -> "${prefix}-${purpose}"
+            "primary" -> "$prefix-WiFi"
+            "guest" -> "$prefix-Guest"
+            "iot" -> "$prefix-IoT"
+            else -> "$prefix-$purpose"
         }
     }
 
@@ -388,7 +416,7 @@ class ConfigurationGenerator {
     private fun calculateConfigScore(
         config: GeneratedConfiguration,
         issueCount: Int,
-        warningCount: Int
+        warningCount: Int,
     ): Int {
         var score = 100
 
@@ -415,7 +443,7 @@ data class GeneratedConfiguration(
     val channelPlan: ChannelPlanConfig,
     val securityConfig: SecurityConfigurationDetails,
     val qosConfig: QoSConfigurationDetails?,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 ) {
     /**
      * Configuration summary
@@ -434,7 +462,7 @@ data class SSIDConfig(
     val guestIsolation: Boolean,
     val bandSteering: Boolean,
     val fastRoaming: Boolean,
-    val maxClients: Int
+    val maxClients: Int,
 )
 
 /**
@@ -443,10 +471,10 @@ data class SSIDConfig(
 data class ChannelPlanConfig(
     val band: String,
     val bandwidth: String,
-    val channelAssignments: Map<Int, Int>,  // AP ID -> Channel
+    val channelAssignments: Map<Int, Int>, // AP ID -> Channel
     val dfsEnabled: Boolean,
     val autoChannelEnabled: Boolean,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 )
 
 /**
@@ -457,7 +485,7 @@ data class SecurityConfigurationDetails(
     val authenticationMethod: String,
     val securityLevel: SecurityLevel,
     val enabledFeatures: List<String>,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 )
 
 /**
@@ -465,9 +493,9 @@ data class SecurityConfigurationDetails(
  */
 data class QoSConfigurationDetails(
     val enabled: Boolean,
-    val priorityLevels: Map<String, Int>,  // Traffic type -> Priority (1-7)
-    val bandwidthLimits: Map<String, Double>,  // Network -> Limit (Mbps)
-    val recommendations: List<String>
+    val priorityLevels: Map<String, Int>, // Traffic type -> Priority (1-7)
+    val bandwidthLimits: Map<String, Double>, // Network -> Limit (Mbps)
+    val recommendations: List<String>,
 )
 
 /**
@@ -477,18 +505,19 @@ data class ConfigurationValidationResult(
     val isValid: Boolean,
     val issues: List<String>,
     val warnings: List<String>,
-    val score: Int
+    val score: Int,
 ) {
     init {
         require(score in 0..100) { "Score must be 0-100" }
     }
 
     val summary: String
-        get() = if (isValid) {
-            "Valid configuration (Score: $score/100)"
-        } else {
-            "Invalid: ${issues.size} issue(s), ${warnings.size} warning(s)"
-        }
+        get() =
+            if (isValid) {
+                "Valid configuration (Score: $score/100)"
+            } else {
+                "Invalid: ${issues.size} issue(s), ${warnings.size} warning(s)"
+            }
 }
 
 /**
@@ -498,7 +527,8 @@ enum class SecurityLevel {
     LOW,
     MEDIUM,
     HIGH,
-    VERY_HIGH;
+    VERY_HIGH,
+    ;
 
     val displayName: String
         get() = name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }

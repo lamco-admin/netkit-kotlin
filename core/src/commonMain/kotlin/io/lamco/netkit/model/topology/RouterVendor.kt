@@ -225,9 +225,10 @@ enum class RouterVendor(
          * Find vendor by matching WPS pattern keywords.
          */
         private fun findVendorByWpsPattern(searchText: String): RouterVendor {
-            val match = WPS_VENDOR_PATTERNS.find { (_, keywords) ->
-                keywords.any { keyword -> keyword in searchText }
-            }
+            val match =
+                WPS_VENDOR_PATTERNS.find { (_, keywords) ->
+                    keywords.any { keyword -> keyword in searchText }
+                }
             return match?.first ?: UNKNOWN
         }
 
@@ -235,19 +236,20 @@ enum class RouterVendor(
          * Vendor detection patterns for WPS device names/manufacturers.
          * Ordered by specificity (more specific patterns first).
          */
-        private val WPS_VENDOR_PATTERNS = listOf(
-            CISCO to listOf("CISCO"),
-            UBIQUITI to listOf("UBIQUITI", "UNIFI"),
-            ARUBA to listOf("ARUBA"),
-            RUCKUS to listOf("RUCKUS"),
-            NETGEAR to listOf("NETGEAR", "ORBI"),
-            TP_LINK to listOf("TP-LINK", "DECO"),
-            ASUS to listOf("ASUS", "AIMESH"),
-            LINKSYS to listOf("LINKSYS", "VELOP"),
-            GOOGLE to listOf("GOOGLE", "NEST WIFI"),
-            AMAZON_EERO to listOf("EERO"),
-            APPLE to listOf("APPLE", "AIRPORT"),
-        )
+        private val WPS_VENDOR_PATTERNS =
+            listOf(
+                CISCO to listOf("CISCO"),
+                UBIQUITI to listOf("UBIQUITI", "UNIFI"),
+                ARUBA to listOf("ARUBA"),
+                RUCKUS to listOf("RUCKUS"),
+                NETGEAR to listOf("NETGEAR", "ORBI"),
+                TP_LINK to listOf("TP-LINK", "DECO"),
+                ASUS to listOf("ASUS", "AIMESH"),
+                LINKSYS to listOf("LINKSYS", "VELOP"),
+                GOOGLE to listOf("GOOGLE", "NEST WIFI"),
+                AMAZON_EERO to listOf("EERO"),
+                APPLE to listOf("APPLE", "AIRPORT"),
+            )
     }
 }
 

@@ -30,7 +30,6 @@ import kotlin.math.sqrt
  * - 3GPP TS 36.942: Cell planning guidelines
  */
 class TxPowerOptimizer {
-
     /**
      * Optimize TX power for multi-AP network
      *
@@ -52,7 +51,7 @@ class TxPowerOptimizer {
     fun optimizePower(
         apClusters: List<ApCluster>,
         coverageGoals: CoverageGoals,
-        currentPower: Map<String, Int>
+        currentPower: Map<String, Int>,
     ): PowerOptimizationResult {
         require(apClusters.isNotEmpty()) {
             "Cannot optimize power for empty AP cluster list"
@@ -67,13 +66,14 @@ class TxPowerOptimizer {
             for (bss in cluster.bssids) {
                 val current = currentPower[bss.bssid] ?: estimateCurrentPower(bss.rssiDbm)
 
-                val recommendation = optimizePowerForAp(
-                    bssid = bss.bssid,
-                    band = bss.band,
-                    currentPower = current,
-                    coverageGoals = coverageGoals,
-                    neighboringAps = cluster.bssids.filter { it.bssid != bss.bssid }
-                )
+                val recommendation =
+                    optimizePowerForAp(
+                        bssid = bss.bssid,
+                        band = bss.band,
+                        currentPower = current,
+                        coverageGoals = coverageGoals,
+                        neighboringAps = cluster.bssids.filter { it.bssid != bss.bssid },
+                    )
 
                 recommendations[bss.bssid] = recommendation
 
@@ -97,7 +97,7 @@ class TxPowerOptimizer {
             recommendations = recommendations,
             expectedCoverageChange = avgCoverageChange,
             expectedInterferenceChange = avgInterferenceChange,
-            energySavings = energySavings
+            energySavings = energySavings,
         )
     }
 
@@ -115,39 +115,43 @@ class TxPowerOptimizer {
     fun assessCurrentPower(
         bssid: String,
         currentPower: Int,
-        coverage: CoverageMetrics
+        coverage: CoverageMetrics,
     ): PowerAssessment {
         require(currentPower in 0..30) {
             "TX power must be 0-30 dBm, got $currentPower"
         }
 
         // Assess if power is appropriate for coverage
-        val coverageStatus = when {
-            coverage.minRssi < -75 -> PowerStatus.TOO_LOW
-            coverage.minRssi > -55 -> PowerStatus.TOO_HIGH
-            else -> PowerStatus.OPTIMAL
-        }
+        val coverageStatus =
+            when {
+                coverage.minRssi < -75 -> PowerStatus.TOO_LOW
+                coverage.minRssi > -55 -> PowerStatus.TOO_HIGH
+                else -> PowerStatus.OPTIMAL
+            }
 
         // Assess if power causes excessive interference
-        val interferenceStatus = when {
-            coverage.interferenceLevel > 0.4 && currentPower > 15 -> PowerStatus.TOO_HIGH
-            coverage.interferenceLevel < 0.1 && currentPower < 20 -> PowerStatus.TOO_LOW
-            else -> PowerStatus.OPTIMAL
-        }
+        val interferenceStatus =
+            when {
+                coverage.interferenceLevel > 0.4 && currentPower > 15 -> PowerStatus.TOO_HIGH
+                coverage.interferenceLevel < 0.1 && currentPower < 20 -> PowerStatus.TOO_LOW
+                else -> PowerStatus.OPTIMAL
+            }
 
         // Overall assessment
-        val overallStatus = when {
-            coverageStatus == PowerStatus.TOO_LOW -> PowerStatus.TOO_LOW
-            interferenceStatus == PowerStatus.TOO_HIGH -> PowerStatus.TOO_HIGH
-            coverageStatus == PowerStatus.OPTIMAL && interferenceStatus == PowerStatus.OPTIMAL -> PowerStatus.OPTIMAL
-            else -> PowerStatus.SUBOPTIMAL
-        }
+        val overallStatus =
+            when {
+                coverageStatus == PowerStatus.TOO_LOW -> PowerStatus.TOO_LOW
+                interferenceStatus == PowerStatus.TOO_HIGH -> PowerStatus.TOO_HIGH
+                coverageStatus == PowerStatus.OPTIMAL && interferenceStatus == PowerStatus.OPTIMAL -> PowerStatus.OPTIMAL
+                else -> PowerStatus.SUBOPTIMAL
+            }
 
-        val recommendation = buildPowerAssessmentRecommendation(
-            overallStatus,
-            currentPower,
-            coverage
-        )
+        val recommendation =
+            buildPowerAssessmentRecommendation(
+                overallStatus,
+                currentPower,
+                coverage,
+            )
 
         return PowerAssessment(
             bssid = bssid,
@@ -155,7 +159,7 @@ class TxPowerOptimizer {
             status = overallStatus,
             coverageStatus = coverageStatus,
             interferenceStatus = interferenceStatus,
-            recommendation = recommendation
+            recommendation = recommendation,
         )
     }
 
@@ -171,35 +175,38 @@ class TxPowerOptimizer {
         band: WiFiBand,
         currentPower: Int,
         coverageGoals: CoverageGoals,
-        neighboringAps: List<io.lamco.netkit.model.topology.ClusteredBss>
+        neighboringAps: List<io.lamco.netkit.model.topology.ClusteredBss>,
     ): PowerRecommendation {
         // Calculate power needed for target coverage
-        val powerForCoverage = calculatePowerForCoverage(
-            band = band,
-            targetRssi = coverageGoals.targetRssi,
-            coverageArea = coverageGoals.coverageArea
-        )
+        val powerForCoverage =
+            calculatePowerForCoverage(
+                band = band,
+                targetRssi = coverageGoals.targetRssi,
+                coverageArea = coverageGoals.coverageArea,
+            )
 
         // Calculate interference at that power level
-        val interferenceAtTargetPower = estimateInterferenceAtPower(
-            powerDbm = powerForCoverage,
-            band = band,
-            neighborCount = neighboringAps.size
-        )
+        val interferenceAtTargetPower =
+            estimateInterferenceAtPower(
+                powerDbm = powerForCoverage,
+                band = band,
+                neighborCount = neighboringAps.size,
+            )
 
         // Adjust power if interference exceeds threshold
-        val recommendedPower = if (interferenceAtTargetPower > coverageGoals.maxInterference) {
-            // Reduce power to meet interference constraint while maintaining minimum coverage
-            reducePowerForInterference(
-                initialPower = powerForCoverage,
-                band = band,
-                minRssi = coverageGoals.minRssi,
-                maxInterference = coverageGoals.maxInterference,
-                neighborCount = neighboringAps.size
-            )
-        } else {
-            powerForCoverage
-        }.coerceIn(0, 30)  // Legal power limits
+        val recommendedPower =
+            if (interferenceAtTargetPower > coverageGoals.maxInterference) {
+                // Reduce power to meet interference constraint while maintaining minimum coverage
+                reducePowerForInterference(
+                    initialPower = powerForCoverage,
+                    band = band,
+                    minRssi = coverageGoals.minRssi,
+                    maxInterference = coverageGoals.maxInterference,
+                    neighborCount = neighboringAps.size,
+                )
+            } else {
+                powerForCoverage
+            }.coerceIn(0, 30) // Legal power limits
 
         val change = recommendedPower - currentPower
 
@@ -208,16 +215,18 @@ class TxPowerOptimizer {
             currentPower = currentPower,
             recommendedPower = recommendedPower,
             change = change,
-            rationale = buildPowerRationale(
-                change = change,
-                coverageGoals = coverageGoals,
-                interference = interferenceAtTargetPower
-            ),
-            impact = PowerChangeImpact(
-                coverageChange = formatCoverageChange(change),
-                interferenceChange = formatInterferenceChange(change),
-                clientsAffected = estimateAffectedClients(change)
-            )
+            rationale =
+                buildPowerRationale(
+                    change = change,
+                    coverageGoals = coverageGoals,
+                    interference = interferenceAtTargetPower,
+                ),
+            impact =
+                PowerChangeImpact(
+                    coverageChange = formatCoverageChange(change),
+                    interferenceChange = formatInterferenceChange(change),
+                    clientsAffected = estimateAffectedClients(change),
+                ),
         )
     }
 
@@ -235,31 +244,33 @@ class TxPowerOptimizer {
     private fun calculatePowerForCoverage(
         band: WiFiBand,
         targetRssi: Int,
-        coverageArea: Double?
+        coverageArea: Double?,
     ): Int {
         // Estimate range from coverage area (assume circular coverage)
-        val targetRange = if (coverageArea != null) {
-            sqrt(coverageArea / Math.PI)
-        } else {
-            // Use typical range for band
-            when (band) {
-                WiFiBand.BAND_2_4GHZ -> 50.0  // ~50m indoor
-                WiFiBand.BAND_5GHZ -> 30.0    // ~30m indoor
-                WiFiBand.BAND_6GHZ -> 20.0    // ~20m indoor
-                else -> 30.0
+        val targetRange =
+            if (coverageArea != null) {
+                sqrt(coverageArea / Math.PI)
+            } else {
+                // Use typical range for band
+                when (band) {
+                    WiFiBand.BAND_2_4GHZ -> 50.0 // ~50m indoor
+                    WiFiBand.BAND_5GHZ -> 30.0 // ~30m indoor
+                    WiFiBand.BAND_6GHZ -> 20.0 // ~20m indoor
+                    else -> 30.0
+                }
             }
-        }
 
         // Calculate path loss at target range
-        val pathLoss = calculateIndoorPathLoss(
-            distanceMeters = targetRange,
-            band = band
-        )
+        val pathLoss =
+            calculateIndoorPathLoss(
+                distanceMeters = targetRange,
+                band = band,
+            )
 
         // Required TX power = Target RSSI + Path Loss
         val requiredPower = targetRssi + pathLoss
 
-        return requiredPower.toInt().coerceIn(10, 25)  // Typical range
+        return requiredPower.toInt().coerceIn(10, 25) // Typical range
     }
 
     /**
@@ -273,25 +284,27 @@ class TxPowerOptimizer {
      */
     private fun calculateIndoorPathLoss(
         distanceMeters: Double,
-        band: WiFiBand
+        band: WiFiBand,
     ): Double {
-        val frequency = when (band) {
-            WiFiBand.BAND_2_4GHZ -> 2437  // MHz (channel 6)
-            WiFiBand.BAND_5GHZ -> 5180    // MHz (channel 36)
-            WiFiBand.BAND_6GHZ -> 5955    // MHz (channel 1)
-            else -> 2437
-        }
+        val frequency =
+            when (band) {
+                WiFiBand.BAND_2_4GHZ -> 2437 // MHz (channel 6)
+                WiFiBand.BAND_5GHZ -> 5180 // MHz (channel 36)
+                WiFiBand.BAND_6GHZ -> 5955 // MHz (channel 1)
+                else -> 2437
+            }
 
         // Free space path loss at 1m
         val fspl1m = 20 * log10(frequency.toDouble()) + 20 * log10(4 * Math.PI / 299.792458) - 27.55
 
         // Path loss exponent (higher for higher frequencies, more obstacles)
-        val pathLossExponent = when (band) {
-            WiFiBand.BAND_2_4GHZ -> 2.8
-            WiFiBand.BAND_5GHZ -> 3.2
-            WiFiBand.BAND_6GHZ -> 3.5
-            else -> 3.0
-        }
+        val pathLossExponent =
+            when (band) {
+                WiFiBand.BAND_2_4GHZ -> 2.8
+                WiFiBand.BAND_5GHZ -> 3.2
+                WiFiBand.BAND_6GHZ -> 3.5
+                else -> 3.0
+            }
 
         // Log-distance path loss
         val pathLoss = fspl1m + 10 * pathLossExponent * log10(distanceMeters.coerceAtLeast(1.0))
@@ -307,21 +320,22 @@ class TxPowerOptimizer {
     private fun estimateInterferenceAtPower(
         powerDbm: Int,
         band: WiFiBand,
-        neighborCount: Int
+        neighborCount: Int,
     ): Double {
         // Base interference from TX power (normalized to 20 dBm)
-        val powerFactor = (powerDbm - 20) / 10.0  // -1 to +1 for 10-30 dBm
+        val powerFactor = (powerDbm - 20) / 10.0 // -1 to +1 for 10-30 dBm
 
         // Neighbor interference (more neighbors = more interference)
-        val neighborFactor = neighborCount / 10.0  // Normalize to typical 10 neighbors
+        val neighborFactor = neighborCount / 10.0 // Normalize to typical 10 neighbors
 
         // Band factor (2.4 GHz has more ambient interference)
-        val bandFactor = when (band) {
-            WiFiBand.BAND_2_4GHZ -> 1.5
-            WiFiBand.BAND_5GHZ -> 1.0
-            WiFiBand.BAND_6GHZ -> 0.7
-            else -> 1.0
-        }
+        val bandFactor =
+            when (band) {
+                WiFiBand.BAND_2_4GHZ -> 1.5
+                WiFiBand.BAND_5GHZ -> 1.0
+                WiFiBand.BAND_6GHZ -> 0.7
+                else -> 1.0
+            }
 
         // Combined interference (0.0 - 1.0 scale)
         val interference = (0.2 + powerFactor * 0.3 + neighborFactor * 0.3) * bandFactor
@@ -337,27 +351,28 @@ class TxPowerOptimizer {
         band: WiFiBand,
         minRssi: Int,
         maxInterference: Double,
-        neighborCount: Int
+        neighborCount: Int,
     ): Int {
         var testPower = initialPower
 
         // Iteratively reduce power until interference is acceptable
-        while (testPower > 10) {  // Minimum 10 dBm
+        while (testPower > 10) { // Minimum 10 dBm
             val interference = estimateInterferenceAtPower(testPower, band, neighborCount)
 
             if (interference <= maxInterference) {
                 break
             }
 
-            testPower -= 3  // Reduce by 3 dB steps
+            testPower -= 3 // Reduce by 3 dB steps
         }
 
         // Ensure we still meet minimum coverage
-        val minPowerForCoverage = calculatePowerForCoverage(
-            band = band,
-            targetRssi = minRssi,
-            coverageArea = null  // Use default range
-        )
+        val minPowerForCoverage =
+            calculatePowerForCoverage(
+                band = band,
+                targetRssi = minRssi,
+                coverageArea = null, // Use default range
+            )
 
         return testPower.coerceAtLeast(minPowerForCoverage)
     }
@@ -369,21 +384,22 @@ class TxPowerOptimizer {
         // Typical: RSSI = TxPower - PathLoss
         // Assume 40-60 dB path loss for typical scenarios
         return when {
-            rssiDbm == null -> 20  // Default
-            rssiDbm > -40 -> 15    // Close/strong signal
-            rssiDbm > -60 -> 20    // Medium signal
-            else -> 25             // Weak signal (higher power)
+            rssiDbm == null -> 20 // Default
+            rssiDbm > -40 -> 15 // Close/strong signal
+            rssiDbm > -60 -> 20 // Medium signal
+            else -> 25 // Weak signal (higher power)
         }
     }
 
     private fun estimateCoverageChange(powerChange: Int): Double {
         // Rule of thumb: +3 dB = +40% range, -3 dB = -30% range
         // Area scales with range²
-        val rangeChange = when {
-            powerChange >= 3 -> 40.0
-            powerChange <= -3 -> -30.0
-            else -> powerChange * 13.0  // Linear approximation
-        }
+        val rangeChange =
+            when {
+                powerChange >= 3 -> 40.0
+                powerChange <= -3 -> -30.0
+                else -> powerChange * 13.0 // Linear approximation
+            }
 
         // Area change (approximately range² for small changes)
         return rangeChange * (1 + abs(rangeChange) / 100.0)
@@ -391,13 +407,14 @@ class TxPowerOptimizer {
 
     private fun estimateInterferenceChange(powerChange: Int): Double {
         // Interference increases/decreases roughly linearly with power in dB
-        return powerChange * 10.0  // Percentage change
+        return powerChange * 10.0 // Percentage change
     }
 
     private fun calculateEnergySavings(recommendations: Map<String, PowerRecommendation>): Double? {
-        val powerReductions = recommendations.values
-            .map { it.change }
-            .filter { it < 0 }
+        val powerReductions =
+            recommendations.values
+                .map { it.change }
+                .filter { it < 0 }
 
         if (powerReductions.isEmpty()) return null
 
@@ -413,14 +430,18 @@ class TxPowerOptimizer {
     private fun buildPowerRationale(
         change: Int,
         coverageGoals: CoverageGoals,
-        interference: Double
-    ): String {
-        return when {
+        interference: Double,
+    ): String =
+        when {
             change > 0 -> "Increase power by ${change}dB to achieve target coverage (${coverageGoals.targetRssi}dBm)"
-            change < 0 -> "Reduce power by ${abs(change)}dB to minimize interference (current: ${(interference*100).toInt()}%, target: <${(coverageGoals.maxInterference*100).toInt()}%)"
+            change < 0 -> {
+                val currentPct = (interference * 100).toInt()
+                val targetPct = (coverageGoals.maxInterference * 100).toInt()
+                "Reduce power by ${abs(change)}dB to minimize interference " +
+                    "(current: $currentPct%, target: <$targetPct%)"
+            }
             else -> "Current power is optimal for coverage and interference goals"
         }
-    }
 
     private fun formatCoverageChange(powerChange: Int): String {
         val change = estimateCoverageChange(powerChange)
@@ -446,21 +467,28 @@ class TxPowerOptimizer {
         return if (abs(coverageChange) > 10) {
             // Rough estimate: assume 5 clients per AP, scale by coverage change
             (5 * abs(coverageChange) / 100.0).toInt()
-        } else null
+        } else {
+            null
+        }
     }
 
     private fun buildPowerAssessmentRecommendation(
         status: PowerStatus,
         currentPower: Int,
-        coverage: CoverageMetrics
-    ): String {
-        return when (status) {
-            PowerStatus.TOO_LOW -> "Increase power from ${currentPower}dBm to improve coverage (current min RSSI: ${coverage.minRssi}dBm)"
-            PowerStatus.TOO_HIGH -> "Reduce power from ${currentPower}dBm to minimize interference (current level: ${(coverage.interferenceLevel*100).toInt()}%)"
+        coverage: CoverageMetrics,
+    ): String =
+        when (status) {
+            PowerStatus.TOO_LOW ->
+                "Increase power from ${currentPower}dBm to improve coverage " +
+                    "(current min RSSI: ${coverage.minRssi}dBm)"
+            PowerStatus.TOO_HIGH -> {
+                val interferencePct = (coverage.interferenceLevel * 100).toInt()
+                "Reduce power from ${currentPower}dBm to minimize interference " +
+                    "(current level: $interferencePct%)"
+            }
             PowerStatus.OPTIMAL -> "Current power (${currentPower}dBm) is optimal"
             PowerStatus.SUBOPTIMAL -> "Power could be optimized for better coverage/interference balance"
         }
-    }
 }
 
 // ========================================
@@ -472,9 +500,9 @@ class TxPowerOptimizer {
  */
 data class PowerOptimizationResult(
     val recommendations: Map<String, PowerRecommendation>,
-    val expectedCoverageChange: Double,  // Percentage
-    val expectedInterferenceChange: Double,  // Percentage
-    val energySavings: Double?  // Watts saved
+    val expectedCoverageChange: Double, // Percentage
+    val expectedInterferenceChange: Double, // Percentage
+    val energySavings: Double?, // Watts saved
 ) {
     val apCount: Int get() = recommendations.size
     val hasChanges: Boolean get() = recommendations.values.any { it.change != 0 }
@@ -489,7 +517,7 @@ data class PowerRecommendation(
     val recommendedPower: Int,
     val change: Int,
     val rationale: String,
-    val impact: PowerChangeImpact
+    val impact: PowerChangeImpact,
 ) {
     val shouldChange: Boolean get() = change != 0
 }
@@ -500,7 +528,7 @@ data class PowerRecommendation(
 data class PowerChangeImpact(
     val coverageChange: String,
     val interferenceChange: String,
-    val clientsAffected: Int?
+    val clientsAffected: Int?,
 )
 
 /**
@@ -510,8 +538,8 @@ data class CoverageMetrics(
     val minRssi: Int,
     val averageRssi: Int,
     val maxRssi: Int,
-    val interferenceLevel: Double,  // 0.0-1.0
-    val clientCount: Int = 0
+    val interferenceLevel: Double, // 0.0-1.0
+    val clientCount: Int = 0,
 )
 
 /**
@@ -523,7 +551,7 @@ data class PowerAssessment(
     val status: PowerStatus,
     val coverageStatus: PowerStatus,
     val interferenceStatus: PowerStatus,
-    val recommendation: String
+    val recommendation: String,
 )
 
 /**
@@ -533,5 +561,5 @@ enum class PowerStatus {
     TOO_LOW,
     OPTIMAL,
     TOO_HIGH,
-    SUBOPTIMAL
+    SUBOPTIMAL,
 }
