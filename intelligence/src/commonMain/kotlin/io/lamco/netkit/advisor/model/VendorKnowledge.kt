@@ -51,7 +51,7 @@ data class VendorKnowledge(
     val bestPractices: List<String>,
     val knownIssues: List<VendorIssue> = emptyList(),
     val optimalSettings: Map<String, String> = emptyMap(),
-    val features: List<VendorFeature> = emptyList()
+    val features: List<VendorFeature> = emptyList(),
 ) {
     init {
         require(bestPractices.isNotEmpty()) {
@@ -86,7 +86,7 @@ data class VendorIssue(
     val affectedModels: List<String> = emptyList(),
     val workaround: String,
     val severity: IssueSeverity,
-    val affectedFirmware: List<String> = emptyList()
+    val affectedFirmware: List<String> = emptyList(),
 ) {
     init {
         require(description.isNotBlank()) { "Issue description cannot be blank" }
@@ -103,12 +103,13 @@ data class VendorIssue(
      * Human-readable summary
      */
     val summary: String
-        get() = buildString {
-            append("[$severity] $description")
-            if (affectedModels.isNotEmpty()) {
-                append(" (${affectedModels.joinToString(", ")})")
+        get() =
+            buildString {
+                append("[$severity] $description")
+                if (affectedModels.isNotEmpty()) {
+                    append(" (${affectedModels.joinToString(", ")})")
+                }
             }
-        }
 }
 
 /**
@@ -128,19 +129,22 @@ enum class IssueSeverity {
     HIGH,
 
     /** Critical - causes failures or security vulnerabilities */
-    CRITICAL;
+    CRITICAL,
+
+    ;
 
     /**
      * User-friendly description
      */
     val description: String
-        get() = when (this) {
-            INFO -> "Informational"
-            LOW -> "Low"
-            MEDIUM -> "Medium"
-            HIGH -> "High"
-            CRITICAL -> "Critical"
-        }
+        get() =
+            when (this) {
+                INFO -> "Informational"
+                LOW -> "Low"
+                MEDIUM -> "Medium"
+                HIGH -> "High"
+                CRITICAL -> "Critical"
+            }
 
     /**
      * Numeric priority for sorting (higher = more severe)
@@ -161,7 +165,7 @@ data class VendorFeature(
     val name: String,
     val description: String,
     val requiresLicense: Boolean = false,
-    val minimumFirmware: String? = null
+    val minimumFirmware: String? = null,
 ) {
     init {
         require(name.isNotBlank()) { "Feature name cannot be blank" }
@@ -172,13 +176,14 @@ data class VendorFeature(
      * Summary of the feature
      */
     val summary: String
-        get() = buildString {
-            append(name)
-            if (requiresLicense) {
-                append(" (License Required)")
+        get() =
+            buildString {
+                append(name)
+                if (requiresLicense) {
+                    append(" (License Required)")
+                }
+                append(": $description")
             }
-            append(": $description")
-        }
 }
 
 /**
@@ -198,7 +203,7 @@ data class StandardsReference(
     val name: String,
     val description: String,
     val url: String? = null,
-    val category: StandardCategory
+    val category: StandardCategory,
 ) {
     init {
         require(id.isNotBlank()) { "Standard ID cannot be blank" }
@@ -233,18 +238,21 @@ enum class StandardCategory {
     REGULATORY,
 
     /** Industry best practices (PCI-DSS, HIPAA, etc.) */
-    COMPLIANCE;
+    COMPLIANCE,
+
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            IEEE_WIFI -> "IEEE WiFi Standards"
-            WIFI_ALLIANCE -> "WiFi Alliance"
-            SECURITY -> "Security Standards"
-            QOS -> "Quality of Service"
-            REGULATORY -> "Regulatory"
-            COMPLIANCE -> "Compliance Standards"
-        }
+        get() =
+            when (this) {
+                IEEE_WIFI -> "IEEE WiFi Standards"
+                WIFI_ALLIANCE -> "WiFi Alliance"
+                SECURITY -> "Security Standards"
+                QOS -> "Quality of Service"
+                REGULATORY -> "Regulatory"
+                COMPLIANCE -> "Compliance Standards"
+            }
 }

@@ -21,7 +21,6 @@ import kotlin.math.max
  * - Industry best practices for client distribution
  */
 class ClientSteeringAdvisor {
-
     /**
      * Recommend band steering for dual/tri-band capable clients
      *
@@ -43,7 +42,7 @@ class ClientSteeringAdvisor {
         client: ClientCapabilities,
         currentBand: WiFiBand,
         availableBands: List<WiFiBand>,
-        congestion: Map<WiFiBand, BandCongestionMetrics> = emptyMap()
+        congestion: Map<WiFiBand, BandCongestionMetrics> = emptyMap(),
     ): BandSteeringRecommendation {
         // Cannot steer if client doesn't support other bands
         val clientBands = client.supportedBands.filter { it in availableBands }
@@ -54,18 +53,19 @@ class ClientSteeringAdvisor {
                 targetBand = currentBand,
                 rationale = "Client only supports ${currentBand.displayName}",
                 expectedImprovement = "",
-                risks = emptyList()
+                risks = emptyList(),
             )
         }
 
-        val bandScores = clientBands.associateWith { band ->
-            scoreBandForClient(
-                band = band,
-                client = client,
-                congestion = congestion[band],
-                isCurrent = band == currentBand
-            )
-        }
+        val bandScores =
+            clientBands.associateWith { band ->
+                scoreBandForClient(
+                    band = band,
+                    client = client,
+                    congestion = congestion[band],
+                    isCurrent = band == currentBand,
+                )
+            }
 
         val bestBand = bandScores.maxByOrNull { it.value }?.key ?: currentBand
 
@@ -82,7 +82,7 @@ class ClientSteeringAdvisor {
                 targetBand = bestBand,
                 rationale = buildBandSteeringRationale(currentBand, bestBand, client, congestion),
                 expectedImprovement = estimateBandImprovement(currentBand, bestBand, client),
-                risks = assessBandSteeringRisks(currentBand, bestBand, client)
+                risks = assessBandSteeringRisks(currentBand, bestBand, client),
             )
         } else {
             BandSteeringRecommendation(
@@ -91,7 +91,7 @@ class ClientSteeringAdvisor {
                 targetBand = currentBand,
                 rationale = "Current band (${currentBand.displayName}) is optimal",
                 expectedImprovement = "",
-                risks = emptyList()
+                risks = emptyList(),
             )
         }
     }
@@ -115,43 +115,50 @@ class ClientSteeringAdvisor {
     fun recommendApSteering(
         client: ClientMetrics,
         currentAp: String,
-        availableAps: List<ApMetrics>
+        availableAps: List<ApMetrics>,
     ): ApSteeringRecommendation {
         require(availableAps.isNotEmpty()) {
             "Need at least one available AP"
         }
 
-        val currentApMetrics = availableAps.find { it.bssid == currentAp }
-            ?: return ApSteeringRecommendation(
-                shouldSteer = false,
-                currentBssid = currentAp,
-                targetBssid = currentAp,
-                rationale = "Current AP metrics unavailable",
-                expectedLoadReduction = 0.0,
-                signalImprovement = 0
-            )
+        val currentApMetrics =
+            availableAps.find { it.bssid == currentAp }
+                ?: return ApSteeringRecommendation(
+                    shouldSteer = false,
+                    currentBssid = currentAp,
+                    targetBssid = currentAp,
+                    rationale = "Current AP metrics unavailable",
+                    expectedLoadReduction = 0.0,
+                    signalImprovement = 0,
+                )
 
-        val apScores = availableAps.associateWith { ap ->
-            scoreApForClient(
-                ap = ap,
-                client = client,
-                isCurrent = ap.bssid == currentAp
-            )
-        }
+        val apScores =
+            availableAps.associateWith { ap ->
+                scoreApForClient(
+                    ap = ap,
+                    client = client,
+                    isCurrent = ap.bssid == currentAp,
+                )
+            }
 
         val bestAp = apScores.maxByOrNull { it.value }?.key ?: currentApMetrics
         val currentScore = apScores[currentApMetrics] ?: 0.0
         val bestScore = apScores[bestAp] ?: 0.0
         val improvement = bestScore - currentScore
 
-        val shouldSteer = improvement >= MINIMUM_AP_STEERING_IMPROVEMENT &&
+        val shouldSteer =
+            improvement >= MINIMUM_AP_STEERING_IMPROVEMENT &&
                 bestAp.bssid != currentAp &&
                 (bestAp.signalRssi ?: Int.MIN_VALUE) >= MINIMUM_STEERING_RSSI
 
         return if (shouldSteer) {
-            val signalDiff = (bestAp.signalRssi ?: 0) - (currentApMetrics.signalRssi ?:  0)
-            val loadReduction = ((currentApMetrics.clientCount - bestAp.clientCount).toDouble() /
-                    currentApMetrics.clientCount.coerceAtLeast(1)) * 100.0
+            val signalDiff = (bestAp.signalRssi ?: 0) - (currentApMetrics.signalRssi ?: 0)
+            val loadReduction =
+                (
+                    (currentApMetrics.clientCount - bestAp.clientCount).toDouble() /
+                        currentApMetrics.clientCount.coerceAtLeast(1)
+                ) *
+                    100.0
 
             ApSteeringRecommendation(
                 shouldSteer = true,
@@ -159,7 +166,7 @@ class ClientSteeringAdvisor {
                 targetBssid = bestAp.bssid,
                 rationale = buildApSteeringRationale(currentApMetrics, bestAp),
                 expectedLoadReduction = loadReduction.coerceAtLeast(0.0),
-                signalImprovement = signalDiff
+                signalImprovement = signalDiff,
             )
         } else {
             ApSteeringRecommendation(
@@ -168,7 +175,7 @@ class ClientSteeringAdvisor {
                 targetBssid = currentAp,
                 rationale = "Current AP is optimal for this client",
                 expectedLoadReduction = 0.0,
-                signalImprovement = 0
+                signalImprovement = 0,
             )
         }
     }
@@ -182,9 +189,7 @@ class ClientSteeringAdvisor {
      * @param steeringEvents Historical steering attempts
      * @return Effectiveness analysis with metrics
      */
-    fun analyzeSteeringEffectiveness(
-        steeringEvents: List<SteeringEvent>
-    ): SteeringEffectivenessResult {
+    fun analyzeSteeringEffectiveness(steeringEvents: List<SteeringEvent>): SteeringEffectivenessResult {
         if (steeringEvents.isEmpty()) {
             return SteeringEffectivenessResult(
                 totalAttempts = 0,
@@ -192,16 +197,17 @@ class ClientSteeringAdvisor {
                 successRate = 0.0,
                 averageImprovementPercent = 0.0,
                 issues = listOf("No steering data available"),
-                recommendations = listOf("Enable steering and collect data")
+                recommendations = listOf("Enable steering and collect data"),
             )
         }
 
         val successful = steeringEvents.count { it.wasSuccessful }
         val successRate = (successful.toDouble() / steeringEvents.size) * 100.0
 
-        val improvements = steeringEvents
-            .filter { it.wasSuccessful && it.actualImprovement != null }
-            .mapNotNull { it.actualImprovement }
+        val improvements =
+            steeringEvents
+                .filter { it.wasSuccessful && it.actualImprovement != null }
+                .mapNotNull { it.actualImprovement }
 
         val avgImprovement = if (improvements.isNotEmpty()) improvements.average() else 0.0
 
@@ -213,21 +219,23 @@ class ClientSteeringAdvisor {
             issues.add("Low actual improvement (${avgImprovement.toInt()}%) - steering criteria may be too aggressive")
         }
 
-        val stickyClients = steeringEvents
-            .filter { !it.wasSuccessful }
-            .groupingBy { it.clientMac }
-            .eachCount()
-            .filter { it.value >= 3 }
+        val stickyClients =
+            steeringEvents
+                .filter { !it.wasSuccessful }
+                .groupingBy { it.clientMac }
+                .eachCount()
+                .filter { it.value >= 3 }
 
         if (stickyClients.isNotEmpty()) {
             issues.add("${stickyClients.size} sticky clients detected (refusing multiple steering attempts)")
         }
 
-        val recommendations = buildSteeringRecommendations(
-            successRate = successRate,
-            avgImprovement = avgImprovement,
-            stickyClientCount = stickyClients.size
-        )
+        val recommendations =
+            buildSteeringRecommendations(
+                successRate = successRate,
+                avgImprovement = avgImprovement,
+                stickyClientCount = stickyClients.size,
+            )
 
         return SteeringEffectivenessResult(
             totalAttempts = steeringEvents.size,
@@ -235,7 +243,7 @@ class ClientSteeringAdvisor {
             successRate = successRate,
             averageImprovementPercent = avgImprovement,
             issues = issues,
-            recommendations = recommendations
+            recommendations = recommendations,
         )
     }
 
@@ -256,16 +264,17 @@ class ClientSteeringAdvisor {
         band: WiFiBand,
         client: ClientCapabilities,
         congestion: BandCongestionMetrics?,
-        isCurrent: Boolean
+        isCurrent: Boolean,
     ): Double {
         var score = 50.0
 
-        score += when (band) {
-            WiFiBand.BAND_6GHZ -> 30.0
-            WiFiBand.BAND_5GHZ -> 20.0
-            WiFiBand.BAND_2_4GHZ -> 10.0
-            else -> 0.0
-        }
+        score +=
+            when (band) {
+                WiFiBand.BAND_6GHZ -> 30.0
+                WiFiBand.BAND_5GHZ -> 20.0
+                WiFiBand.BAND_2_4GHZ -> 10.0
+                else -> 0.0
+            }
 
         if (congestion != null) {
             score -= congestion.utilizationPercent * 0.3
@@ -286,7 +295,7 @@ class ClientSteeringAdvisor {
 
         // Current band penalty (prefer to steer only if significantly better)
         if (isCurrent) {
-            score += 10.0  // Slight bonus to stay put (hysteresis)
+            score += 10.0 // Slight bonus to stay put (hysteresis)
         }
 
         return score.coerceIn(0.0, 100.0)
@@ -298,23 +307,24 @@ class ClientSteeringAdvisor {
     private fun scoreApForClient(
         ap: ApMetrics,
         client: ClientMetrics,
-        isCurrent: Boolean
+        isCurrent: Boolean,
     ): Double {
         var score = 50.0
 
         // Signal strength (most important factor)
         val rssi = ap.signalRssi ?: -80
-        score += when {
-            rssi >= -60 -> 30.0
-            rssi >= -70 -> 20.0
-            rssi >= -75 -> 10.0
-            else -> 0.0
-        }
+        score +=
+            when {
+                rssi >= -60 -> 30.0
+                rssi >= -70 -> 20.0
+                rssi >= -75 -> 10.0
+                else -> 0.0
+            }
 
         val loadFactor = ap.utilizationPercent / 100.0
         score -= loadFactor * 20.0
 
-        val clientFactor = ap.clientCount / 20.0  // Normalize to ~20 clients
+        val clientFactor = ap.clientCount / 20.0 // Normalize to ~20 clients
         score -= clientFactor * 15.0
 
         // Current AP bonus (hysteresis to prevent ping-ponging)
@@ -329,7 +339,7 @@ class ClientSteeringAdvisor {
         current: WiFiBand,
         target: WiFiBand,
         client: ClientCapabilities,
-        congestion: Map<WiFiBand, BandCongestionMetrics>
+        congestion: Map<WiFiBand, BandCongestionMetrics>,
     ): String {
         val currentCongestion = congestion[current]?.utilizationPercent ?: 0
         val targetCongestion = congestion[target]?.utilizationPercent ?: 0
@@ -353,14 +363,15 @@ class ClientSteeringAdvisor {
     private fun estimateBandImprovement(
         current: WiFiBand,
         target: WiFiBand,
-        client: ClientCapabilities
+        client: ClientCapabilities,
     ): String {
-        val speedup = when {
-            current == WiFiBand.BAND_2_4GHZ && target == WiFiBand.BAND_5GHZ -> "2-3x"
-            current == WiFiBand.BAND_2_4GHZ && target == WiFiBand.BAND_6GHZ -> "4-5x"
-            current == WiFiBand.BAND_5GHZ && target == WiFiBand.BAND_6GHZ -> "1.5-2x"
-            else -> "10-20%"
-        }
+        val speedup =
+            when {
+                current == WiFiBand.BAND_2_4GHZ && target == WiFiBand.BAND_5GHZ -> "2-3x"
+                current == WiFiBand.BAND_2_4GHZ && target == WiFiBand.BAND_6GHZ -> "4-5x"
+                current == WiFiBand.BAND_5GHZ && target == WiFiBand.BAND_6GHZ -> "1.5-2x"
+                else -> "10-20%"
+            }
 
         return "$speedup faster throughput expected"
     }
@@ -368,7 +379,7 @@ class ClientSteeringAdvisor {
     private fun assessBandSteeringRisks(
         current: WiFiBand,
         target: WiFiBand,
-        client: ClientCapabilities
+        client: ClientCapabilities,
     ): List<String> {
         val risks = mutableListOf<String>()
 
@@ -389,7 +400,7 @@ class ClientSteeringAdvisor {
 
     private fun buildApSteeringRationale(
         current: ApMetrics,
-        target: ApMetrics
+        target: ApMetrics,
     ): String {
         val signalDiff = (target.signalRssi ?: 0) - (current.signalRssi ?: 0)
         val loadDiff = current.clientCount - target.clientCount
@@ -399,7 +410,7 @@ class ClientSteeringAdvisor {
             when {
                 signalDiff >= 10 -> append(" - much stronger signal (+${signalDiff}dB)")
                 signalDiff >= 5 -> append(" - stronger signal (+${signalDiff}dB)")
-                loadDiff >= 5 -> append(" - better load distribution (${loadDiff} fewer clients)")
+                loadDiff >= 5 -> append(" - better load distribution ($loadDiff fewer clients)")
                 else -> append(" - improved overall performance")
             }
         }
@@ -408,7 +419,7 @@ class ClientSteeringAdvisor {
     private fun buildSteeringRecommendations(
         successRate: Double,
         avgImprovement: Double,
-        stickyClientCount: Int
+        stickyClientCount: Int,
     ): List<String> {
         val recommendations = mutableListOf<String>()
 
@@ -433,9 +444,9 @@ class ClientSteeringAdvisor {
     }
 
     companion object {
-        private const val MINIMUM_STEERING_IMPROVEMENT = 15.0  // Minimum score improvement to steer
+        private const val MINIMUM_STEERING_IMPROVEMENT = 15.0 // Minimum score improvement to steer
         private const val MINIMUM_AP_STEERING_IMPROVEMENT = 10.0
-        private const val MINIMUM_STEERING_RSSI = -75  // Don't steer to APs weaker than this
+        private const val MINIMUM_STEERING_RSSI = -75 // Don't steer to APs weaker than this
     }
 }
 
@@ -447,16 +458,16 @@ data class ClientCapabilities(
     val supportedBands: List<WiFiBand>,
     val supportsWiFi6: Boolean,
     val supportsWiFi6E: Boolean,
-    val supports80211v: Boolean,  // BSS Transition Management
-    val supports80211k: Boolean,  // Neighbor Report
-    val signalStrength: Int
+    val supports80211v: Boolean, // BSS Transition Management
+    val supports80211k: Boolean, // Neighbor Report
+    val signalStrength: Int,
 )
 
 data class BandCongestionMetrics(
     val band: WiFiBand,
     val utilizationPercent: Int,
     val clientCount: Int,
-    val interferenceLevel: Double
+    val interferenceLevel: Double,
 )
 
 data class BandSteeringRecommendation(
@@ -465,7 +476,7 @@ data class BandSteeringRecommendation(
     val targetBand: WiFiBand,
     val rationale: String,
     val expectedImprovement: String,
-    val risks: List<String>
+    val risks: List<String>,
 )
 
 data class ApMetrics(
@@ -473,7 +484,7 @@ data class ApMetrics(
     val signalRssi: Int?,
     val clientCount: Int,
     val utilizationPercent: Int,
-    val channel: Int
+    val channel: Int,
 )
 
 data class ApSteeringRecommendation(
@@ -481,8 +492,8 @@ data class ApSteeringRecommendation(
     val currentBssid: String,
     val targetBssid: String,
     val rationale: String,
-    val expectedLoadReduction: Double,  // Percentage
-    val signalImprovement: Int  // dB
+    val expectedLoadReduction: Double, // Percentage
+    val signalImprovement: Int, // dB
 )
 
 data class SteeringEvent(
@@ -491,14 +502,14 @@ data class SteeringEvent(
     val fromBssid: String,
     val toBssid: String,
     val wasSuccessful: Boolean,
-    val actualImprovement: Double?  // Percentage
+    val actualImprovement: Double?, // Percentage
 )
 
 data class SteeringEffectivenessResult(
     val totalAttempts: Int,
     val successfulSteers: Int,
-    val successRate: Double,  // Percentage
+    val successRate: Double, // Percentage
     val averageImprovementPercent: Double,
     val issues: List<String>,
-    val recommendations: List<String>
+    val recommendations: List<String>,
 )

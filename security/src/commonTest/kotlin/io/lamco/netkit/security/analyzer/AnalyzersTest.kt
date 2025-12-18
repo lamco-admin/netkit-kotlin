@@ -10,7 +10,6 @@ import org.junit.jupiter.api.assertThrows
  * Comprehensive tests for WpsAnalyzer, CipherAnalyzer, PmfAnalyzer, and ConfigAnalyzer
  */
 class AnalyzersTest {
-
     // ============================================
     // WPS ANALYZER TESTS (25 tests)
     // ============================================
@@ -19,15 +18,16 @@ class AnalyzersTest {
 
     @Test
     fun `WpsAnalyzer detects PIN method vulnerability`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val result = wpsAnalyzer.analyze("00:11:22:33:44:55", wpsInfo)
 
@@ -39,15 +39,16 @@ class AnalyzersTest {
 
     @Test
     fun `WpsAnalyzer accepts push-button only as safer`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = true,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = true,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val result = wpsAnalyzer.analyze("00:11:22:33:44:55", wpsInfo)
 
@@ -66,15 +67,16 @@ class AnalyzersTest {
 
     @Test
     fun `WpsAnalyzer detects unlocked state vulnerability`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null,
-            manufacturer = null,
-            modelName = null,
-            version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val result = wpsAnalyzer.analyze("00:11:22:33:44:55", wpsInfo)
 
@@ -83,15 +85,16 @@ class AnalyzersTest {
 
     @Test
     fun `WpsAnalyzer generates device-specific recommendations`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = "Router",
-            manufacturer = "Netgear",
-            modelName = "R7000",
-            version = "1.0"
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = "Router",
+                manufacturer = "Netgear",
+                modelName = "R7000",
+                version = "1.0",
+            )
 
         val result = wpsAnalyzer.analyze("00:11:22:33:44:55", wpsInfo)
 
@@ -100,21 +103,30 @@ class AnalyzersTest {
 
     @Test
     fun `WpsAnalyzer analyzeMultiple aggregates correctly`() {
-        val apList = listOf(
-            "00:11:22:33:44:55" to WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null, manufacturer = null, modelName = null, version = null
-            ),
-            "AA:BB:CC:DD:EE:FF" to null,
-            "11:22:33:44:55:66" to WpsInfo(
-                configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
-                wpsState = WpsState.CONFIGURED,
-                locked = true,
-                deviceName = null, manufacturer = null, modelName = null, version = null
+        val apList =
+            listOf(
+                "00:11:22:33:44:55" to
+                    WpsInfo(
+                        configMethods = setOf(WpsConfigMethod.LABEL),
+                        wpsState = WpsState.CONFIGURED,
+                        locked = false,
+                        deviceName = null,
+                        manufacturer = null,
+                        modelName = null,
+                        version = null,
+                    ),
+                "AA:BB:CC:DD:EE:FF" to null,
+                "11:22:33:44:55:66" to
+                    WpsInfo(
+                        configMethods = setOf(WpsConfigMethod.PUSH_BUTTON),
+                        wpsState = WpsState.CONFIGURED,
+                        locked = true,
+                        deviceName = null,
+                        manufacturer = null,
+                        modelName = null,
+                        version = null,
+                    ),
             )
-        )
 
         val result = wpsAnalyzer.analyzeMultiple(apList)
 
@@ -126,15 +138,20 @@ class AnalyzersTest {
 
     @Test
     fun `WpsNetworkAnalysis calculates percentages correctly`() {
-        val apList = listOf(
-            "00:11:22:33:44:55" to WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null, manufacturer = null, modelName = null, version = null
-            ),
-            "AA:BB:CC:DD:EE:FF" to null
-        )
+        val apList =
+            listOf(
+                "00:11:22:33:44:55" to
+                    WpsInfo(
+                        configMethods = setOf(WpsConfigMethod.LABEL),
+                        wpsState = WpsState.CONFIGURED,
+                        locked = false,
+                        deviceName = null,
+                        manufacturer = null,
+                        modelName = null,
+                        version = null,
+                    ),
+                "AA:BB:CC:DD:EE:FF" to null,
+            )
 
         val result = wpsAnalyzer.analyzeMultiple(apList)
 
@@ -144,12 +161,16 @@ class AnalyzersTest {
 
     @Test
     fun `WpsVulnerability includes CVE references for PIN attacks`() {
-        val wpsInfo = WpsInfo(
-            configMethods = setOf(WpsConfigMethod.LABEL),
-            wpsState = WpsState.CONFIGURED,
-            locked = false,
-            deviceName = null, manufacturer = null, modelName = null, version = null
-        )
+        val wpsInfo =
+            WpsInfo(
+                configMethods = setOf(WpsConfigMethod.LABEL),
+                wpsState = WpsState.CONFIGURED,
+                locked = false,
+                deviceName = null,
+                manufacturer = null,
+                modelName = null,
+                version = null,
+            )
 
         val result = wpsAnalyzer.analyze("00:11:22:33:44:55", wpsInfo)
 
@@ -166,10 +187,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer detects WEP as insecure`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WEP,
-            cipherSet = setOf(CipherSuite.WEP_40)
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WEP,
+                cipherSet = setOf(CipherSuite.WEP_40),
+            )
 
         assertEquals(CipherStrength.INSECURE, result.strength)
         assertTrue(result.hasWeakCiphers)
@@ -178,10 +200,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer accepts CCMP-GCMP as strong`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            cipherSet = setOf(CipherSuite.CCMP, CipherSuite.GCMP)
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                cipherSet = setOf(CipherSuite.CCMP, CipherSuite.GCMP),
+            )
 
         assertEquals(CipherStrength.STRONG, result.strength)
         assertFalse(result.hasWeakCiphers)
@@ -189,10 +212,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer detects mixed weak-strong ciphers`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            cipherSet = setOf(CipherSuite.CCMP, CipherSuite.TKIP)
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                cipherSet = setOf(CipherSuite.CCMP, CipherSuite.TKIP),
+            )
 
         assertEquals(CipherStrength.MODERATE, result.strength)
         assertTrue(result.hasWeakCiphers)
@@ -201,10 +225,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer validates Suite-B requirements`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WPA3_ENTERPRISE_192,
-            cipherSet = setOf(CipherSuite.CCMP)  // Should be 256-bit
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WPA3_ENTERPRISE_192,
+                cipherSet = setOf(CipherSuite.CCMP), // Should be 256-bit
+            )
 
         assertTrue(result.hasCompatibilityIssues)
         assertTrue(result.issues.any { it.description.contains("256-bit", ignoreCase = true) })
@@ -212,10 +237,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer recommends correct ciphers for WPA3`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WPA3_SAE,
-            cipherSet = setOf(CipherSuite.GCMP)
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WPA3_SAE,
+                cipherSet = setOf(CipherSuite.GCMP),
+            )
 
         assertTrue(result.recommendedCiphers.contains(CipherSuite.GCMP))
         assertTrue(result.recommendedCiphers.contains(CipherSuite.BIP_GMAC_128))
@@ -223,10 +249,11 @@ class AnalyzersTest {
 
     @Test
     fun `CipherAnalyzer detects missing management cipher`() {
-        val result = cipherAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            cipherSet = setOf(CipherSuite.CCMP)  // No BIP
-        )
+        val result =
+            cipherAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                cipherSet = setOf(CipherSuite.CCMP), // No BIP
+            )
 
         assertTrue(result.issues.any { it.description.contains("management", ignoreCase = true) })
     }
@@ -255,12 +282,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer detects missing PMF on WPA3 as critical`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA3_SAE,
-            pmfRequired = false,
-            pmfCapable = false,
-            managementCipher = null
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA3_SAE,
+                pmfRequired = false,
+                pmfCapable = false,
+                managementCipher = null,
+            )
 
         assertTrue(result.shouldBeMandatory)
         assertEquals(PmfStatus.DISABLED, result.status)
@@ -270,12 +298,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer accepts PMF required with strong cipher`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA3_SAE,
-            pmfRequired = true,
-            pmfCapable = true,
-            managementCipher = CipherSuite.BIP_GMAC_256
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA3_SAE,
+                pmfRequired = true,
+                pmfCapable = true,
+                managementCipher = CipherSuite.BIP_GMAC_256,
+            )
 
         assertEquals(PmfStatus.REQUIRED, result.status)
         assertEquals(1.0, result.protectionLevel, 0.001)
@@ -285,12 +314,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer detects PMF capable but not required`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            pmfRequired = false,
-            pmfCapable = true,
-            managementCipher = CipherSuite.BIP_CMAC_128
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                pmfRequired = false,
+                pmfCapable = true,
+                managementCipher = CipherSuite.BIP_CMAC_128,
+            )
 
         assertEquals(PmfStatus.CAPABLE, result.status)
         assertTrue(result.protectionLevel in 0.4..0.7)
@@ -299,12 +329,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer identifies deauth vulnerabilities`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            pmfRequired = false,
-            pmfCapable = false,
-            managementCipher = null
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                pmfRequired = false,
+                pmfCapable = false,
+                managementCipher = null,
+            )
 
         assertTrue(result.vulnerabilities.any { it.attackType.contains("Deauthentication") })
         assertTrue(result.vulnerabilities.any { it.attackType.contains("Evil Twin") })
@@ -312,12 +343,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer detects weak management cipher`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            pmfRequired = true,
-            pmfCapable = true,
-            managementCipher = CipherSuite.BIP_CMAC_128  // Weaker than GMAC-256
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                pmfRequired = true,
+                pmfCapable = true,
+                managementCipher = CipherSuite.BIP_CMAC_128, // Weaker than GMAC-256
+            )
 
         // BIP-CMAC-128 is acceptable (strength 85), not weak
         assertTrue(result.protectionLevel >= 0.85)
@@ -325,12 +357,13 @@ class AnalyzersTest {
 
     @Test
     fun `PmfAnalyzer lists common attack tools`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            pmfRequired = false,
-            pmfCapable = false,
-            managementCipher = null
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                pmfRequired = false,
+                pmfCapable = false,
+                managementCipher = null,
+            )
 
         val deauthVuln = result.vulnerabilities.find { it.attackType.contains("Deauthentication") }
         assertNotNull(deauthVuln)
@@ -348,12 +381,13 @@ class AnalyzersTest {
 
     @Test
     fun `ManagementFrameVulnerability contains required fields`() {
-        val result = pmfAnalyzer.analyze(
-            authType = AuthType.WPA2_PSK,
-            pmfRequired = false,
-            pmfCapable = false,
-            managementCipher = null
-        )
+        val result =
+            pmfAnalyzer.analyze(
+                authType = AuthType.WPA2_PSK,
+                pmfRequired = false,
+                pmfCapable = false,
+                managementCipher = null,
+            )
 
         result.vulnerabilities.forEach { vuln ->
             assertTrue(vuln.attackType.isNotBlank())
@@ -371,17 +405,19 @@ class AnalyzersTest {
     @Test
     fun `ConfigAnalyzer detects consistent security across APs`() {
         val fingerprint = SecurityFingerprint.wpa2Personal()
-        val configs = listOf(
-            "00:11:22:33:44:55" to fingerprint,
-            "AA:BB:CC:DD:EE:FF" to fingerprint,
-            "11:22:33:44:55:66" to fingerprint
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to fingerprint,
+                "AA:BB:CC:DD:EE:FF" to fingerprint,
+                "11:22:33:44:55:66" to fingerprint,
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "CorporateNet",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "CorporateNet",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         assertTrue(result.securityConsistency.isConsistent)
         assertEquals(1, result.securityConsistency.uniqueConfigCount)
@@ -390,84 +426,100 @@ class AnalyzersTest {
 
     @Test
     fun `ConfigAnalyzer detects inconsistent authentication types`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa3Personal()
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
+                "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa3Personal(),
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "MixedNet",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "MixedNet",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         assertFalse(result.securityConsistency.isConsistent)
         assertEquals(2, result.securityConsistency.uniqueConfigCount)
-        assertTrue(result.securityConsistency.differences.any {
-            it.category == DifferenceCategory.AUTHENTICATION
-        })
+        assertTrue(
+            result.securityConsistency.differences.any {
+                it.category == DifferenceCategory.AUTHENTICATION
+            },
+        )
     }
 
     @Test
     fun `ConfigAnalyzer detects inconsistent ciphers`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint(
-                authType = AuthType.WPA2_PSK,
-                cipherSet = setOf(CipherSuite.CCMP),
-                pmfRequired = false,
-                transitionMode = null
-            ),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint(
-                authType = AuthType.WPA2_PSK,
-                cipherSet = setOf(CipherSuite.CCMP, CipherSuite.GCMP),
-                pmfRequired = false,
-                transitionMode = null
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to
+                    SecurityFingerprint(
+                        authType = AuthType.WPA2_PSK,
+                        cipherSet = setOf(CipherSuite.CCMP),
+                        pmfRequired = false,
+                        transitionMode = null,
+                    ),
+                "AA:BB:CC:DD:EE:FF" to
+                    SecurityFingerprint(
+                        authType = AuthType.WPA2_PSK,
+                        cipherSet = setOf(CipherSuite.CCMP, CipherSuite.GCMP),
+                        pmfRequired = false,
+                        transitionMode = null,
+                    ),
             )
-        )
 
-        val result = configAnalyzer.analyze(
-            ssid = "TestNet",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "TestNet",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         assertFalse(result.securityConsistency.isConsistent)
-        assertTrue(result.securityConsistency.differences.any {
-            it.category == DifferenceCategory.CIPHERS
-        })
+        assertTrue(
+            result.securityConsistency.differences.any {
+                it.category == DifferenceCategory.CIPHERS
+            },
+        )
     }
 
     @Test
     fun `ConfigAnalyzer detects inconsistent PMF settings`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(pmfRequired = true),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal(pmfRequired = false)
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(pmfRequired = true),
+                "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal(pmfRequired = false),
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "TestNet",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "TestNet",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
-        assertTrue(result.securityConsistency.differences.any {
-            it.category == DifferenceCategory.PMF
-        })
+        assertTrue(
+            result.securityConsistency.differences.any {
+                it.category == DifferenceCategory.PMF
+            },
+        )
     }
 
     @Test
     fun `ConfigAnalyzer calculates roaming consistency`() {
-        val roaming = listOf(
-            "00:11:22:33:44:55" to true,
-            "AA:BB:CC:DD:EE:FF" to true,
-            "11:22:33:44:55:66" to true
-        )
+        val roaming =
+            listOf(
+                "00:11:22:33:44:55" to true,
+                "AA:BB:CC:DD:EE:FF" to true,
+                "11:22:33:44:55:66" to true,
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "RoamingNet",
-            apConfigurations = listOf("00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal()),
-            roamingCapabilities = roaming
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "RoamingNet",
+                apConfigurations = listOf("00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal()),
+                roamingCapabilities = roaming,
+            )
 
         assertTrue(result.roamingConsistency.isConsistent)
         assertEquals(1.0, result.roamingConsistency.consistencyScore, 0.001)
@@ -475,17 +527,19 @@ class AnalyzersTest {
 
     @Test
     fun `ConfigAnalyzer detects partial roaming support`() {
-        val roaming = listOf(
-            "00:11:22:33:44:55" to true,
-            "AA:BB:CC:DD:EE:FF" to false,
-            "11:22:33:44:55:66" to false
-        )
+        val roaming =
+            listOf(
+                "00:11:22:33:44:55" to true,
+                "AA:BB:CC:DD:EE:FF" to false,
+                "11:22:33:44:55:66" to false,
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "PartialRoaming",
-            apConfigurations = listOf("00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal()),
-            roamingCapabilities = roaming
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "PartialRoaming",
+                apConfigurations = listOf("00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal()),
+                roamingCapabilities = roaming,
+            )
 
         assertFalse(result.roamingConsistency.isConsistent)
         assertEquals(1, result.roamingConsistency.roamingEnabledCount)
@@ -494,36 +548,41 @@ class AnalyzersTest {
 
     @Test
     fun `ConfigAnalyzer generates InconsistentSecurity issue`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa3Personal()
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
+                "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa3Personal(),
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "TestNet",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "TestNet",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         assertTrue(result.issues.any { it is io.lamco.netkit.security.model.ConfigurationIssue.InconsistentSecurity })
     }
 
     @Test
     fun `ConfigAnalyzer generates MissingRoamingFeatures issue`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal()
-        )
-        val roaming = listOf(
-            "00:11:22:33:44:55" to true,
-            "AA:BB:CC:DD:EE:FF" to false
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
+                "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal(),
+            )
+        val roaming =
+            listOf(
+                "00:11:22:33:44:55" to true,
+                "AA:BB:CC:DD:EE:FF" to false,
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "TestNet",
-            apConfigurations = configs,
-            roamingCapabilities = roaming
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "TestNet",
+                apConfigurations = configs,
+                roamingCapabilities = roaming,
+            )
 
         assertTrue(result.issues.any { it is io.lamco.netkit.security.model.ConfigurationIssue.MissingRoamingFeatures })
     }
@@ -537,11 +596,12 @@ class AnalyzersTest {
 
     @Test
     fun `ConfigDifference contains category and values`() {
-        val diff = ConfigDifference(
-            category = DifferenceCategory.AUTHENTICATION,
-            description = "Different auth types",
-            values = listOf("WPA2-Personal", "WPA3-Personal")
-        )
+        val diff =
+            ConfigDifference(
+                category = DifferenceCategory.AUTHENTICATION,
+                description = "Different auth types",
+                values = listOf("WPA2-Personal", "WPA3-Personal"),
+            )
 
         assertEquals(DifferenceCategory.AUTHENTICATION, diff.category)
         assertEquals(2, diff.values.size)
@@ -549,43 +609,48 @@ class AnalyzersTest {
 
     @Test
     fun `ConfigConsistencyResult calculates correct consistency level`() {
-        val result = SecurityConsistencyResult(
-            isConsistent = true,
-            uniqueConfigCount = 1,
-            differences = emptyList(),
-            consistencyScore = 0.95
-        )
+        val result =
+            SecurityConsistencyResult(
+                isConsistent = true,
+                uniqueConfigCount = 1,
+                differences = emptyList(),
+                consistencyScore = 0.95,
+            )
 
-        val roaming = RoamingConsistencyResult(
-            isConsistent = true,
-            roamingEnabledCount = 3,
-            roamingDisabledCount = 0,
-            consistencyScore = 1.0
-        )
+        val roaming =
+            RoamingConsistencyResult(
+                isConsistent = true,
+                roamingEnabledCount = 3,
+                roamingDisabledCount = 0,
+                consistencyScore = 1.0,
+            )
 
         val configs = listOf("00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal())
 
-        val configResult = configAnalyzer.analyze(
-            ssid = "Test",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val configResult =
+            configAnalyzer.analyze(
+                ssid = "Test",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         assertTrue(configResult.consistencyLevel in listOf(ConsistencyLevel.EXCELLENT, ConsistencyLevel.GOOD))
     }
 
     @Test
     fun `ConfigConsistencyResult summary includes SSID and AP count`() {
-        val configs = listOf(
-            "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
-            "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal()
-        )
+        val configs =
+            listOf(
+                "00:11:22:33:44:55" to SecurityFingerprint.wpa2Personal(),
+                "AA:BB:CC:DD:EE:FF" to SecurityFingerprint.wpa2Personal(),
+            )
 
-        val result = configAnalyzer.analyze(
-            ssid = "TestNetwork",
-            apConfigurations = configs,
-            roamingCapabilities = emptyList()
-        )
+        val result =
+            configAnalyzer.analyze(
+                ssid = "TestNetwork",
+                apConfigurations = configs,
+                roamingCapabilities = emptyList(),
+            )
 
         val summary = result.summary
         assertTrue(summary.contains("TestNetwork"))

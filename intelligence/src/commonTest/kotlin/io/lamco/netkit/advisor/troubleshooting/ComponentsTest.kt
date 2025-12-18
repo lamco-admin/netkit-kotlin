@@ -7,7 +7,6 @@ import kotlin.test.*
  * Combined tests for SymptomMatcher, SolutionRecommender, and DiagnosticWorkflow
  */
 class ComponentsTest {
-
     // ========================================
     // SymptomMatcher Tests
     // ========================================
@@ -23,10 +22,11 @@ class ComponentsTest {
 
     @Test
     fun `match dead zone pattern`() {
-        val symptoms = listOf(
-            Symptom.PoorCoverage(-85, "basement"),
-            Symptom.CannotConnect()
-        )
+        val symptoms =
+            listOf(
+                Symptom.PoorCoverage(-85, "basement"),
+                Symptom.CannotConnect(),
+            )
 
         val patterns = matcher.matchPatterns(symptoms)
         assertTrue(patterns.any { it.pattern.name.contains("Dead Zone", ignoreCase = true) })
@@ -34,10 +34,11 @@ class ComponentsTest {
 
     @Test
     fun `match network congestion pattern`() {
-        val symptoms = listOf(
-            Symptom.SlowSpeed(10.0, 100.0),
-            Symptom.HighLatency(200, "gateway")
-        )
+        val symptoms =
+            listOf(
+                Symptom.SlowSpeed(10.0, 100.0),
+                Symptom.HighLatency(200, "gateway"),
+            )
 
         val patterns = matcher.matchPatterns(symptoms)
         assertTrue(patterns.any { it.pattern.name.contains("Congestion", ignoreCase = true) })
@@ -45,10 +46,11 @@ class ComponentsTest {
 
     @Test
     fun `match signal degradation pattern`() {
-        val symptoms = listOf(
-            Symptom.PoorCoverage(-78, "bedroom"),
-            Symptom.FrequentDisconnects(7)
-        )
+        val symptoms =
+            listOf(
+                Symptom.PoorCoverage(-78, "bedroom"),
+                Symptom.FrequentDisconnects(7),
+            )
 
         val patterns = matcher.matchPatterns(symptoms)
         assertTrue(patterns.any { it.pattern.name.contains("Degradation", ignoreCase = true) })
@@ -56,11 +58,12 @@ class ComponentsTest {
 
     @Test
     fun `pattern matches are sorted by confidence`() {
-        val symptoms = listOf(
-            Symptom.SlowSpeed(5.0, 100.0),
-            Symptom.HighLatency(300, "gateway"),
-            Symptom.PoorCoverage(-80, "office")
-        )
+        val symptoms =
+            listOf(
+                Symptom.SlowSpeed(5.0, 100.0),
+                Symptom.HighLatency(300, "gateway"),
+                Symptom.PoorCoverage(-80, "office"),
+            )
 
         val patterns = matcher.matchPatterns(symptoms)
         if (patterns.size > 1) {
@@ -88,10 +91,11 @@ class ComponentsTest {
 
     @Test
     fun `calculate combined severity uses max and average`() {
-        val symptoms = listOf(
-            Symptom.SlowSpeed(10.0, 100.0),  // severity ~7
-            Symptom.HighLatency(150, "gateway")  // severity ~5
-        )
+        val symptoms =
+            listOf(
+                Symptom.SlowSpeed(10.0, 100.0), // severity ~7
+                Symptom.HighLatency(150, "gateway"), // severity ~5
+            )
 
         val severity = matcher.calculateCombinedSeverity(symptoms)
         assertTrue(severity in 5..8)
@@ -104,32 +108,35 @@ class ComponentsTest {
 
     @Test
     fun `symptom correlation has valid range`() {
-        val corr = SymptomCorrelation(
-            symptom1 = Symptom.SlowSpeed(10.0, 100.0),
-            symptom2 = Symptom.HighLatency(200, "gateway"),
-            correlation = 0.85,
-            explanation = "Test"
-        )
+        val corr =
+            SymptomCorrelation(
+                symptom1 = Symptom.SlowSpeed(10.0, 100.0),
+                symptom2 = Symptom.HighLatency(200, "gateway"),
+                correlation = 0.85,
+                explanation = "Test",
+            )
 
         assertTrue(corr.correlation in 0.0..1.0)
     }
 
     @Test
     fun `strong correlation is at least 0_7`() {
-        val strong = SymptomCorrelation(
-            symptom1 = Symptom.SlowSpeed(10.0, 100.0),
-            symptom2 = Symptom.HighLatency(200, "gateway"),
-            correlation = 0.8,
-            explanation = "Test"
-        )
+        val strong =
+            SymptomCorrelation(
+                symptom1 = Symptom.SlowSpeed(10.0, 100.0),
+                symptom2 = Symptom.HighLatency(200, "gateway"),
+                correlation = 0.8,
+                explanation = "Test",
+            )
         assertTrue(strong.isStrongCorrelation)
 
-        val weak = SymptomCorrelation(
-            symptom1 = Symptom.SlowSpeed(10.0, 100.0),
-            symptom2 = Symptom.HighLatency(200, "gateway"),
-            correlation = 0.5,
-            explanation = "Test"
-        )
+        val weak =
+            SymptomCorrelation(
+                symptom1 = Symptom.SlowSpeed(10.0, 100.0),
+                symptom2 = Symptom.HighLatency(200, "gateway"),
+                correlation = 0.5,
+                explanation = "Test",
+            )
         assertFalse(weak.isStrongCorrelation)
     }
 
@@ -148,10 +155,11 @@ class ComponentsTest {
 
     @Test
     fun `recommend solution respects max difficulty`() {
-        val easyOnly = recommender.recommendSolution(
-            NetworkIssue.WEAK_SIGNAL,
-            maxDifficulty = Difficulty.EASY
-        )
+        val easyOnly =
+            recommender.recommendSolution(
+                NetworkIssue.WEAK_SIGNAL,
+                maxDifficulty = Difficulty.EASY,
+            )
 
         assertNotNull(easyOnly)
         assertEquals(Difficulty.EASY, easyOnly.difficulty)
@@ -160,7 +168,7 @@ class ComponentsTest {
     @Test
     fun `get all solutions returns multiple options`() {
         val solutions = recommender.getAllSolutions(NetworkIssue.WEAK_SIGNAL)
-        assertTrue(solutions.size > 1)  // Should have easy, medium, hard solutions
+        assertTrue(solutions.size > 1) // Should have easy, medium, hard solutions
     }
 
     @Test
@@ -172,10 +180,11 @@ class ComponentsTest {
 
     @Test
     fun `recommend solutions for multiple issues`() {
-        val issues = listOf(
-            NetworkIssue.WEAK_SIGNAL,
-            NetworkIssue.CHANNEL_CONGESTION
-        )
+        val issues =
+            listOf(
+                NetworkIssue.WEAK_SIGNAL,
+                NetworkIssue.CHANNEL_CONGESTION,
+            )
 
         val solutions = recommender.recommendSolutions(issues)
         assertEquals(2, solutions.size)
@@ -224,10 +233,11 @@ class ComponentsTest {
 
     @Test
     fun `workflow produces complete result`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
-            context = DiagnosticContext(signalStrength = -72)
-        )
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+                context = DiagnosticContext(signalStrength = -72),
+            )
 
         assertNotNull(result.diagnosis)
         assertTrue(result.workflowSteps.isNotEmpty())
@@ -235,12 +245,14 @@ class ComponentsTest {
 
     @Test
     fun `workflow result includes matched patterns`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(
-                Symptom.SlowSpeed(10.0, 100.0),
-                Symptom.HighLatency(200, "gateway")
+        val result =
+            workflow.runDiagnostics(
+                symptoms =
+                    listOf(
+                        Symptom.SlowSpeed(10.0, 100.0),
+                        Symptom.HighLatency(200, "gateway"),
+                    ),
             )
-        )
 
         // May or may not have patterns depending on symptoms
         assertNotNull(result.matchedPatterns)
@@ -248,20 +260,22 @@ class ComponentsTest {
 
     @Test
     fun `workflow provides recommended solution`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
-            context = DiagnosticContext(signalStrength = -75)
-        )
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+                context = DiagnosticContext(signalStrength = -75),
+            )
 
         assertNotNull(result.recommendedSolution)
     }
 
     @Test
     fun `workflow respects max difficulty`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
-            maxDifficulty = Difficulty.EASY
-        )
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+                maxDifficulty = Difficulty.EASY,
+            )
 
         if (result.recommendedSolution != null) {
             assertTrue(result.recommendedSolution!!.difficulty.ordinal <= Difficulty.EASY.ordinal)
@@ -270,41 +284,46 @@ class ComponentsTest {
 
     @Test
     fun `workflow summary includes diagnosis`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.CannotConnect("Wrong password"))
-        )
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.CannotConnect("Wrong password")),
+            )
 
         assertTrue(result.summary.isNotEmpty())
     }
 
     @Test
     fun `workflow has solution when diagnosis succeeds`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.CannotConnect("Wrong password"))
-        )
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.CannotConnect("Wrong password")),
+            )
 
         assertTrue(result.hasSolution)
     }
 
     @Test
     fun `workflow is high confidence with good context`() {
-        val result = workflow.runDiagnostics(
-            symptoms = listOf(Symptom.SlowSpeed(5.0, 100.0)),
-            context = DiagnosticContext(
-                signalStrength = -78,
-                channelUtilization = 30,
-                connectedClients = 10
+        val result =
+            workflow.runDiagnostics(
+                symptoms = listOf(Symptom.SlowSpeed(5.0, 100.0)),
+                context =
+                    DiagnosticContext(
+                        signalStrength = -78,
+                        channelUtilization = 30,
+                        connectedClients = 10,
+                    ),
             )
-        )
 
         assertTrue(result.diagnosis.confidence > 0.5)
     }
 
     @Test
     fun `quick diagnose is faster than full workflow`() {
-        val quick = workflow.quickDiagnose(
-            symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val quick =
+            workflow.quickDiagnose(
+                symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         assertNotNull(quick)
         assertTrue(quick.rootCauses.isNotEmpty())
@@ -318,9 +337,10 @@ class ComponentsTest {
 
     @Test
     fun `start interactive session creates session`() {
-        val session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         assertNotNull(session.sessionId)
         assertEquals(0, session.currentStep)
@@ -328,9 +348,10 @@ class ComponentsTest {
 
     @Test
     fun `interactive session tracks progress`() {
-        val session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         assertTrue(session.progressPercent >= 0)
         assertTrue(session.progressPercent <= 100)
@@ -338,9 +359,10 @@ class ComponentsTest {
 
     @Test
     fun `interactive session can advance`() {
-        val session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         val next = session.nextStep(StepFeedback.SUCCESS)
         assertEquals(1, next.currentStep)
@@ -348,9 +370,10 @@ class ComponentsTest {
 
     @Test
     fun `interactive session can go back`() {
-        val session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         val next = session.nextStep(StepFeedback.SUCCESS)
         val prev = next.previousStep()
@@ -360,9 +383,10 @@ class ComponentsTest {
 
     @Test
     fun `interactive session at start cannot go back further`() {
-        val session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0))
-        )
+        val session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+            )
 
         val prev = session.previousStep()
         assertEquals(0, prev.currentStep)
@@ -370,9 +394,10 @@ class ComponentsTest {
 
     @Test
     fun `interactive session is complete when all steps done`() {
-        var session = workflow.startInteractiveSession(
-            initialSymptoms = listOf(Symptom.CannotConnect("Wrong password"))
-        )
+        var session =
+            workflow.startInteractiveSession(
+                initialSymptoms = listOf(Symptom.CannotConnect("Wrong password")),
+            )
 
         while (!session.isComplete) {
             session = session.nextStep(StepFeedback.SUCCESS)

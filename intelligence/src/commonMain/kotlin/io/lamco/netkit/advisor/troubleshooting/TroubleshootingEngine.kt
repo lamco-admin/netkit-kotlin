@@ -51,7 +51,6 @@ package io.lamco.netkit.advisor.troubleshooting
  * @see DiagnosticContext
  */
 class TroubleshootingEngine {
-
     /**
      * Diagnose network issues from symptoms and context
      *
@@ -64,7 +63,7 @@ class TroubleshootingEngine {
      */
     fun diagnose(
         symptoms: List<Symptom>,
-        context: DiagnosticContext = DiagnosticContext()
+        context: DiagnosticContext = DiagnosticContext(),
     ): DiagnosisResult {
         require(symptoms.isNotEmpty()) { "At least one symptom required for diagnosis" }
 
@@ -89,7 +88,7 @@ class TroubleshootingEngine {
             rootCauses = sortedCauses,
             confidence = confidence,
             troubleshootingSteps = steps,
-            estimatedResolutionTime = resolutionTime
+            estimatedResolutionTime = resolutionTime,
         )
     }
 
@@ -99,9 +98,7 @@ class TroubleshootingEngine {
      * @param issue Network issue
      * @return List of troubleshooting steps
      */
-    fun getTroubleshootingSteps(issue: NetworkIssue): List<TroubleshootingStep> {
-        return ISSUE_TROUBLESHOOTING_STEPS[issue] ?: emptyList()
-    }
+    fun getTroubleshootingSteps(issue: NetworkIssue): List<TroubleshootingStep> = ISSUE_TROUBLESHOOTING_STEPS[issue] ?: emptyList()
 
     // ========================================
     // Private Decision Tree Logic
@@ -112,9 +109,9 @@ class TroubleshootingEngine {
      */
     private fun analyzeSymptom(
         symptom: Symptom,
-        context: DiagnosticContext
-    ): List<RootCause> {
-        return when (symptom) {
+        context: DiagnosticContext,
+    ): List<RootCause> =
+        when (symptom) {
             is Symptom.SlowSpeed -> diagnoseSlowSpeed(symptom, context)
             is Symptom.FrequentDisconnects -> diagnoseDisconnects(symptom, context)
             is Symptom.PoorCoverage -> diagnosePoorCoverage(symptom, context)
@@ -124,96 +121,117 @@ class TroubleshootingEngine {
             is Symptom.InterferenceDetected -> diagnoseInterference(symptom, context)
             is Symptom.Custom -> diagnoseCustom(symptom, context)
         }
-    }
 
     /**
      * Decision tree for slow speed symptom
      */
     private fun diagnoseSlowSpeed(
         symptom: Symptom.SlowSpeed,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): List<RootCause> {
         val causes = mutableListOf<RootCause>()
 
         if (context.signalStrength != null && context.signalStrength < -70) {
-            causes.add(RootCause(
-                cause = NetworkIssue.WEAK_SIGNAL,
-                probability = 0.8,
-                evidence = listOf(
-                    "Signal strength ${context.signalStrength}dBm is below -70dBm threshold",
-                    "Slow speed: ${symptom.reportedSpeed}Mbps vs expected ${symptom.expectedSpeed}Mbps"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.WEAK_SIGNAL,
+                    probability = 0.8,
+                    evidence =
+                        listOf(
+                            "Signal strength ${context.signalStrength}dBm is below -70dBm threshold",
+                            "Slow speed: ${symptom.reportedSpeed}Mbps vs expected ${symptom.expectedSpeed}Mbps",
+                        ),
+                    fixSuggestion = "Move closer to AP or add additional APs for better coverage",
                 ),
-                fixSuggestion = "Move closer to AP or add additional APs for better coverage"
-            ))
+            )
         }
 
         if (context.channelUtilization != null && context.channelUtilization > 70) {
-            causes.add(RootCause(
-                cause = NetworkIssue.CHANNEL_CONGESTION,
-                probability = 0.75,
-                evidence = listOf(
-                    "Channel utilization at ${context.channelUtilization}% (>70% threshold)",
-                    "Multiple users competing for bandwidth"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.CHANNEL_CONGESTION,
+                    probability = 0.75,
+                    evidence =
+                        listOf(
+                            "Channel utilization at ${context.channelUtilization}% (>70% threshold)",
+                            "Multiple users competing for bandwidth",
+                        ),
+                    fixSuggestion = "Switch to less congested channel or upgrade to wider channels",
                 ),
-                fixSuggestion = "Switch to less congested channel or upgrade to wider channels"
-            ))
+            )
         }
 
         if (context.connectedClients != null && context.connectedClients > 30) {
-            causes.add(RootCause(
-                cause = NetworkIssue.AP_OVERLOADED,
-                probability = 0.7,
-                evidence = listOf(
-                    "${context.connectedClients} clients connected (>30 threshold)",
-                    "AP capacity exceeded"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.AP_OVERLOADED,
+                    probability = 0.7,
+                    evidence =
+                        listOf(
+                            "${context.connectedClients} clients connected (>30 threshold)",
+                            "AP capacity exceeded",
+                        ),
+                    fixSuggestion = "Add additional APs or enable load balancing",
                 ),
-                fixSuggestion = "Add additional APs or enable load balancing"
-            ))
+            )
         }
 
         // WiFi metrics good suggests issue upstream (ISP or modem)
-        if (context.signalStrength != null && context.signalStrength > -65 &&
-            context.channelUtilization != null && context.channelUtilization < 50) {
-            causes.add(RootCause(
-                cause = NetworkIssue.ISP_ISSUE,
-                probability = 0.6,
-                evidence = listOf(
-                    "WiFi metrics are good (signal: ${context.signalStrength}dBm, utilization: ${context.channelUtilization}%)",
-                    "Issue likely upstream from WiFi network"
+        if (context.signalStrength != null &&
+            context.signalStrength > -65 &&
+            context.channelUtilization != null &&
+            context.channelUtilization < 50
+        ) {
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.ISP_ISSUE,
+                    probability = 0.6,
+                    evidence =
+                        listOf(
+                            "WiFi metrics are good (signal: ${context.signalStrength}dBm, utilization: ${context.channelUtilization}%)",
+                            "Issue likely upstream from WiFi network",
+                        ),
+                    fixSuggestion = "Contact ISP or check modem/router connection",
                 ),
-                fixSuggestion = "Contact ISP or check modem/router connection"
-            ))
+            )
         }
 
         if (context.bandwidth != null && context.bandwidth < symptom.expectedSpeed * 0.3) {
-            causes.add(RootCause(
-                cause = NetworkIssue.BANDWIDTH_SATURATION,
-                probability = 0.65,
-                evidence = listOf(
-                    "Available bandwidth ${context.bandwidth}Mbps << expected ${symptom.expectedSpeed}Mbps",
-                    "Network congestion detected"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.BANDWIDTH_SATURATION,
+                    probability = 0.65,
+                    evidence =
+                        listOf(
+                            "Available bandwidth ${context.bandwidth}Mbps << expected ${symptom.expectedSpeed}Mbps",
+                            "Network congestion detected",
+                        ),
+                    fixSuggestion = "Limit background applications or upgrade bandwidth",
                 ),
-                fixSuggestion = "Limit background applications or upgrade bandwidth"
-            ))
+            )
         }
 
         // No diagnostic context available - infer cause from symptom severity
         if (causes.isEmpty()) {
             val speedRatio = symptom.reportedSpeed / symptom.expectedSpeed
-            val issue = when {
-                speedRatio < 0.1 -> NetworkIssue.BANDWIDTH_SATURATION
-                speedRatio < 0.3 -> NetworkIssue.CHANNEL_CONGESTION
-                else -> NetworkIssue.WEAK_SIGNAL
-            }
-            causes.add(RootCause(
-                cause = issue,
-                probability = 0.5,
-                evidence = listOf(
-                    "Speed: ${symptom.reportedSpeed}Mbps vs expected ${symptom.expectedSpeed}Mbps (${(speedRatio * 100).toInt()}%)",
-                    "Additional diagnostics needed for higher confidence"
+            val issue =
+                when {
+                    speedRatio < 0.1 -> NetworkIssue.BANDWIDTH_SATURATION
+                    speedRatio < 0.3 -> NetworkIssue.CHANNEL_CONGESTION
+                    else -> NetworkIssue.WEAK_SIGNAL
+                }
+            causes.add(
+                RootCause(
+                    cause = issue,
+                    probability = 0.5,
+                    evidence =
+                        listOf(
+                            "Speed: ${symptom.reportedSpeed}Mbps vs expected ${symptom.expectedSpeed}Mbps (${(speedRatio * 100).toInt()}%)",
+                            "Additional diagnostics needed for higher confidence",
+                        ),
+                    fixSuggestion = "Run signal strength test and check channel utilization for more accurate diagnosis",
                 ),
-                fixSuggestion = "Run signal strength test and check channel utilization for more accurate diagnosis"
-            ))
+            )
         }
 
         return causes
@@ -224,56 +242,68 @@ class TroubleshootingEngine {
      */
     private fun diagnoseDisconnects(
         symptom: Symptom.FrequentDisconnects,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): List<RootCause> {
         val causes = mutableListOf<RootCause>()
 
         if (context.signalStrength != null && context.signalStrength < -75) {
-            causes.add(RootCause(
-                cause = NetworkIssue.WEAK_SIGNAL,
-                probability = 0.85,
-                evidence = listOf(
-                    "Very weak signal: ${context.signalStrength}dBm",
-                    "${symptom.disconnectsPerHour} disconnects per hour"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.WEAK_SIGNAL,
+                    probability = 0.85,
+                    evidence =
+                        listOf(
+                            "Very weak signal: ${context.signalStrength}dBm",
+                            "${symptom.disconnectsPerHour} disconnects per hour",
+                        ),
+                    fixSuggestion = "Improve AP placement or add APs for better coverage",
                 ),
-                fixSuggestion = "Improve AP placement or add APs for better coverage"
-            ))
+            )
         }
 
         if (context.band == "2.4GHz") {
-            causes.add(RootCause(
-                cause = NetworkIssue.INTERFERENCE,
-                probability = 0.7,
-                evidence = listOf(
-                    "Operating on congested 2.4GHz band",
-                    "Frequent disconnects suggest interference"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.INTERFERENCE,
+                    probability = 0.7,
+                    evidence =
+                        listOf(
+                            "Operating on congested 2.4GHz band",
+                            "Frequent disconnects suggest interference",
+                        ),
+                    fixSuggestion = "Switch to 5GHz band or change 2.4GHz channel to 1, 6, or 11",
                 ),
-                fixSuggestion = "Switch to 5GHz band or change 2.4GHz channel to 1, 6, or 11"
-            ))
+            )
         }
 
         if (symptom.affectedDevices.isNotEmpty()) {
-            causes.add(RootCause(
-                cause = NetworkIssue.CLIENT_ROAMING_FAILURE,
-                probability = 0.65,
-                evidence = listOf(
-                    "Specific devices affected: ${symptom.affectedDevices.joinToString()}",
-                    "Possible roaming or fast transition issues"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.CLIENT_ROAMING_FAILURE,
+                    probability = 0.65,
+                    evidence =
+                        listOf(
+                            "Specific devices affected: ${symptom.affectedDevices.joinToString()}",
+                            "Possible roaming or fast transition issues",
+                        ),
+                    fixSuggestion = "Enable 802.11r fast roaming or adjust minimum RSSI thresholds",
                 ),
-                fixSuggestion = "Enable 802.11r fast roaming or adjust minimum RSSI thresholds"
-            ))
+            )
         }
 
         if (symptom.disconnectsPerHour > 10) {
-            causes.add(RootCause(
-                cause = NetworkIssue.FAILING_HARDWARE,
-                probability = 0.6,
-                evidence = listOf(
-                    "Very high disconnect rate: ${symptom.disconnectsPerHour}/hour",
-                    "May indicate AP hardware failure"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.FAILING_HARDWARE,
+                    probability = 0.6,
+                    evidence =
+                        listOf(
+                            "Very high disconnect rate: ${symptom.disconnectsPerHour}/hour",
+                            "May indicate AP hardware failure",
+                        ),
+                    fixSuggestion = "Check AP logs, reboot AP, or replace if hardware failure suspected",
                 ),
-                fixSuggestion = "Check AP logs, reboot AP, or replace if hardware failure suspected"
-            ))
+            )
         }
 
         return causes
@@ -284,69 +314,78 @@ class TroubleshootingEngine {
      */
     private fun diagnosePoorCoverage(
         symptom: Symptom.PoorCoverage,
-        context: DiagnosticContext
-    ): List<RootCause> {
-        return listOf(
+        context: DiagnosticContext,
+    ): List<RootCause> =
+        listOf(
             RootCause(
                 cause = NetworkIssue.INSUFFICIENT_COVERAGE,
                 probability = 0.9,
-                evidence = listOf(
-                    "Weak signal in ${symptom.location}: ${symptom.signalStrength}dBm",
-                    "Coverage gap detected"
-                ),
-                fixSuggestion = "Add AP in ${symptom.location} or increase transmit power"
+                evidence =
+                    listOf(
+                        "Weak signal in ${symptom.location}: ${symptom.signalStrength}dBm",
+                        "Coverage gap detected",
+                    ),
+                fixSuggestion = "Add AP in ${symptom.location} or increase transmit power",
             ),
             RootCause(
                 cause = NetworkIssue.POOR_AP_PLACEMENT,
                 probability = 0.7,
-                evidence = listOf(
-                    "Signal strength ${symptom.signalStrength}dBm indicates poor AP positioning"
-                ),
-                fixSuggestion = "Relocate AP to more central location or remove physical obstructions"
-            )
+                evidence =
+                    listOf(
+                        "Signal strength ${symptom.signalStrength}dBm indicates poor AP positioning",
+                    ),
+                fixSuggestion = "Relocate AP to more central location or remove physical obstructions",
+            ),
         )
-    }
 
     /**
      * Decision tree for high latency
      */
     private fun diagnoseHighLatency(
         symptom: Symptom.HighLatency,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): List<RootCause> {
         val causes = mutableListOf<RootCause>()
 
         if (symptom.targetHost == "gateway" || symptom.targetHost.contains("local", ignoreCase = true)) {
             // High latency to local gateway = WiFi issue
             if (context.channelUtilization != null && context.channelUtilization > 80) {
-                causes.add(RootCause(
-                    cause = NetworkIssue.CHANNEL_CONGESTION,
-                    probability = 0.8,
-                    evidence = listOf(
-                        "High latency to local gateway: ${symptom.latencyMs}ms",
-                        "Channel utilization: ${context.channelUtilization}%"
+                causes.add(
+                    RootCause(
+                        cause = NetworkIssue.CHANNEL_CONGESTION,
+                        probability = 0.8,
+                        evidence =
+                            listOf(
+                                "High latency to local gateway: ${symptom.latencyMs}ms",
+                                "Channel utilization: ${context.channelUtilization}%",
+                            ),
+                        fixSuggestion = "Switch to less congested channel",
                     ),
-                    fixSuggestion = "Switch to less congested channel"
-                ))
+                )
             }
 
-            causes.add(RootCause(
-                cause = NetworkIssue.HIGH_LATENCY,
-                probability = 0.7,
-                evidence = listOf("Latency to ${symptom.targetHost}: ${symptom.latencyMs}ms"),
-                fixSuggestion = "Check for wireless interference and reduce channel congestion"
-            ))
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.HIGH_LATENCY,
+                    probability = 0.7,
+                    evidence = listOf("Latency to ${symptom.targetHost}: ${symptom.latencyMs}ms"),
+                    fixSuggestion = "Check for wireless interference and reduce channel congestion",
+                ),
+            )
         } else {
             // High latency to internet = likely ISP issue
-            causes.add(RootCause(
-                cause = NetworkIssue.ISP_ISSUE,
-                probability = 0.75,
-                evidence = listOf(
-                    "High latency to external host ${symptom.targetHost}: ${symptom.latencyMs}ms",
-                    "Issue likely upstream from WiFi"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.ISP_ISSUE,
+                    probability = 0.75,
+                    evidence =
+                        listOf(
+                            "High latency to external host ${symptom.targetHost}: ${symptom.latencyMs}ms",
+                            "Issue likely upstream from WiFi",
+                        ),
+                    fixSuggestion = "Contact ISP or check WAN connection",
                 ),
-                fixSuggestion = "Contact ISP or check WAN connection"
-            ))
+            )
         }
 
         return causes
@@ -357,39 +396,47 @@ class TroubleshootingEngine {
      */
     private fun diagnoseCannotConnect(
         symptom: Symptom.CannotConnect,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): List<RootCause> {
         val causes = mutableListOf<RootCause>()
 
         if (symptom.errorMessage?.contains("password", ignoreCase = true) == true ||
-            symptom.errorMessage?.contains("authentication", ignoreCase = true) == true) {
-            causes.add(RootCause(
-                cause = NetworkIssue.WRONG_PASSWORD,
-                probability = 0.95,
-                evidence = listOf("Authentication error: ${symptom.errorMessage}"),
-                fixSuggestion = "Verify WiFi password is correct"
-            ))
+            symptom.errorMessage?.contains("authentication", ignoreCase = true) == true
+        ) {
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.WRONG_PASSWORD,
+                    probability = 0.95,
+                    evidence = listOf("Authentication error: ${symptom.errorMessage}"),
+                    fixSuggestion = "Verify WiFi password is correct",
+                ),
+            )
         }
 
         if (context.signalStrength != null && context.signalStrength < -80) {
-            causes.add(RootCause(
-                cause = NetworkIssue.WEAK_SIGNAL,
-                probability = 0.85,
-                evidence = listOf(
-                    "Extremely weak signal: ${context.signalStrength}dBm",
-                    "Below minimum connection threshold"
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.WEAK_SIGNAL,
+                    probability = 0.85,
+                    evidence =
+                        listOf(
+                            "Extremely weak signal: ${context.signalStrength}dBm",
+                            "Below minimum connection threshold",
+                        ),
+                    fixSuggestion = "Move closer to AP or improve coverage",
                 ),
-                fixSuggestion = "Move closer to AP or improve coverage"
-            ))
+            )
         }
 
         if (symptom.deviceType != null) {
-            causes.add(RootCause(
-                cause = NetworkIssue.DEVICE_COMPATIBILITY,
-                probability = 0.6,
-                evidence = listOf("Connection issue with ${symptom.deviceType}"),
-                fixSuggestion = "Check device compatibility with AP security/protocols"
-            ))
+            causes.add(
+                RootCause(
+                    cause = NetworkIssue.DEVICE_COMPATIBILITY,
+                    probability = 0.6,
+                    evidence = listOf("Connection issue with ${symptom.deviceType}"),
+                    fixSuggestion = "Check device compatibility with AP security/protocols",
+                ),
+            )
         }
 
         return causes
@@ -400,65 +447,65 @@ class TroubleshootingEngine {
      */
     private fun diagnoseIntermittent(
         symptom: Symptom.IntermittentIssues,
-        context: DiagnosticContext
-    ): List<RootCause> {
-        return listOf(
+        context: DiagnosticContext,
+    ): List<RootCause> =
+        listOf(
             RootCause(
                 cause = NetworkIssue.INTERFERENCE,
                 probability = 0.75,
-                evidence = listOf(
-                    "Intermittent issues (${symptom.frequency}) suggest periodic interference"
-                ),
-                fixSuggestion = "Scan for interference sources and change channel"
+                evidence =
+                    listOf(
+                        "Intermittent issues (${symptom.frequency}) suggest periodic interference",
+                    ),
+                fixSuggestion = "Scan for interference sources and change channel",
             ),
             RootCause(
                 cause = NetworkIssue.FAILING_HARDWARE,
                 probability = 0.6,
                 evidence = listOf("Intermittent failures may indicate hardware degradation"),
-                fixSuggestion = "Check AP logs and consider hardware replacement"
-            )
+                fixSuggestion = "Check AP logs and consider hardware replacement",
+            ),
         )
-    }
 
     /**
      * Decision tree for detected interference
      */
     private fun diagnoseInterference(
         symptom: Symptom.InterferenceDetected,
-        context: DiagnosticContext
-    ): List<RootCause> {
-        return listOf(
+        context: DiagnosticContext,
+    ): List<RootCause> =
+        listOf(
             RootCause(
                 cause = NetworkIssue.INTERFERENCE,
                 probability = 0.9,
-                evidence = listOf(
-                    "Interference detected on ${symptom.band}: ${(symptom.interferenceLevel * 100).toInt()}%"
-                ),
-                fixSuggestion = if (symptom.band == "2.4GHz") {
-                    "Switch to 5GHz or change 2.4GHz channel to 1, 6, or 11"
-                } else {
-                    "Change 5GHz channel or enable DFS channels"
-                }
-            )
+                evidence =
+                    listOf(
+                        "Interference detected on ${symptom.band}: ${(symptom.interferenceLevel * 100).toInt()}%",
+                    ),
+                fixSuggestion =
+                    if (symptom.band == "2.4GHz") {
+                        "Switch to 5GHz or change 2.4GHz channel to 1, 6, or 11"
+                    } else {
+                        "Change 5GHz channel or enable DFS channels"
+                    },
+            ),
         )
-    }
 
     /**
      * Decision tree for custom symptoms
      */
     private fun diagnoseCustom(
         symptom: Symptom.Custom,
-        context: DiagnosticContext
-    ): List<RootCause> {
-        return listOf(
+        context: DiagnosticContext,
+    ): List<RootCause> =
+        listOf(
             RootCause(
                 cause = NetworkIssue.CHANNEL_CONGESTION,
                 probability = 0.5,
                 evidence = listOf("Custom symptom: ${symptom.description}"),
-                fixSuggestion = "Run comprehensive network diagnostics"
-            )
+                fixSuggestion = "Run comprehensive network diagnostics",
+            ),
         )
-    }
 
     /**
      * Merge duplicate root causes and average probabilities
@@ -477,7 +524,7 @@ class TroubleshootingEngine {
                     cause = cause,
                     probability = avgProbability,
                     evidence = allEvidence,
-                    fixSuggestion = fixSuggestion
+                    fixSuggestion = fixSuggestion,
                 )
             }
         }
@@ -489,21 +536,22 @@ class TroubleshootingEngine {
     private fun calculateDiagnosticConfidence(
         causes: List<RootCause>,
         symptoms: List<Symptom>,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): Double {
         if (causes.isEmpty()) return 0.0
 
         var confidence = causes.first().probability
 
         // Boost confidence if we have context data
-        val contextFactors = listOfNotNull(
-            context.signalStrength,
-            context.channelUtilization,
-            context.connectedClients,
-            context.bandwidth
-        ).size
+        val contextFactors =
+            listOfNotNull(
+                context.signalStrength,
+                context.channelUtilization,
+                context.connectedClients,
+                context.bandwidth,
+            ).size
 
-        val contextBoost = contextFactors * 0.05  // +5% per context factor
+        val contextBoost = contextFactors * 0.05 // +5% per context factor
         confidence = (confidence + contextBoost).coerceAtMost(1.0)
 
         return confidence
@@ -514,7 +562,7 @@ class TroubleshootingEngine {
      */
     private fun generateTroubleshootingSteps(
         causes: List<RootCause>,
-        symptoms: List<Symptom>
+        symptoms: List<Symptom>,
     ): List<TroubleshootingStep> {
         if (causes.isEmpty()) return emptyList()
 
@@ -528,7 +576,7 @@ class TroubleshootingEngine {
      */
     private fun estimateResolutionTime(
         causes: List<RootCause>,
-        symptoms: List<Symptom>
+        symptoms: List<Symptom>,
     ): String {
         if (causes.isEmpty()) return "Unknown"
 
@@ -550,90 +598,92 @@ class TroubleshootingEngine {
         /**
          * Troubleshooting steps database for each issue
          */
-        private val ISSUE_TROUBLESHOOTING_STEPS = mapOf(
-            NetworkIssue.WEAK_SIGNAL to listOf(
-                TroubleshootingStep(
-                    step = 1,
-                    action = "Check signal strength at problem location",
-                    expectedOutcome = "Identify exact signal level (dBm)",
-                    ifSuccess = "If < -70dBm, proceed to step 2",
-                    ifFailure = "If > -70dBm, issue is not signal strength",
-                    estimatedTime = "2 minutes"
-                ),
-                TroubleshootingStep(
-                    step = 2,
-                    action = "Move closer to AP or remove physical obstructions",
-                    expectedOutcome = "Signal improves to > -65dBm",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Proceed to step 3",
-                    estimatedTime = "5 minutes"
-                ),
-                TroubleshootingStep(
-                    step = 3,
-                    action = "Increase AP transmit power (if adjustable)",
-                    expectedOutcome = "Signal improves at problem location",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Add additional AP for coverage",
-                    estimatedTime = "10 minutes"
-                )
-            ),
-
-            NetworkIssue.CHANNEL_CONGESTION to listOf(
-                TroubleshootingStep(
-                    step = 1,
-                    action = "Scan for channel utilization on current and adjacent channels",
-                    expectedOutcome = "Identify less congested channels",
-                    ifSuccess = "Found channel with <50% utilization",
-                    ifFailure = "All channels congested",
-                    estimatedTime = "3 minutes"
-                ),
-                TroubleshootingStep(
-                    step = 2,
-                    action = "Switch to least congested channel (2.4GHz: 1, 6, or 11)",
-                    expectedOutcome = "Performance improves",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Proceed to step 3",
-                    estimatedTime = "5 minutes"
-                ),
-                TroubleshootingStep(
-                    step = 3,
-                    action = "Switch to 5GHz band or enable DFS channels",
-                    expectedOutcome = "Access to more channels",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Consider additional APs",
-                    estimatedTime = "10 minutes"
-                )
-            ),
-
-            NetworkIssue.WRONG_PASSWORD to listOf(
-                TroubleshootingStep(
-                    step = 1,
-                    action = "Verify WiFi password is correct",
-                    expectedOutcome = "Able to connect",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Reset network password",
-                    estimatedTime = "1 minute"
-                )
-            ),
-
-            NetworkIssue.AP_OVERLOADED to listOf(
-                TroubleshootingStep(
-                    step = 1,
-                    action = "Check number of connected clients",
-                    expectedOutcome = "Determine if >30 clients per AP",
-                    ifSuccess = "Proceed to step 2",
-                    ifFailure = "Issue is not client overload",
-                    estimatedTime = "2 minutes"
-                ),
-                TroubleshootingStep(
-                    step = 2,
-                    action = "Enable client load balancing and band steering",
-                    expectedOutcome = "Clients distributed across APs/bands",
-                    ifSuccess = "Issue resolved",
-                    ifFailure = "Add additional APs",
-                    estimatedTime = "10 minutes"
-                )
+        private val ISSUE_TROUBLESHOOTING_STEPS =
+            mapOf(
+                NetworkIssue.WEAK_SIGNAL to
+                    listOf(
+                        TroubleshootingStep(
+                            step = 1,
+                            action = "Check signal strength at problem location",
+                            expectedOutcome = "Identify exact signal level (dBm)",
+                            ifSuccess = "If < -70dBm, proceed to step 2",
+                            ifFailure = "If > -70dBm, issue is not signal strength",
+                            estimatedTime = "2 minutes",
+                        ),
+                        TroubleshootingStep(
+                            step = 2,
+                            action = "Move closer to AP or remove physical obstructions",
+                            expectedOutcome = "Signal improves to > -65dBm",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Proceed to step 3",
+                            estimatedTime = "5 minutes",
+                        ),
+                        TroubleshootingStep(
+                            step = 3,
+                            action = "Increase AP transmit power (if adjustable)",
+                            expectedOutcome = "Signal improves at problem location",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Add additional AP for coverage",
+                            estimatedTime = "10 minutes",
+                        ),
+                    ),
+                NetworkIssue.CHANNEL_CONGESTION to
+                    listOf(
+                        TroubleshootingStep(
+                            step = 1,
+                            action = "Scan for channel utilization on current and adjacent channels",
+                            expectedOutcome = "Identify less congested channels",
+                            ifSuccess = "Found channel with <50% utilization",
+                            ifFailure = "All channels congested",
+                            estimatedTime = "3 minutes",
+                        ),
+                        TroubleshootingStep(
+                            step = 2,
+                            action = "Switch to least congested channel (2.4GHz: 1, 6, or 11)",
+                            expectedOutcome = "Performance improves",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Proceed to step 3",
+                            estimatedTime = "5 minutes",
+                        ),
+                        TroubleshootingStep(
+                            step = 3,
+                            action = "Switch to 5GHz band or enable DFS channels",
+                            expectedOutcome = "Access to more channels",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Consider additional APs",
+                            estimatedTime = "10 minutes",
+                        ),
+                    ),
+                NetworkIssue.WRONG_PASSWORD to
+                    listOf(
+                        TroubleshootingStep(
+                            step = 1,
+                            action = "Verify WiFi password is correct",
+                            expectedOutcome = "Able to connect",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Reset network password",
+                            estimatedTime = "1 minute",
+                        ),
+                    ),
+                NetworkIssue.AP_OVERLOADED to
+                    listOf(
+                        TroubleshootingStep(
+                            step = 1,
+                            action = "Check number of connected clients",
+                            expectedOutcome = "Determine if >30 clients per AP",
+                            ifSuccess = "Proceed to step 2",
+                            ifFailure = "Issue is not client overload",
+                            estimatedTime = "2 minutes",
+                        ),
+                        TroubleshootingStep(
+                            step = 2,
+                            action = "Enable client load balancing and band steering",
+                            expectedOutcome = "Clients distributed across APs/bands",
+                            ifSuccess = "Issue resolved",
+                            ifFailure = "Add additional APs",
+                            estimatedTime = "10 minutes",
+                        ),
+                    ),
             )
-        )
     }
 }

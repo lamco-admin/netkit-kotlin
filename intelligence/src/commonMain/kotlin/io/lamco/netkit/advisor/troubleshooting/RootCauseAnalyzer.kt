@@ -39,7 +39,6 @@ package io.lamco.netkit.advisor.troubleshooting
  * ```
  */
 class RootCauseAnalyzer {
-
     /**
      * Analyze symptoms and evidence to identify root causes
      *
@@ -51,7 +50,7 @@ class RootCauseAnalyzer {
     fun analyze(
         symptoms: List<Symptom>,
         evidence: Map<String, String> = emptyMap(),
-        context: DiagnosticContext = DiagnosticContext()
+        context: DiagnosticContext = DiagnosticContext(),
     ): List<RootCause> {
         require(symptoms.isNotEmpty()) { "At least one symptom required for analysis" }
 
@@ -59,14 +58,15 @@ class RootCauseAnalyzer {
 
         val conclusions = applyInferenceRules(facts)
 
-        return conclusions.map { conclusion ->
-            RootCause(
-                cause = conclusion.issue,
-                probability = conclusion.confidence,
-                evidence = conclusion.supportingFacts,
-                fixSuggestion = getSuggestionForIssue(conclusion.issue)
-            )
-        }.sortedByDescending { it.probability }
+        return conclusions
+            .map { conclusion ->
+                RootCause(
+                    cause = conclusion.issue,
+                    probability = conclusion.confidence,
+                    evidence = conclusion.supportingFacts,
+                    fixSuggestion = getSuggestionForIssue(conclusion.issue),
+                )
+            }.sortedByDescending { it.probability }
     }
 
     /**
@@ -80,21 +80,22 @@ class RootCauseAnalyzer {
      */
     fun deepAnalyze(
         symptoms: List<Symptom>,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): List<RootCause> {
         val facts = buildFactBase(symptoms, emptyMap(), context)
 
         // Apply advanced inference rules (multi-step reasoning)
         val advancedConclusions = applyAdvancedRules(facts)
 
-        return advancedConclusions.map { conclusion ->
-            RootCause(
-                cause = conclusion.issue,
-                probability = conclusion.confidence,
-                evidence = conclusion.supportingFacts,
-                fixSuggestion = getSuggestionForIssue(conclusion.issue)
-            )
-        }.sortedByDescending { it.probability }
+        return advancedConclusions
+            .map { conclusion ->
+                RootCause(
+                    cause = conclusion.issue,
+                    probability = conclusion.confidence,
+                    evidence = conclusion.supportingFacts,
+                    fixSuggestion = getSuggestionForIssue(conclusion.issue),
+                )
+            }.sortedByDescending { it.probability }
     }
 
     // ========================================
@@ -107,7 +108,7 @@ class RootCauseAnalyzer {
     private fun buildFactBase(
         symptoms: List<Symptom>,
         evidence: Map<String, String>,
-        context: DiagnosticContext
+        context: DiagnosticContext,
     ): MutableSet<Fact> {
         val facts = mutableSetOf<Fact>()
 
@@ -186,55 +187,69 @@ class RootCauseAnalyzer {
 
         // Rule: If slow speed but good signal, likely channel congestion or AP overload
         if (hasFact(facts, "symptom", "slow_speed") &&
-            getIntFact(facts, "signal_strength") ?: -100 > -65) {
-
+            getIntFact(facts, "signal_strength") ?: -100 > -65
+        ) {
             if (getIntFact(facts, "channel_util") ?: 0 > 70) {
-                conclusions.add(Conclusion(
-                    issue = NetworkIssue.CHANNEL_CONGESTION,
-                    confidence = 0.85,
-                    supportingFacts = listOf(
-                        "Slow speed despite good signal",
-                        "High channel utilization indicates congestion"
-                    )
-                ))
+                conclusions.add(
+                    Conclusion(
+                        issue = NetworkIssue.CHANNEL_CONGESTION,
+                        confidence = 0.85,
+                        supportingFacts =
+                            listOf(
+                                "Slow speed despite good signal",
+                                "High channel utilization indicates congestion",
+                            ),
+                    ),
+                )
             }
 
             if (getIntFact(facts, "client_count") ?: 0 > 30) {
-                conclusions.add(Conclusion(
-                    issue = NetworkIssue.AP_OVERLOADED,
-                    confidence = 0.8,
-                    supportingFacts = listOf(
-                        "Slow speed despite good signal",
-                        "High client count indicates AP overload"
-                    )
-                ))
+                conclusions.add(
+                    Conclusion(
+                        issue = NetworkIssue.AP_OVERLOADED,
+                        confidence = 0.8,
+                        supportingFacts =
+                            listOf(
+                                "Slow speed despite good signal",
+                                "High client count indicates AP overload",
+                            ),
+                    ),
+                )
             }
         }
 
         // Rule: If high disconnect rate on 2.4GHz, likely interference
         if (hasFact(facts, "symptom", "frequent_disconnects") &&
-            hasFact(facts, "band", "2.4GHz")) {
-            conclusions.add(Conclusion(
-                issue = NetworkIssue.INTERFERENCE,
-                confidence = 0.75,
-                supportingFacts = listOf(
-                    "Frequent disconnects on congested 2.4GHz band",
-                    "2.4GHz highly susceptible to interference"
-                )
-            ))
+            hasFact(facts, "band", "2.4GHz")
+        ) {
+            conclusions.add(
+                Conclusion(
+                    issue = NetworkIssue.INTERFERENCE,
+                    confidence = 0.75,
+                    supportingFacts =
+                        listOf(
+                            "Frequent disconnects on congested 2.4GHz band",
+                            "2.4GHz highly susceptible to interference",
+                        ),
+                ),
+            )
         }
 
         // Rule: If intermittent issues during specific times, likely external factor
         if (hasFact(facts, "symptom", "intermittent") &&
-            hasFact(facts, "frequency", "hourly")) {
-            conclusions.add(Conclusion(
-                issue = NetworkIssue.INTERFERENCE,
-                confidence = 0.7,
-                supportingFacts = listOf(
-                    "Periodic issues suggest external interference source",
-                    "Hourly pattern indicates scheduled interference (e.g., microwave usage)"
-                )
-            ))
+            hasFact(facts, "frequency", "hourly")
+        ) {
+            conclusions.add(
+                Conclusion(
+                    issue = NetworkIssue.INTERFERENCE,
+                    confidence = 0.7,
+                    supportingFacts =
+                        listOf(
+                            "Periodic issues suggest external interference source",
+                            "Hourly pattern indicates scheduled interference (e.g., microwave usage)",
+                        ),
+                ),
+            )
         }
 
         return conclusions
@@ -243,22 +258,25 @@ class RootCauseAnalyzer {
     /**
      * Check if fact base contains a specific fact
      */
-    private fun hasFact(facts: Set<Fact>, attribute: String, value: String): Boolean {
-        return facts.any { it.attribute == attribute && it.value.equals(value, ignoreCase = true) }
-    }
+    private fun hasFact(
+        facts: Set<Fact>,
+        attribute: String,
+        value: String,
+    ): Boolean = facts.any { it.attribute == attribute && it.value.equals(value, ignoreCase = true) }
 
     /**
      * Get integer value from fact base
      */
-    private fun getIntFact(facts: Set<Fact>, attribute: String): Int? {
-        return facts.find { it.attribute == attribute }?.value?.toIntOrNull()
-    }
+    private fun getIntFact(
+        facts: Set<Fact>,
+        attribute: String,
+    ): Int? = facts.find { it.attribute == attribute }?.value?.toIntOrNull()
 
     /**
      * Get suggestion for network issue
      */
-    private fun getSuggestionForIssue(issue: NetworkIssue): String {
-        return when (issue) {
+    private fun getSuggestionForIssue(issue: NetworkIssue): String =
+        when (issue) {
             NetworkIssue.WRONG_PASSWORD -> "Verify WiFi password is correct"
             NetworkIssue.WEAK_SIGNAL -> "Move closer to AP or add additional APs"
             NetworkIssue.AP_OVERLOADED -> "Enable load balancing or add more APs"
@@ -284,91 +302,92 @@ class RootCauseAnalyzer {
             NetworkIssue.CLIENT_DRIVER_ISSUE -> "Update client device drivers"
             NetworkIssue.CLIENT_POWER_SAVE_ISSUE -> "Disable power save mode on client"
         }
-    }
 
     companion object {
         /**
          * Inference rules database
          */
-        private val INFERENCE_RULES = listOf(
-            // Signal strength rules
-            InferenceRule(
-                name = "Weak Signal Detection",
-                conditions = listOf(
-                    Condition("signal_strength", ComparisonOp.LESS_THAN, "-70")
+        private val INFERENCE_RULES =
+            listOf(
+                // Signal strength rules
+                InferenceRule(
+                    name = "Weak Signal Detection",
+                    conditions =
+                        listOf(
+                            Condition("signal_strength", ComparisonOp.LESS_THAN, "-70"),
+                        ),
+                    conclusion = NetworkIssue.WEAK_SIGNAL,
+                    confidence = 0.85,
                 ),
-                conclusion = NetworkIssue.WEAK_SIGNAL,
-                confidence = 0.85
-            ),
-
-            InferenceRule(
-                name = "Very Weak Signal",
-                conditions = listOf(
-                    Condition("signal_strength", ComparisonOp.LESS_THAN, "-80")
+                InferenceRule(
+                    name = "Very Weak Signal",
+                    conditions =
+                        listOf(
+                            Condition("signal_strength", ComparisonOp.LESS_THAN, "-80"),
+                        ),
+                    conclusion = NetworkIssue.WEAK_SIGNAL,
+                    confidence = 0.95,
                 ),
-                conclusion = NetworkIssue.WEAK_SIGNAL,
-                confidence = 0.95
-            ),
-
-            // Channel congestion rules
-            InferenceRule(
-                name = "High Channel Utilization",
-                conditions = listOf(
-                    Condition("channel_util", ComparisonOp.GREATER_THAN, "70")
+                // Channel congestion rules
+                InferenceRule(
+                    name = "High Channel Utilization",
+                    conditions =
+                        listOf(
+                            Condition("channel_util", ComparisonOp.GREATER_THAN, "70"),
+                        ),
+                    conclusion = NetworkIssue.CHANNEL_CONGESTION,
+                    confidence = 0.75,
                 ),
-                conclusion = NetworkIssue.CHANNEL_CONGESTION,
-                confidence = 0.75
-            ),
-
-            InferenceRule(
-                name = "Severe Channel Congestion",
-                conditions = listOf(
-                    Condition("channel_util", ComparisonOp.GREATER_THAN, "85")
+                InferenceRule(
+                    name = "Severe Channel Congestion",
+                    conditions =
+                        listOf(
+                            Condition("channel_util", ComparisonOp.GREATER_THAN, "85"),
+                        ),
+                    conclusion = NetworkIssue.CHANNEL_CONGESTION,
+                    confidence = 0.9,
                 ),
-                conclusion = NetworkIssue.CHANNEL_CONGESTION,
-                confidence = 0.9
-            ),
-
-            // Client overload rules
-            InferenceRule(
-                name = "High Client Count",
-                conditions = listOf(
-                    Condition("client_count", ComparisonOp.GREATER_THAN, "30")
+                // Client overload rules
+                InferenceRule(
+                    name = "High Client Count",
+                    conditions =
+                        listOf(
+                            Condition("client_count", ComparisonOp.GREATER_THAN, "30"),
+                        ),
+                    conclusion = NetworkIssue.AP_OVERLOADED,
+                    confidence = 0.7,
                 ),
-                conclusion = NetworkIssue.AP_OVERLOADED,
-                confidence = 0.7
-            ),
-
-            InferenceRule(
-                name = "Severe Client Overload",
-                conditions = listOf(
-                    Condition("client_count", ComparisonOp.GREATER_THAN, "50")
+                InferenceRule(
+                    name = "Severe Client Overload",
+                    conditions =
+                        listOf(
+                            Condition("client_count", ComparisonOp.GREATER_THAN, "50"),
+                        ),
+                    conclusion = NetworkIssue.AP_OVERLOADED,
+                    confidence = 0.9,
                 ),
-                conclusion = NetworkIssue.AP_OVERLOADED,
-                confidence = 0.9
-            ),
-
-            // Interference rules
-            InferenceRule(
-                name = "2.4GHz Interference",
-                conditions = listOf(
-                    Condition("band", ComparisonOp.EQUALS, "2.4GHz"),
-                    Condition("symptom", ComparisonOp.EQUALS, "frequent_disconnects")
+                // Interference rules
+                InferenceRule(
+                    name = "2.4GHz Interference",
+                    conditions =
+                        listOf(
+                            Condition("band", ComparisonOp.EQUALS, "2.4GHz"),
+                            Condition("symptom", ComparisonOp.EQUALS, "frequent_disconnects"),
+                        ),
+                    conclusion = NetworkIssue.INTERFERENCE,
+                    confidence = 0.7,
                 ),
-                conclusion = NetworkIssue.INTERFERENCE,
-                confidence = 0.7
-            ),
-
-            // Latency rules
-            InferenceRule(
-                name = "High Latency Detection",
-                conditions = listOf(
-                    Condition("latency", ComparisonOp.GREATER_THAN, "100")
+                // Latency rules
+                InferenceRule(
+                    name = "High Latency Detection",
+                    conditions =
+                        listOf(
+                            Condition("latency", ComparisonOp.GREATER_THAN, "100"),
+                        ),
+                    conclusion = NetworkIssue.HIGH_LATENCY,
+                    confidence = 0.75,
                 ),
-                conclusion = NetworkIssue.HIGH_LATENCY,
-                confidence = 0.75
             )
-        )
     }
 }
 
@@ -377,7 +396,7 @@ class RootCauseAnalyzer {
  */
 private data class Fact(
     val attribute: String,
-    val value: String
+    val value: String,
 )
 
 /**
@@ -386,7 +405,7 @@ private data class Fact(
 private data class Condition(
     val attribute: String,
     val operator: ComparisonOp,
-    val value: String
+    val value: String,
 ) {
     fun matches(facts: Set<Fact>): Boolean {
         val fact = facts.find { it.attribute == attribute } ?: return false
@@ -427,7 +446,7 @@ private enum class ComparisonOp {
     GREATER_THAN,
     LESS_THAN,
     GREATER_OR_EQUAL,
-    LESS_OR_EQUAL
+    LESS_OR_EQUAL,
 }
 
 /**
@@ -437,23 +456,22 @@ private data class InferenceRule(
     val name: String,
     val conditions: List<Condition>,
     val conclusion: NetworkIssue,
-    val confidence: Double
+    val confidence: Double,
 ) {
-    fun matches(facts: Set<Fact>): Boolean {
-        return conditions.all { it.matches(facts) }
-    }
+    fun matches(facts: Set<Fact>): Boolean = conditions.all { it.matches(facts) }
 
     fun apply(facts: Set<Fact>): Conclusion {
-        val supportingFacts = conditions.map { condition ->
-            val fact = facts.find { it.attribute == condition.attribute }
-            "${condition.attribute} ${condition.operator.name.lowercase().replace('_', ' ')} ${condition.value}" +
+        val supportingFacts =
+            conditions.map { condition ->
+                val fact = facts.find { it.attribute == condition.attribute }
+                "${condition.attribute} ${condition.operator.name.lowercase().replace('_', ' ')} ${condition.value}" +
                     fact?.let { " (actual: ${it.value})" }.orEmpty()
-        }
+            }
 
         return Conclusion(
             issue = conclusion,
             confidence = confidence,
-            supportingFacts = supportingFacts
+            supportingFacts = supportingFacts,
         )
     }
 }
@@ -464,5 +482,5 @@ private data class InferenceRule(
 private data class Conclusion(
     val issue: NetworkIssue,
     val confidence: Double,
-    val supportingFacts: List<String>
+    val supportingFacts: List<String>,
 )

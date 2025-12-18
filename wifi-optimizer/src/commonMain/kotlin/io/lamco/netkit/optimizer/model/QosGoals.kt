@@ -34,7 +34,7 @@ data class QosGoals(
     val airtimeFairnessThreshold: Double = 0.4,
     val maxVoiceLatencyMs: Int = 20,
     val minVideoThroughputMbps: Int = 10,
-    val allowAirtimeHogs: Boolean = false
+    val allowAirtimeHogs: Boolean = false,
 ) {
     init {
         require(voicePriority in 0..3) {
@@ -81,7 +81,8 @@ data class QosGoals(
      * (Voice > Video > Data > Background)
      */
     val hasStrictHierarchy: Boolean
-        get() = voicePriority > videoPriority &&
+        get() =
+            voicePriority > videoPriority &&
                 videoPriority > dataPriority &&
                 dataPriority > backgroundPriority
 
@@ -95,34 +96,37 @@ data class QosGoals(
      * Airtime fairness strictness level
      */
     val fairnessStrictness: FairnessStrictness
-        get() = when {
-            airtimeFairnessThreshold <= 0.2 -> FairnessStrictness.VERY_STRICT
-            airtimeFairnessThreshold <= 0.3 -> FairnessStrictness.STRICT
-            airtimeFairnessThreshold <= 0.5 -> FairnessStrictness.MODERATE
-            else -> FairnessStrictness.PERMISSIVE
-        }
+        get() =
+            when {
+                airtimeFairnessThreshold <= 0.2 -> FairnessStrictness.VERY_STRICT
+                airtimeFairnessThreshold <= 0.3 -> FairnessStrictness.STRICT
+                airtimeFairnessThreshold <= 0.5 -> FairnessStrictness.MODERATE
+                else -> FairnessStrictness.PERMISSIVE
+            }
 
     /**
      * Voice quality requirements tier
      */
     val voiceQualityTier: VoiceQualityTier
-        get() = when {
-            maxVoiceLatencyMs <= 10 -> VoiceQualityTier.PREMIUM
-            maxVoiceLatencyMs <= 20 -> VoiceQualityTier.STANDARD
-            maxVoiceLatencyMs <= 40 -> VoiceQualityTier.ACCEPTABLE
-            else -> VoiceQualityTier.BASIC
-        }
+        get() =
+            when {
+                maxVoiceLatencyMs <= 10 -> VoiceQualityTier.PREMIUM
+                maxVoiceLatencyMs <= 20 -> VoiceQualityTier.STANDARD
+                maxVoiceLatencyMs <= 40 -> VoiceQualityTier.ACCEPTABLE
+                else -> VoiceQualityTier.BASIC
+            }
 
     /**
      * Get human-readable summary of QoS goals
      */
     val summary: String
-        get() = buildString {
-            append("WMM: ${if (enableWmm) "enabled" else "disabled"}, ")
-            append("Priorities: V$voicePriority/Vi$videoPriority/D$dataPriority/B$backgroundPriority, ")
-            append("Fairness: <${(airtimeFairnessThreshold * 100).toInt()}%, ")
-            append("Voice latency: <${maxVoiceLatencyMs}ms")
-        }
+        get() =
+            buildString {
+                append("WMM: ${if (enableWmm) "enabled" else "disabled"}, ")
+                append("Priorities: V$voicePriority/Vi$videoPriority/D$dataPriority/B$backgroundPriority, ")
+                append("Fairness: <${(airtimeFairnessThreshold * 100).toInt()}%, ")
+                append("Voice latency: <${maxVoiceLatencyMs}ms")
+            }
 
     companion object {
         /**
@@ -131,8 +135,8 @@ data class QosGoals(
          * - Moderate fairness requirements
          * - Standard voice quality
          */
-        fun standard(): QosGoals {
-            return QosGoals(
+        fun standard(): QosGoals =
+            QosGoals(
                 enableWmm = true,
                 voicePriority = 3,
                 videoPriority = 2,
@@ -141,9 +145,8 @@ data class QosGoals(
                 airtimeFairnessThreshold = 0.4,
                 maxVoiceLatencyMs = 20,
                 minVideoThroughputMbps = 10,
-                allowAirtimeHogs = false
+                allowAirtimeHogs = false,
             )
-        }
 
         /**
          * QoS goals for enterprise/business networks
@@ -151,8 +154,8 @@ data class QosGoals(
          * - Strict fairness enforcement
          * - High voice quality requirements
          */
-        fun enterprise(): QosGoals {
-            return QosGoals(
+        fun enterprise(): QosGoals =
+            QosGoals(
                 enableWmm = true,
                 voicePriority = 3,
                 videoPriority = 2,
@@ -161,9 +164,8 @@ data class QosGoals(
                 airtimeFairnessThreshold = 0.3,
                 maxVoiceLatencyMs = 15,
                 minVideoThroughputMbps = 15,
-                allowAirtimeHogs = false
+                allowAirtimeHogs = false,
             )
-        }
 
         /**
          * QoS goals for VoIP-centric deployments
@@ -171,8 +173,8 @@ data class QosGoals(
          * - Very low latency requirements
          * - Strict airtime management
          */
-        fun voipCentric(): QosGoals {
-            return QosGoals(
+        fun voipCentric(): QosGoals =
+            QosGoals(
                 enableWmm = true,
                 voicePriority = 3,
                 videoPriority = 2,
@@ -181,9 +183,8 @@ data class QosGoals(
                 airtimeFairnessThreshold = 0.25,
                 maxVoiceLatencyMs = 10,
                 minVideoThroughputMbps = 5,
-                allowAirtimeHogs = false
+                allowAirtimeHogs = false,
             )
-        }
 
         /**
          * QoS goals for video-centric deployments (streaming, conferencing)
@@ -191,19 +192,18 @@ data class QosGoals(
          * - High throughput requirements
          * - Moderate fairness
          */
-        fun videoCentric(): QosGoals {
-            return QosGoals(
+        fun videoCentric(): QosGoals =
+            QosGoals(
                 enableWmm = true,
                 voicePriority = 3,
-                videoPriority = 3,  // Same as voice
+                videoPriority = 3, // Same as voice
                 dataPriority = 1,
                 backgroundPriority = 0,
                 airtimeFairnessThreshold = 0.35,
                 maxVoiceLatencyMs = 20,
                 minVideoThroughputMbps = 25,
-                allowAirtimeHogs = false
+                allowAirtimeHogs = false,
             )
-        }
 
         /**
          * QoS goals for best-effort networks (minimal QoS)
@@ -211,8 +211,8 @@ data class QosGoals(
          * - Permissive fairness
          * - No strict requirements
          */
-        fun bestEffort(): QosGoals {
-            return QosGoals(
+        fun bestEffort(): QosGoals =
+            QosGoals(
                 enableWmm = false,
                 voicePriority = 1,
                 videoPriority = 1,
@@ -221,9 +221,8 @@ data class QosGoals(
                 airtimeFairnessThreshold = 0.6,
                 maxVoiceLatencyMs = 50,
                 minVideoThroughputMbps = 5,
-                allowAirtimeHogs = true
+                allowAirtimeHogs = true,
             )
-        }
     }
 }
 
@@ -237,7 +236,7 @@ data class QosGoals(
 enum class FairnessStrictness(
     val displayName: String,
     val description: String,
-    val giniThreshold: Double
+    val giniThreshold: Double,
 ) {
     /**
      * Very strict fairness (Gini <= 0.2)
@@ -248,7 +247,7 @@ enum class FairnessStrictness(
     VERY_STRICT(
         "Very Strict",
         "Near-perfect airtime equality enforced",
-        0.2
+        0.2,
     ),
 
     /**
@@ -260,7 +259,7 @@ enum class FairnessStrictness(
     STRICT(
         "Strict",
         "Strong fairness enforcement",
-        0.3
+        0.3,
     ),
 
     /**
@@ -272,7 +271,7 @@ enum class FairnessStrictness(
     MODERATE(
         "Moderate",
         "Balanced fairness with usage variation allowed",
-        0.5
+        0.5,
     ),
 
     /**
@@ -284,8 +283,8 @@ enum class FairnessStrictness(
     PERMISSIVE(
         "Permissive",
         "Minimal fairness enforcement",
-        1.0
-    )
+        1.0,
+    ),
 }
 
 /**
@@ -299,7 +298,7 @@ enum class FairnessStrictness(
 enum class VoiceQualityTier(
     val displayName: String,
     val description: String,
-    val maxLatencyMs: Int
+    val maxLatencyMs: Int,
 ) {
     /**
      * Premium voice quality (< 10 ms WiFi latency)
@@ -310,7 +309,7 @@ enum class VoiceQualityTier(
     PREMIUM(
         "Premium",
         "Professional-grade voice quality",
-        10
+        10,
     ),
 
     /**
@@ -322,7 +321,7 @@ enum class VoiceQualityTier(
     STANDARD(
         "Standard",
         "Standard VoIP quality",
-        20
+        20,
     ),
 
     /**
@@ -334,7 +333,7 @@ enum class VoiceQualityTier(
     ACCEPTABLE(
         "Acceptable",
         "Acceptable for basic voice calls",
-        40
+        40,
     ),
 
     /**
@@ -346,8 +345,8 @@ enum class VoiceQualityTier(
     BASIC(
         "Basic",
         "Basic quality with noticeable latency",
-        100
-    )
+        100,
+    ),
 }
 
 /**
@@ -361,7 +360,7 @@ enum class VoiceQualityTier(
 enum class WmmAccessCategory(
     val displayName: String,
     val priority: Int,
-    val description: String
+    val description: String,
 ) {
     /**
      * Voice (AC_VO) - Highest priority
@@ -393,5 +392,5 @@ enum class WmmAccessCategory(
      * - System updates, backups
      * - Non-time-sensitive
      */
-    BACKGROUND("Background (AC_BK)", 0, "Background and bulk transfers")
+    BACKGROUND("Background (AC_BK)", 0, "Background and bulk transfers"),
 }

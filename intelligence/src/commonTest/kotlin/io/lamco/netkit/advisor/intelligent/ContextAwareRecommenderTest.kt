@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.*
 
 class ContextAwareRecommenderTest {
-
     private val recommender = ContextAwareRecommender()
 
     // ========================================
@@ -15,10 +14,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `get personalized advice for beginner`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.BEGINNER,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.BEGINNER,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -28,25 +28,29 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `get personalized advice for intermediate`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.SMALL_OFFICE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.SMALL_OFFICE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
         assertTrue(advice.recommendations.isNotEmpty())
-        assertTrue(advice.recommendations.all {
-            it.effort.ordinal <= Difficulty.MEDIUM.ordinal
-        })
+        assertTrue(
+            advice.recommendations.all {
+                it.effort.ordinal <= Difficulty.MEDIUM.ordinal
+            },
+        )
     }
 
     @Test
     fun `get personalized advice for advanced`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -57,10 +61,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `get personalized advice for expert`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.EXPERT,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.EXPERT,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -75,62 +80,74 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `beginner gets simple security recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.BEGINNER,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.BEGINNER,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("WPA3", ignoreCase = true) ||
-            it.title.contains("password", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("WPA3", ignoreCase = true) ||
+                    it.title.contains("password", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `intermediate gets channel optimization recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("channel", ignoreCase = true) ||
-            it.title.contains("band steering", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("channel", ignoreCase = true) ||
+                    it.title.contains("band steering", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `advanced gets VLAN recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("VLAN", ignoreCase = true) ||
-            it.title.contains("802.1X", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("VLAN", ignoreCase = true) ||
+                    it.title.contains("802.1X", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `expert gets WiFi 6E recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.EXPERT,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.EXPERT,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("WiFi 6", ignoreCase = true) ||
-            it.title.contains("RRM", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("WiFi 6", ignoreCase = true) ||
+                    it.title.contains("RRM", ignoreCase = true)
+            },
+        )
     }
 
     // ========================================
@@ -139,120 +156,144 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `home network gets parental control recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("parental", ignoreCase = true) ||
-            it.category == RecommendationCategory.CONFIGURATION
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("parental", ignoreCase = true) ||
+                    it.category == RecommendationCategory.CONFIGURATION
+            },
+        )
     }
 
     @Test
     fun `small office gets guest network recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.SMALL_OFFICE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.SMALL_OFFICE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("guest", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("guest", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `enterprise gets NAC recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("NAC", ignoreCase = true) ||
-            it.title.contains("Network Access Control", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("NAC", ignoreCase = true) ||
+                    it.title.contains("Network Access Control", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `retail gets PCI-DSS recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.RETAIL
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.RETAIL,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("PCI", ignoreCase = true) ||
-            it.title.contains("POS", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("PCI", ignoreCase = true) ||
+                    it.title.contains("POS", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `hospitality gets captive portal recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOSPITALITY
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOSPITALITY,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("portal", ignoreCase = true) ||
-            it.title.contains("guest", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("portal", ignoreCase = true) ||
+                    it.title.contains("guest", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `education gets CIPA recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.EDUCATION
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.EDUCATION,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("CIPA", ignoreCase = true) ||
-            it.title.contains("content filter", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("CIPA", ignoreCase = true) ||
+                    it.title.contains("content filter", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `healthcare gets HIPAA recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.HEALTHCARE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.HEALTHCARE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("HIPAA", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("HIPAA", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `public venue gets high density recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.PUBLIC_VENUE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.PUBLIC_VENUE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("density", ignoreCase = true) ||
-            it.title.contains("capacity", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("density", ignoreCase = true) ||
+                    it.title.contains("capacity", ignoreCase = true)
+            },
+        )
     }
 
     // ========================================
@@ -261,66 +302,78 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `security goal provides security recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC,
-            goals = listOf("Improve security")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+                goals = listOf("Improve security"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.category == RecommendationCategory.SECURITY ||
-            it.title.contains("security", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.category == RecommendationCategory.SECURITY ||
+                    it.title.contains("security", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `coverage goal provides coverage recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC,
-            goals = listOf("Better coverage")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+                goals = listOf("Better coverage"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("coverage", ignoreCase = true) ||
-            it.title.contains("placement", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("coverage", ignoreCase = true) ||
+                    it.title.contains("placement", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `speed goal provides performance recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC,
-            goals = listOf("Faster speeds")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+                goals = listOf("Faster speeds"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.category == RecommendationCategory.PERFORMANCE ||
-            it.title.contains("performance", ignoreCase = true) ||
-            it.title.contains("speed", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.category == RecommendationCategory.PERFORMANCE ||
+                    it.title.contains("performance", ignoreCase = true) ||
+                    it.title.contains("speed", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `guest network goal provides guest setup recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.SMALL_OFFICE,
-            goals = listOf("Set up guest network")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.SMALL_OFFICE,
+                goals = listOf("Set up guest network"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
-        assertTrue(advice.recommendations.any {
-            it.title.contains("guest", ignoreCase = true)
-        })
+        assertTrue(
+            advice.recommendations.any {
+                it.title.contains("guest", ignoreCase = true)
+            },
+        )
     }
 
     // ========================================
@@ -329,11 +382,12 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `budget constraint filters out expensive recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE,
-            constraints = listOf("Limited budget")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+                constraints = listOf("Limited budget"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -343,11 +397,12 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `time constraint filters appropriately`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC,
-            constraints = listOf("Limited time")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+                constraints = listOf("Limited time"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -357,19 +412,22 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `no hardware constraint filters hardware recommendations`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC,
-            constraints = listOf("No hardware changes")
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+                constraints = listOf("No hardware changes"),
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
         // Should not recommend adding hardware
-        assertFalse(advice.recommendations.any {
-            it.description.contains("add", ignoreCase = true) &&
-            it.description.contains("AP", ignoreCase = true)
-        })
+        assertFalse(
+            advice.recommendations.any {
+                it.description.contains("add", ignoreCase = true) &&
+                    it.description.contains("AP", ignoreCase = true)
+            },
+        )
     }
 
     // ========================================
@@ -378,10 +436,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `recommendations are sorted by priority`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -391,10 +450,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `quick wins are high impact and easy`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -406,10 +466,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `long term improvements are hard and high impact`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.ADVANCED,
-            networkType = NetworkType.ENTERPRISE
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.ADVANCED,
+                networkType = NetworkType.ENTERPRISE,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -421,10 +482,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `quick wins limited to 3 items`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.INTERMEDIATE,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.INTERMEDIATE,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 
@@ -433,10 +495,11 @@ class ContextAwareRecommenderTest {
 
     @Test
     fun `recommendations have implementation steps`() {
-        val context = AdviceContext(
-            userLevel = UserExpertiseLevel.BEGINNER,
-            networkType = NetworkType.HOME_BASIC
-        )
+        val context =
+            AdviceContext(
+                userLevel = UserExpertiseLevel.BEGINNER,
+                networkType = NetworkType.HOME_BASIC,
+            )
 
         val advice = recommender.getPersonalizedAdvice(context)
 

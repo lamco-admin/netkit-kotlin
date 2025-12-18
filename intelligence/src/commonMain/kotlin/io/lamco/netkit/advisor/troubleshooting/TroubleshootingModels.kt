@@ -36,17 +36,18 @@ sealed class Symptom {
      * Slow network speed
      */
     data class SlowSpeed(
-        val reportedSpeed: Double,  // Mbps
-        val expectedSpeed: Double,  // Mbps
-        val affectedDevices: List<String> = emptyList()
+        val reportedSpeed: Double, // Mbps
+        val expectedSpeed: Double, // Mbps
+        val affectedDevices: List<String> = emptyList(),
     ) : Symptom() {
         override val description = "Slow network speed: ${reportedSpeed}Mbps (expected ${expectedSpeed}Mbps)"
-        override val severity = when {
-            reportedSpeed < expectedSpeed * 0.1 -> 9  // <10% of expected
-            reportedSpeed < expectedSpeed * 0.25 -> 7  // <25% of expected
-            reportedSpeed < expectedSpeed * 0.5 -> 5   // <50% of expected
-            else -> 3
-        }
+        override val severity =
+            when {
+                reportedSpeed < expectedSpeed * 0.1 -> 9 // <10% of expected
+                reportedSpeed < expectedSpeed * 0.25 -> 7 // <25% of expected
+                reportedSpeed < expectedSpeed * 0.5 -> 5 // <50% of expected
+                else -> 3
+            }
     }
 
     /**
@@ -54,31 +55,33 @@ sealed class Symptom {
      */
     data class FrequentDisconnects(
         val disconnectsPerHour: Int,
-        val affectedDevices: List<String> = emptyList()
+        val affectedDevices: List<String> = emptyList(),
     ) : Symptom() {
         override val description = "Frequent disconnects: $disconnectsPerHour per hour"
-        override val severity = when {
-            disconnectsPerHour >= 10 -> 10
-            disconnectsPerHour >= 5 -> 8
-            disconnectsPerHour >= 2 -> 6
-            else -> 4
-        }
+        override val severity =
+            when {
+                disconnectsPerHour >= 10 -> 10
+                disconnectsPerHour >= 5 -> 8
+                disconnectsPerHour >= 2 -> 6
+                else -> 4
+            }
     }
 
     /**
      * Poor WiFi coverage / weak signal
      */
     data class PoorCoverage(
-        val signalStrength: Int,  // dBm
-        val location: String
+        val signalStrength: Int, // dBm
+        val location: String,
     ) : Symptom() {
         override val description = "Poor coverage in $location: ${signalStrength}dBm"
-        override val severity = when {
-            signalStrength < -80 -> 8
-            signalStrength < -75 -> 6
-            signalStrength < -70 -> 4
-            else -> 2
-        }
+        override val severity =
+            when {
+                signalStrength < -80 -> 8
+                signalStrength < -75 -> 6
+                signalStrength < -70 -> 4
+                else -> 2
+            }
     }
 
     /**
@@ -86,15 +89,16 @@ sealed class Symptom {
      */
     data class HighLatency(
         val latencyMs: Int,
-        val targetHost: String = "gateway"
+        val targetHost: String = "gateway",
     ) : Symptom() {
         override val description = "High latency to $targetHost: ${latencyMs}ms"
-        override val severity = when {
-            latencyMs > 500 -> 9
-            latencyMs > 200 -> 7
-            latencyMs > 100 -> 5
-            else -> 3
-        }
+        override val severity =
+            when {
+                latencyMs > 500 -> 9
+                latencyMs > 200 -> 7
+                latencyMs > 100 -> 5
+                else -> 3
+            }
     }
 
     /**
@@ -102,18 +106,18 @@ sealed class Symptom {
      */
     data class CannotConnect(
         val errorMessage: String? = null,
-        val deviceType: String? = null
+        val deviceType: String? = null,
     ) : Symptom() {
         override val description = "Cannot connect${deviceType?.let { " ($it)" } ?: ""}${errorMessage?.let { ": $it" } ?: ""}"
-        override val severity = 10  // Critical - no connectivity
+        override val severity = 10 // Critical - no connectivity
     }
 
     /**
      * Intermittent connectivity issues
      */
     data class IntermittentIssues(
-        val frequency: String,  // "hourly", "daily", "random"
-        val duration: String    // "seconds", "minutes", "hours"
+        val frequency: String, // "hourly", "daily", "random"
+        val duration: String, // "seconds", "minutes", "hours"
     ) : Symptom() {
         override val description = "Intermittent issues ($frequency, lasting $duration)"
         override val severity = 7
@@ -123,8 +127,8 @@ sealed class Symptom {
      * Interference detected
      */
     data class InterferenceDetected(
-        val interferenceLevel: Double,  // 0.0-1.0
-        val band: String  // "2.4GHz", "5GHz"
+        val interferenceLevel: Double, // 0.0-1.0
+        val band: String, // "2.4GHz", "5GHz"
     ) : Symptom() {
         override val description = "Interference on $band: ${(interferenceLevel * 100).toInt()}%"
         override val severity = (interferenceLevel * 10).toInt().coerceIn(1, 10)
@@ -135,7 +139,7 @@ sealed class Symptom {
      */
     data class Custom(
         val symptomDescription: String,
-        val symptomSeverity: Int = 5
+        val symptomSeverity: Int = 5,
     ) : Symptom() {
         override val description = symptomDescription
         override val severity = symptomSeverity.coerceIn(1, 10)
@@ -183,7 +187,8 @@ enum class NetworkIssue {
     // Client Issues
     CLIENT_ROAMING_FAILURE,
     CLIENT_DRIVER_ISSUE,
-    CLIENT_POWER_SAVE_ISSUE;
+    CLIENT_POWER_SAVE_ISSUE,
+    ;
 
     /**
      * User-friendly display name
@@ -204,7 +209,7 @@ data class RootCause(
     val cause: NetworkIssue,
     val probability: Double,
     val evidence: List<String>,
-    val fixSuggestion: String
+    val fixSuggestion: String,
 ) {
     init {
         require(probability in 0.0..1.0) { "Probability must be between 0.0 and 1.0" }
@@ -234,7 +239,7 @@ data class TroubleshootingStep(
     val expectedOutcome: String,
     val ifSuccess: String,
     val ifFailure: String,
-    val estimatedTime: String? = null
+    val estimatedTime: String? = null,
 ) {
     /**
      * Summary of the step
@@ -257,7 +262,7 @@ data class DiagnosisResult(
     val rootCauses: List<RootCause>,
     val confidence: Double,
     val troubleshootingSteps: List<TroubleshootingStep>,
-    val estimatedResolutionTime: String
+    val estimatedResolutionTime: String,
 ) {
     init {
         require(confidence in 0.0..1.0) { "Confidence must be between 0.0 and 1.0" }
@@ -279,13 +284,14 @@ data class DiagnosisResult(
      * Summary of diagnosis
      */
     val summary: String
-        get() = buildString {
-            append("Diagnosed ${rootCauses.size} potential cause(s)")
-            if (primaryCause != null) {
-                append(": ${primaryCause!!.cause.displayName}")
+        get() =
+            buildString {
+                append("Diagnosed ${rootCauses.size} potential cause(s)")
+                if (primaryCause != null) {
+                    append(": ${primaryCause!!.cause.displayName}")
+                }
+                append(" (${(confidence * 100).toInt()}% confidence)")
             }
-            append(" (${(confidence * 100).toInt()}% confidence)")
-        }
 }
 
 /**
@@ -304,7 +310,7 @@ data class SolutionRecommendation(
     val steps: List<String>,
     val difficulty: Difficulty,
     val impact: Impact,
-    val prerequisites: List<String> = emptyList()
+    val prerequisites: List<String> = emptyList(),
 ) {
     /**
      * Summary of the solution
@@ -317,9 +323,10 @@ data class SolutionRecommendation(
  * Solution difficulty level
  */
 enum class Difficulty {
-    EASY,    // Can be done by end user
-    MEDIUM,  // Requires some technical knowledge
-    HARD;    // Requires professional/IT staff
+    EASY, // Can be done by end user
+    MEDIUM, // Requires some technical knowledge
+    HARD, // Requires professional/IT staff
+    ;
 
     /**
      * Display name
@@ -332,9 +339,10 @@ enum class Difficulty {
  * Solution impact level
  */
 enum class Impact {
-    LOW,     // Slight improvement
-    MEDIUM,  // Moderate improvement
-    HIGH;    // Significant improvement
+    LOW, // Slight improvement
+    MEDIUM, // Moderate improvement
+    HIGH, // Significant improvement
+    ;
 
     /**
      * Display name
@@ -363,5 +371,5 @@ data class DiagnosticContext(
     val channel: Int? = null,
     val bandwidth: Double? = null,
     val latency: Int? = null,
-    val packetLoss: Double? = null
+    val packetLoss: Double? = null,
 )

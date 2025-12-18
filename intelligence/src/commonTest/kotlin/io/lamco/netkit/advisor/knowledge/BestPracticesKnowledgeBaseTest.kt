@@ -6,29 +6,28 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
 
 class BestPracticesKnowledgeBaseTest {
-
     private fun createTestRule(
         category: RuleCategory = RuleCategory.SECURITY,
         severity: RuleSeverity = RuleSeverity.MUST,
-        networkTypes: List<NetworkType> = emptyList()
-    ): BestPracticeRule {
-        return BestPracticeRule(
+        networkTypes: List<NetworkType> = emptyList(),
+    ): BestPracticeRule =
+        BestPracticeRule(
             category = category,
             title = "Test Rule",
             description = "Test description",
             rationale = "Test rationale",
             severity = severity,
             source = "Test",
-            applicability = RuleApplicability(networkTypes = networkTypes)
+            applicability = RuleApplicability(networkTypes = networkTypes),
         )
-    }
 
     @Test
     fun `create knowledge base with rules`() {
-        val rules = listOf(
-            createTestRule(),
-            createTestRule(category = RuleCategory.PERFORMANCE)
-        )
+        val rules =
+            listOf(
+                createTestRule(),
+                createTestRule(category = RuleCategory.PERFORMANCE),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         assertNotNull(kb)
@@ -43,25 +42,27 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get best practices for network type`() {
-        val rules = listOf(
-            createTestRule(networkTypes = listOf(NetworkType.ENTERPRISE)),
-            createTestRule(networkTypes = listOf(NetworkType.HOME_BASIC)),
-            createTestRule(networkTypes = emptyList())  // Universal
-        )
+        val rules =
+            listOf(
+                createTestRule(networkTypes = listOf(NetworkType.ENTERPRISE)),
+                createTestRule(networkTypes = listOf(NetworkType.HOME_BASIC)),
+                createTestRule(networkTypes = emptyList()), // Universal
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val enterpriseRules = kb.getBestPractices(NetworkType.ENTERPRISE)
 
-        assertEquals(2, enterpriseRules.size)  // Enterprise-specific + universal
+        assertEquals(2, enterpriseRules.size) // Enterprise-specific + universal
     }
 
     @Test
     fun `rules sorted by severity`() {
-        val rules = listOf(
-            createTestRule(severity = RuleSeverity.MAY),
-            createTestRule(severity = RuleSeverity.MUST),
-            createTestRule(severity = RuleSeverity.SHOULD)
-        )
+        val rules =
+            listOf(
+                createTestRule(severity = RuleSeverity.MAY),
+                createTestRule(severity = RuleSeverity.MUST),
+                createTestRule(severity = RuleSeverity.SHOULD),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val sorted = kb.getBestPractices(NetworkType.ENTERPRISE)
@@ -73,11 +74,12 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get rules by category`() {
-        val rules = listOf(
-            createTestRule(category = RuleCategory.SECURITY),
-            createTestRule(category = RuleCategory.SECURITY),
-            createTestRule(category = RuleCategory.PERFORMANCE)
-        )
+        val rules =
+            listOf(
+                createTestRule(category = RuleCategory.SECURITY),
+                createTestRule(category = RuleCategory.SECURITY),
+                createTestRule(category = RuleCategory.PERFORMANCE),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val securityRules = kb.getRulesByCategory(RuleCategory.SECURITY)
@@ -87,11 +89,12 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get critical rules returns only MUST severity`() {
-        val rules = listOf(
-            createTestRule(severity = RuleSeverity.MUST),
-            createTestRule(severity = RuleSeverity.SHOULD),
-            createTestRule(severity = RuleSeverity.MAY)
-        )
+        val rules =
+            listOf(
+                createTestRule(severity = RuleSeverity.MUST),
+                createTestRule(severity = RuleSeverity.SHOULD),
+                createTestRule(severity = RuleSeverity.MAY),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val critical = kb.getCriticalRules(NetworkType.ENTERPRISE)
@@ -102,11 +105,12 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get recommended rules returns only SHOULD severity`() {
-        val rules = listOf(
-            createTestRule(severity = RuleSeverity.MUST),
-            createTestRule(severity = RuleSeverity.SHOULD),
-            createTestRule(severity = RuleSeverity.MAY)
-        )
+        val rules =
+            listOf(
+                createTestRule(severity = RuleSeverity.MUST),
+                createTestRule(severity = RuleSeverity.SHOULD),
+                createTestRule(severity = RuleSeverity.MAY),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val recommended = kb.getRecommendedRules(NetworkType.ENTERPRISE)
@@ -117,11 +121,12 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get optional rules returns only MAY severity`() {
-        val rules = listOf(
-            createTestRule(severity = RuleSeverity.MUST),
-            createTestRule(severity = RuleSeverity.SHOULD),
-            createTestRule(severity = RuleSeverity.MAY)
-        )
+        val rules =
+            listOf(
+                createTestRule(severity = RuleSeverity.MUST),
+                createTestRule(severity = RuleSeverity.SHOULD),
+                createTestRule(severity = RuleSeverity.MAY),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val optional = kb.getOptionalRules(NetworkType.ENTERPRISE)
@@ -133,11 +138,12 @@ class BestPracticesKnowledgeBaseTest {
     @Test
     fun `validate configuration returns result`() {
         val kb = BestPracticesKnowledgeBase.create()
-        val context = NetworkContext(
-            networkType = NetworkType.ENTERPRISE,
-            wifiGeneration = WifiGeneration.WIFI_6,
-            securityType = "WPA3-Enterprise"
-        )
+        val context =
+            NetworkContext(
+                networkType = NetworkType.ENTERPRISE,
+                wifiGeneration = WifiGeneration.WIFI_6,
+                securityType = "WPA3-Enterprise",
+            )
 
         val result = kb.validate(context)
         assertNotNull(result)
@@ -156,11 +162,12 @@ class BestPracticesKnowledgeBaseTest {
 
     @Test
     fun `get summary returns statistics`() {
-        val rules = listOf(
-            createTestRule(category = RuleCategory.SECURITY),
-            createTestRule(category = RuleCategory.PERFORMANCE),
-            createTestRule(category = RuleCategory.SECURITY)
-        )
+        val rules =
+            listOf(
+                createTestRule(category = RuleCategory.SECURITY),
+                createTestRule(category = RuleCategory.PERFORMANCE),
+                createTestRule(category = RuleCategory.SECURITY),
+            )
 
         val kb = BestPracticesKnowledgeBase(rules)
         val summary = kb.getSummary()
@@ -189,11 +196,12 @@ class BestPracticesKnowledgeBaseTest {
     @Test
     fun `validation result has compliance level`() {
         val kb = BestPracticesKnowledgeBase.create()
-        val context = NetworkContext(
-            networkType = NetworkType.ENTERPRISE,
-            wifiGeneration = WifiGeneration.WIFI_6,
-            securityType = "WPA3-Enterprise"
-        )
+        val context =
+            NetworkContext(
+                networkType = NetworkType.ENTERPRISE,
+                wifiGeneration = WifiGeneration.WIFI_6,
+                securityType = "WPA3-Enterprise",
+            )
 
         val result = kb.validate(context)
         assertNotNull(result.complianceLevel)
@@ -202,11 +210,12 @@ class BestPracticesKnowledgeBaseTest {
     @Test
     fun `validation result summary includes network type`() {
         val kb = BestPracticesKnowledgeBase.create()
-        val context = NetworkContext(
-            networkType = NetworkType.ENTERPRISE,
-            wifiGeneration = WifiGeneration.WIFI_6,
-            securityType = "WPA2-PSK"
-        )
+        val context =
+            NetworkContext(
+                networkType = NetworkType.ENTERPRISE,
+                wifiGeneration = WifiGeneration.WIFI_6,
+                securityType = "WPA2-PSK",
+            )
 
         val result = kb.validate(context)
         assertTrue(result.summary.contains("ENTERPRISE") || result.summary.contains("Enterprise"))

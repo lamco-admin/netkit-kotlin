@@ -4,8 +4,8 @@ import io.lamco.netkit.model.topology.*
 import io.lamco.netkit.security.analyzer.*
 import io.lamco.netkit.security.model.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 
 /**
  * Comprehensive tests for all advisor components (Batch 3)
@@ -19,14 +19,12 @@ import org.junit.jupiter.api.Nested
  * Total: 125 tests
  */
 class AdvisorTest {
-
     // ====================
     // RuleEngine Tests (30)
     // ====================
 
     @Nested
     inner class RuleEngineTests {
-
         @Test
         fun `RuleEngine requires at least one rule`() {
             assertThrows(IllegalArgumentException::class.java) {
@@ -84,10 +82,11 @@ class AdvisorTest {
             val rule = SecurityRule.ProhibitCipher(CipherSuite.WEP_40)
             val engine = RuleEngine(listOf(rule))
 
-            val analysis = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_40)
-            )
+            val analysis =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_40),
+                )
             val result = engine.evaluate(listOf(analysis))
 
             assertEquals(1, result.violations.size)
@@ -120,15 +119,16 @@ class AdvisorTest {
             val rule = SecurityRule.ProhibitWps
             val engine = RuleEngine(listOf(rule))
 
-            val wpsInfo = WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null,
-                manufacturer = null,
-                modelName = null,
-                version = null
-            )
+            val wpsInfo =
+                WpsInfo(
+                    configMethods = setOf(WpsConfigMethod.LABEL),
+                    wpsState = WpsState.CONFIGURED,
+                    locked = false,
+                    deviceName = null,
+                    manufacturer = null,
+                    modelName = null,
+                    version = null,
+                )
             val analysis = createMockBssAnalysis(wpsInfo = wpsInfo)
             val result = engine.evaluate(listOf(analysis))
 
@@ -159,15 +159,19 @@ class AdvisorTest {
 
         @Test
         fun `complianceScore calculated correctly`() {
-            val engine = RuleEngine(listOf(
-                SecurityRule.RequireMinimumAuth(AuthType.WPA2_PSK),
-                SecurityRule.ProhibitWps
-            ))
+            val engine =
+                RuleEngine(
+                    listOf(
+                        SecurityRule.RequireMinimumAuth(AuthType.WPA2_PSK),
+                        SecurityRule.ProhibitWps,
+                    ),
+                )
 
-            val analyses = listOf(
-                createMockBssAnalysis(authType = AuthType.WPA3_SAE), // Compliant
-                createMockBssAnalysis(authType = AuthType.WEP)        // Non-compliant
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(authType = AuthType.WPA3_SAE), // Compliant
+                    createMockBssAnalysis(authType = AuthType.WEP), // Non-compliant
+                )
 
             val result = engine.evaluate(analyses)
 
@@ -179,10 +183,11 @@ class AdvisorTest {
         fun `strictCorporatePolicy creates comprehensive rules`() {
             val engine = RuleEngine.strictCorporatePolicy()
 
-            val analysis = createMockBssAnalysis(
-                authType = AuthType.WPA_PSK, // Should violate minimum auth
-                pmfEnabled = false            // Should violate PMF requirement
-            )
+            val analysis =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA_PSK, // Should violate minimum auth
+                    pmfEnabled = false, // Should violate PMF requirement
+                )
 
             val result = engine.evaluate(listOf(analysis))
 
@@ -218,13 +223,14 @@ class AdvisorTest {
 
         @Test
         fun `RuleViolation summary includes BSSID`() {
-            val violation = RuleViolation(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestSSID",
-                rule = SecurityRule.ProhibitWps,
-                severity = RuleSeverity.HIGH,
-                description = "WPS enabled"
-            )
+            val violation =
+                RuleViolation(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestSSID",
+                    rule = SecurityRule.ProhibitWps,
+                    severity = RuleSeverity.HIGH,
+                    description = "WPS enabled",
+                )
 
             assertTrue(violation.summary.contains("00:11:22:33:44:55"))
             assertTrue(violation.summary.contains("TestSSID"))
@@ -237,7 +243,7 @@ class AdvisorTest {
                     totalBssCount = 0,
                     rulesEvaluated = 1,
                     violations = emptyList(),
-                    complianceScore = 1.0
+                    complianceScore = 1.0,
                 )
             }
         }
@@ -249,25 +255,27 @@ class AdvisorTest {
                     totalBssCount = 1,
                     rulesEvaluated = 1,
                     violations = emptyList(),
-                    complianceScore = 1.5
+                    complianceScore = 1.5,
                 )
             }
         }
 
         @Test
         fun `violationsBySeverity groups correctly`() {
-            val violations = listOf(
-                RuleViolation("BSS1", "SSID1", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc"),
-                RuleViolation("BSS2", "SSID2", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc"),
-                RuleViolation("BSS3", "SSID3", SecurityRule.ProhibitWps, RuleSeverity.MEDIUM, "desc")
-            )
+            val violations =
+                listOf(
+                    RuleViolation("BSS1", "SSID1", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc"),
+                    RuleViolation("BSS2", "SSID2", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc"),
+                    RuleViolation("BSS3", "SSID3", SecurityRule.ProhibitWps, RuleSeverity.MEDIUM, "desc"),
+                )
 
-            val evaluation = RuleEvaluation(
-                totalBssCount = 3,
-                rulesEvaluated = 1,
-                violations = violations,
-                complianceScore = 0.0
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 3,
+                    rulesEvaluated = 1,
+                    violations = violations,
+                    complianceScore = 0.0,
+                )
 
             assertEquals(2, evaluation.violationsBySeverity[RuleSeverity.HIGH])
             assertEquals(1, evaluation.violationsBySeverity[RuleSeverity.MEDIUM])
@@ -275,72 +283,78 @@ class AdvisorTest {
 
         @Test
         fun `complianceLevel FULL at 95 percent`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 0.95
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 0.95,
+                )
 
             assertEquals(ComplianceLevel.FULL, evaluation.complianceLevel)
         }
 
         @Test
         fun `complianceLevel HIGH at 80 percent`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 0.85
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 0.85,
+                )
 
             assertEquals(ComplianceLevel.HIGH, evaluation.complianceLevel)
         }
 
         @Test
         fun `complianceLevel MODERATE at 60 percent`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 0.65
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 0.65,
+                )
 
             assertEquals(ComplianceLevel.MODERATE, evaluation.complianceLevel)
         }
 
         @Test
         fun `complianceLevel LOW at 40 percent`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 0.45
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 0.45,
+                )
 
             assertEquals(ComplianceLevel.LOW, evaluation.complianceLevel)
         }
 
         @Test
         fun `complianceLevel NON_COMPLIANT below 40 percent`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 0.35
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 0.35,
+                )
 
             assertEquals(ComplianceLevel.NON_COMPLIANT, evaluation.complianceLevel)
         }
 
         @Test
         fun `evaluation summary includes BSS count`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 5,
-                rulesEvaluated = 3,
-                violations = emptyList(),
-                complianceScore = 1.0
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 5,
+                    rulesEvaluated = 3,
+                    violations = emptyList(),
+                    complianceScore = 1.0,
+                )
 
             assertTrue(evaluation.summary.contains("5"))
             assertTrue(evaluation.summary.contains("3"))
@@ -348,28 +362,31 @@ class AdvisorTest {
 
         @Test
         fun `evaluation summary shows COMPLIANT when no violations`() {
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = emptyList(),
-                complianceScore = 1.0
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = emptyList(),
+                    complianceScore = 1.0,
+                )
 
             assertTrue(evaluation.summary.contains("COMPLIANT"))
         }
 
         @Test
         fun `evaluation summary shows violation count`() {
-            val violations = listOf(
-                RuleViolation("BSS1", "SSID1", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc")
-            )
+            val violations =
+                listOf(
+                    RuleViolation("BSS1", "SSID1", SecurityRule.ProhibitWps, RuleSeverity.HIGH, "desc"),
+                )
 
-            val evaluation = RuleEvaluation(
-                totalBssCount = 1,
-                rulesEvaluated = 1,
-                violations = violations,
-                complianceScore = 0.5
-            )
+            val evaluation =
+                RuleEvaluation(
+                    totalBssCount = 1,
+                    rulesEvaluated = 1,
+                    violations = violations,
+                    complianceScore = 0.5,
+                )
 
             assertTrue(evaluation.summary.contains("1"))
         }
@@ -383,18 +400,22 @@ class AdvisorTest {
 
         @Test
         fun `multiple rules evaluated correctly`() {
-            val engine = RuleEngine(listOf(
-                SecurityRule.RequireMinimumAuth(AuthType.WPA2_PSK),
-                SecurityRule.ProhibitCipher(CipherSuite.TKIP),
-                SecurityRule.RequirePmf
-            ))
+            val engine =
+                RuleEngine(
+                    listOf(
+                        SecurityRule.RequireMinimumAuth(AuthType.WPA2_PSK),
+                        SecurityRule.ProhibitCipher(CipherSuite.TKIP),
+                        SecurityRule.RequirePmf,
+                    ),
+                )
 
-            val analysis = createMockBssAnalysis(
-                authType = AuthType.WPA2_PSK,
-                ciphers = setOf(CipherSuite.CCMP),
-                pmfEnabled = true,
-                pmfCapable = true
-            )
+            val analysis =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA2_PSK,
+                    ciphers = setOf(CipherSuite.CCMP),
+                    pmfEnabled = true,
+                    pmfCapable = true,
+                )
 
             val result = engine.evaluate(listOf(analysis))
 
@@ -409,18 +430,18 @@ class AdvisorTest {
 
     @Nested
     inner class SecurityAdvisorTests {
-
         private val analyzer = SecurityAnalyzer()
         private val advisor = SecurityAdvisor()
 
         @Test
         fun `analyze generates action items for critical issues`() {
             // WEP with WEP cipher triggers CRITICAL priority action for insecure ciphers
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_104),  // WEP cipher triggers critical action
-                threatLevel = ThreatLevel.CRITICAL
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_104), // WEP cipher triggers critical action
+                    threatLevel = ThreatLevel.CRITICAL,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -430,15 +451,16 @@ class AdvisorTest {
 
         @Test
         fun `analyze detects WPS vulnerabilities`() {
-            val wpsInfo = WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null,
-                manufacturer = null,
-                modelName = null,
-                version = null
-            )
+            val wpsInfo =
+                WpsInfo(
+                    configMethods = setOf(WpsConfigMethod.LABEL),
+                    wpsState = WpsState.CONFIGURED,
+                    locked = false,
+                    deviceName = null,
+                    manufacturer = null,
+                    modelName = null,
+                    version = null,
+                )
 
             val bss = createMockBssAnalysis(wpsInfo = wpsInfo)
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
@@ -450,10 +472,11 @@ class AdvisorTest {
 
         @Test
         fun `analyze detects cipher issues`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA2_PSK,
-                ciphers = setOf(CipherSuite.TKIP)
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA2_PSK,
+                    ciphers = setOf(CipherSuite.TKIP),
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -463,11 +486,12 @@ class AdvisorTest {
 
         @Test
         fun `analyze detects PMF issues`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA3_SAE,
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA3_SAE,
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -478,18 +502,20 @@ class AdvisorTest {
         @Test
         fun `analyze detects configuration inconsistencies`() {
             // BSS1 without PMF gets FAIR security level
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestNet",
-                authType = AuthType.WPA2_PSK
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestNet",
+                    authType = AuthType.WPA2_PSK,
+                )
             // BSS2 with PMF enabled gets GOOD security level, creating inconsistency
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestNet",
-                authType = AuthType.WPA3_SAE,
-                pmfEnabled = true  // PMF required → GOOD level, different from BSS1's FAIR
-            )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestNet",
+                    authType = AuthType.WPA3_SAE,
+                    pmfEnabled = true, // PMF required → GOOD level, different from BSS1's FAIR
+                )
 
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss1, bss2))
             val advice = advisor.analyze(networkAnalysis)
@@ -499,10 +525,11 @@ class AdvisorTest {
 
         @Test
         fun `prioritizedActions sorted by priority`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                threatLevel = ThreatLevel.CRITICAL
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    threatLevel = ThreatLevel.CRITICAL,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -559,7 +586,7 @@ class AdvisorTest {
             assertEquals(
                 advice.estimatedImprovementScore - networkAnalysis.averageSecurityScore,
                 advice.improvementDelta,
-                0.01
+                0.01,
             )
         }
 
@@ -585,16 +612,17 @@ class AdvisorTest {
 
         @Test
         fun `ActionItem summary includes priority`() {
-            val action = ActionItem(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestNet",
-                title = "Test Action",
-                description = "Description",
-                recommendation = "Recommendation",
-                priority = ActionPriority.HIGH,
-                effort = EffortLevel.LOW,
-                category = ActionCategory.SECURITY
-            )
+            val action =
+                ActionItem(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestNet",
+                    title = "Test Action",
+                    description = "Description",
+                    recommendation = "Recommendation",
+                    priority = ActionPriority.HIGH,
+                    effort = EffortLevel.LOW,
+                    category = ActionCategory.SECURITY,
+                )
 
             assertTrue(action.summary.contains("HIGH"))
         }
@@ -629,17 +657,18 @@ class AdvisorTest {
                 SecurityAdvice(
                     networkAnalysis = networkAnalysis,
                     prioritizedActions = emptyList(),
-                    estimatedImprovementScore = 1.5 // Invalid
+                    estimatedImprovementScore = 1.5, // Invalid
                 )
             }
         }
 
         @Test
         fun `analyze handles empty critical issues`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA3_SAE,
-                pmfEnabled = true
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA3_SAE,
+                    pmfEnabled = true,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -650,82 +679,95 @@ class AdvisorTest {
 
         @Test
         fun `WPS risk score above 0_3 triggers action`() {
-            val wpsInfo = WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null,
-                manufacturer = null,
-                modelName = null,
-                version = null
-            )
+            val wpsInfo =
+                WpsInfo(
+                    configMethods = setOf(WpsConfigMethod.LABEL),
+                    wpsState = WpsState.CONFIGURED,
+                    locked = false,
+                    deviceName = null,
+                    manufacturer = null,
+                    modelName = null,
+                    version = null,
+                )
 
             val bss = createMockBssAnalysis(wpsInfo = wpsInfo)
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.title.contains("WPS", ignoreCase = true)
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.title.contains("WPS", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `cipher score below 0_3 triggers critical action`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_40)
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_40),
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.priority == ActionPriority.CRITICAL &&
-                it.category == ActionCategory.CIPHER
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.priority == ActionPriority.CRITICAL &&
+                        it.category == ActionCategory.CIPHER
+                },
+            )
         }
 
         @Test
         fun `cipher score 0_3-0_6 triggers high priority`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA2_PSK,
-                ciphers = setOf(CipherSuite.TKIP)
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA2_PSK,
+                    ciphers = setOf(CipherSuite.TKIP),
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.priority == ActionPriority.HIGH &&
-                it.category == ActionCategory.CIPHER
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.priority == ActionPriority.HIGH &&
+                        it.category == ActionCategory.CIPHER
+                },
+            )
         }
 
         @Test
         fun `PMF required but missing triggers high priority`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA3_SAE,
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA3_SAE,
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.priority == ActionPriority.HIGH &&
-                it.category == ActionCategory.PMF
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.priority == ActionPriority.HIGH &&
+                        it.category == ActionCategory.PMF
+                },
+            )
         }
 
         @Test
         fun `PMF recommended triggers medium priority`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA2_PSK,
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA2_PSK,
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val advice = advisor.analyze(networkAnalysis)
@@ -738,49 +780,57 @@ class AdvisorTest {
 
         @Test
         fun `configuration inconsistency detected for security levels`() {
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestNet",
-                authType = AuthType.WPA3_SAE,
-                ciphers = setOf(CipherSuite.GCMP)
-            )
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestNet",
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_104)
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestNet",
+                    authType = AuthType.WPA3_SAE,
+                    ciphers = setOf(CipherSuite.GCMP),
+                )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestNet",
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_104),
+                )
 
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss1, bss2))
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.category == ActionCategory.CONFIGURATION &&
-                it.title.contains("Security", ignoreCase = true)
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.category == ActionCategory.CONFIGURATION &&
+                        it.title.contains("Security", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `PMF inconsistency detected across APs`() {
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestNet",
-                pmfEnabled = true
-            )
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestNet",
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestNet",
+                    pmfEnabled = true,
+                )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestNet",
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
 
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss1, bss2))
             val advice = advisor.analyze(networkAnalysis)
 
-            assertTrue(advice.prioritizedActions.any {
-                it.category == ActionCategory.CONFIGURATION &&
-                it.title.contains("PMF", ignoreCase = true)
-            })
+            assertTrue(
+                advice.prioritizedActions.any {
+                    it.category == ActionCategory.CONFIGURATION &&
+                        it.title.contains("PMF", ignoreCase = true)
+                },
+            )
         }
 
         @Test
@@ -805,9 +855,10 @@ class AdvisorTest {
             val advice = advisor.analyze(networkAnalysis)
 
             // Check that same priority actions are sorted by effort
-            val highPriorityActions = advice.prioritizedActions.filter {
-                it.priority == ActionPriority.HIGH
-            }
+            val highPriorityActions =
+                advice.prioritizedActions.filter {
+                    it.priority == ActionPriority.HIGH
+                }
 
             if (highPriorityActions.size > 1) {
                 val efforts = highPriorityActions.map { it.effort.ordinal }
@@ -822,14 +873,18 @@ class AdvisorTest {
 
             val advice = advisor.analyze(networkAnalysis)
 
-            val configActions = advice.prioritizedActions.filter {
-                it.category == ActionCategory.CONFIGURATION
-            }
+            val configActions =
+                advice.prioritizedActions.filter {
+                    it.category == ActionCategory.CONFIGURATION
+                }
 
             // Should have no multi-AP configuration issues
-            assertTrue(configActions.isEmpty() || configActions.none {
-                it.title.contains("Inconsistent", ignoreCase = true)
-            })
+            assertTrue(
+                configActions.isEmpty() ||
+                    configActions.none {
+                        it.title.contains("Inconsistent", ignoreCase = true)
+                    },
+            )
         }
     }
 
@@ -839,7 +894,6 @@ class AdvisorTest {
 
     @Nested
     inner class ConfigurationAdvisorTests {
-
         private val advisor = ConfigurationAdvisor()
 
         @Test
@@ -855,177 +909,212 @@ class AdvisorTest {
 
             val advice = advisor.analyze("TestSSID", listOf(bss))
 
-            assertTrue(advice.recommendations.any {
-                it.title.contains("Single AP", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.title.contains("Single AP", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `single AP without roaming features triggers low priority`() {
-            val bss = createMockBssAnalysis(
-                ssid = "TestSSID",
-                roamingSupported = false
-            )
+            val bss =
+                createMockBssAnalysis(
+                    ssid = "TestSSID",
+                    roamingSupported = false,
+                )
 
             val advice = advisor.analyze("TestSSID", listOf(bss))
 
-            assertTrue(advice.recommendations.any {
-                it.category == RecommendationCategory.ROAMING &&
-                it.priority == RecommendationPriority.LOW
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.category == RecommendationCategory.ROAMING &&
+                        it.priority == RecommendationPriority.LOW
+                },
+            )
         }
 
         @Test
         fun `inconsistent auth types triggers high priority`() {
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestSSID",
-                authType = AuthType.WPA2_PSK
-            )
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestSSID",
-                authType = AuthType.WPA3_SAE
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestSSID",
+                    authType = AuthType.WPA2_PSK,
+                )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestSSID",
+                    authType = AuthType.WPA3_SAE,
+                )
 
             val advice = advisor.analyze("TestSSID", listOf(bss1, bss2))
 
-            assertTrue(advice.recommendations.any {
-                it.priority == RecommendationPriority.HIGH &&
-                it.title.contains("Authentication", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.priority == RecommendationPriority.HIGH &&
+                        it.title.contains("Authentication", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `inconsistent security levels triggers medium priority`() {
             // BSS1 with PMF enabled gets GOOD security level
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestSSID",
-                authType = AuthType.WPA3_SAE,
-                ciphers = setOf(CipherSuite.GCMP),
-                pmfEnabled = true  // PMF required → higher security score → GOOD level
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestSSID",
+                    authType = AuthType.WPA3_SAE,
+                    ciphers = setOf(CipherSuite.GCMP),
+                    pmfEnabled = true, // PMF required → higher security score → GOOD level
+                )
             // BSS2 without PMF stays at FAIR security level
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestSSID",
-                authType = AuthType.WPA2_PSK,
-                ciphers = setOf(CipherSuite.CCMP)
-            )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestSSID",
+                    authType = AuthType.WPA2_PSK,
+                    ciphers = setOf(CipherSuite.CCMP),
+                )
 
             val advice = advisor.analyze("TestSSID", listOf(bss1, bss2))
 
-            assertTrue(advice.recommendations.any {
-                it.priority == RecommendationPriority.MEDIUM &&
-                it.title.contains("Security Level", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.priority == RecommendationPriority.MEDIUM &&
+                        it.title.contains("Security Level", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `inconsistent PMF triggers medium priority`() {
-            val bss1 = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestSSID",
-                pmfEnabled = true
-            )
-            val bss2 = createMockBssAnalysis(
-                bssid = "AA:BB:CC:DD:EE:FF",
-                ssid = "TestSSID",
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss1 =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestSSID",
+                    pmfEnabled = true,
+                )
+            val bss2 =
+                createMockBssAnalysis(
+                    bssid = "AA:BB:CC:DD:EE:FF",
+                    ssid = "TestSSID",
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
 
             val advice = advisor.analyze("TestSSID", listOf(bss1, bss2))
 
-            assertTrue(advice.recommendations.any {
-                it.title.contains("PMF", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.title.contains("PMF", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `no fast roaming triggers high priority`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = false),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = false)
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = false),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = false),
+                )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.priority == RecommendationPriority.HIGH &&
-                it.title.contains("No Fast Roaming", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.priority == RecommendationPriority.HIGH &&
+                        it.title.contains("No Fast Roaming", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `partial roaming support triggers medium priority`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = true),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = false)
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = true),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = false),
+                )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.priority == RecommendationPriority.MEDIUM &&
-                it.title.contains("Partial", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.priority == RecommendationPriority.MEDIUM &&
+                        it.title.contains("Partial", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `full roaming support triggers info`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = true),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = true)
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55", roamingSupported = true),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", roamingSupported = true),
+                )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.priority == RecommendationPriority.INFO &&
-                it.title.contains("Excellent", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.priority == RecommendationPriority.INFO &&
+                        it.title.contains("Excellent", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `2-3 APs classified as small deployment`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55"),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF")
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55"),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF"),
+                )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.title.contains("Small", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.title.contains("Small", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `4-10 APs classified as medium deployment`() {
-            val analyses = (1..5).map {
-                createMockBssAnalysis(bssid = "00:11:22:33:44:5$it")
-            }
+            val analyses =
+                (1..5).map {
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:5$it")
+                }
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.title.contains("Medium", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.title.contains("Medium", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `11+ APs classified as large deployment`() {
-            val analyses = (1..12).map {
-                createMockBssAnalysis(bssid = "00:11:22:33:4$it:55")
-            }
+            val analyses =
+                (1..12).map {
+                    createMockBssAnalysis(bssid = "00:11:22:33:4$it:55")
+                }
 
             val advice = advisor.analyze("TestSSID", analyses)
 
-            assertTrue(advice.recommendations.any {
-                it.title.contains("Large", ignoreCase = true)
-            })
+            assertTrue(
+                advice.recommendations.any {
+                    it.title.contains("Large", ignoreCase = true)
+                },
+            )
         }
 
         @Test
@@ -1034,7 +1123,7 @@ class AdvisorTest {
                 ConfigurationAdvice(
                     ssid = "TestSSID",
                     apCount = 0,
-                    recommendations = emptyList()
+                    recommendations = emptyList(),
                 )
             }
         }
@@ -1065,10 +1154,11 @@ class AdvisorTest {
 
         @Test
         fun `highPriorityRecommendations filters correctly`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55", authType = AuthType.WPA2_PSK),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", authType = AuthType.WPA3_SAE)
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55", authType = AuthType.WPA2_PSK),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", authType = AuthType.WPA3_SAE),
+                )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
@@ -1095,15 +1185,16 @@ class AdvisorTest {
 
         @Test
         fun `ConfigurationRecommendation summary includes priority`() {
-            val rec = ConfigurationRecommendation(
-                category = RecommendationCategory.SECURITY,
-                priority = RecommendationPriority.HIGH,
-                title = "Test Recommendation",
-                description = "Description",
-                recommendation = "Recommendation",
-                rationale = "Rationale",
-                effort = EffortLevel.MEDIUM
-            )
+            val rec =
+                ConfigurationRecommendation(
+                    category = RecommendationCategory.SECURITY,
+                    priority = RecommendationPriority.HIGH,
+                    title = "Test Recommendation",
+                    description = "Description",
+                    recommendation = "Recommendation",
+                    rationale = "Rationale",
+                    effort = EffortLevel.MEDIUM,
+                )
 
             assertTrue(rec.summary.contains("HIGH"))
         }
@@ -1133,48 +1224,51 @@ class AdvisorTest {
 
         @Test
         fun `consistent configuration produces minimal recommendations`() {
-            val analyses = listOf(
-                createMockBssAnalysis(
-                    bssid = "00:11:22:33:44:55",
-                    ssid = "TestSSID",
-                    authType = AuthType.WPA2_PSK,
-                    pmfEnabled = true,
-                    roamingSupported = true
-                ),
-                createMockBssAnalysis(
-                    bssid = "AA:BB:CC:DD:EE:FF",
-                    ssid = "TestSSID",
-                    authType = AuthType.WPA2_PSK,
-                    pmfEnabled = true,
-                    roamingSupported = true
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(
+                        bssid = "00:11:22:33:44:55",
+                        ssid = "TestSSID",
+                        authType = AuthType.WPA2_PSK,
+                        pmfEnabled = true,
+                        roamingSupported = true,
+                    ),
+                    createMockBssAnalysis(
+                        bssid = "AA:BB:CC:DD:EE:FF",
+                        ssid = "TestSSID",
+                        authType = AuthType.WPA2_PSK,
+                        pmfEnabled = true,
+                        roamingSupported = true,
+                    ),
                 )
-            )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
             // Should have recommendations but no high priority security issues
-            val highPrioritySecurity = advice.recommendations.filter {
-                it.priority == RecommendationPriority.HIGH &&
-                it.category == RecommendationCategory.SECURITY
-            }
+            val highPrioritySecurity =
+                advice.recommendations.filter {
+                    it.priority == RecommendationPriority.HIGH &&
+                        it.category == RecommendationCategory.SECURITY
+                }
 
             assertTrue(highPrioritySecurity.isEmpty())
         }
 
         @Test
         fun `multi-AP with all inconsistencies triggers multiple recommendations`() {
-            val analyses = listOf(
-                createMockBssAnalysis(
-                    bssid = "00:11:22:33:44:55",
-                    authType = AuthType.WPA2_PSK,
-                    pmfEnabled = true
-                ),
-                createMockBssAnalysis(
-                    bssid = "AA:BB:CC:DD:EE:FF",
-                    authType = AuthType.WPA3_SAE,
-                    pmfEnabled = false
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(
+                        bssid = "00:11:22:33:44:55",
+                        authType = AuthType.WPA2_PSK,
+                        pmfEnabled = true,
+                    ),
+                    createMockBssAnalysis(
+                        bssid = "AA:BB:CC:DD:EE:FF",
+                        authType = AuthType.WPA3_SAE,
+                        pmfEnabled = false,
+                    ),
                 )
-            )
 
             val advice = advisor.analyze("TestSSID", analyses)
 
@@ -1189,7 +1283,6 @@ class AdvisorTest {
 
     @Nested
     inner class RiskPrioritizerTests {
-
         private val analyzer = SecurityAnalyzer()
         private val prioritizer = RiskPrioritizer()
 
@@ -1200,9 +1293,11 @@ class AdvisorTest {
 
             val assessment = prioritizer.prioritize(networkAnalysis)
 
-            assertTrue(assessment.prioritizedRisks.any {
-                it.impact == RiskImpact.CRITICAL
-            })
+            assertTrue(
+                assessment.prioritizedRisks.any {
+                    it.impact == RiskImpact.CRITICAL
+                },
+            )
         }
 
         @Test
@@ -1218,71 +1313,83 @@ class AdvisorTest {
 
         @Test
         fun `prioritize detects low minimum security`() {
-            val analyses = listOf(
-                createMockBssAnalysis(bssid = "00:11:22:33:44:55", authType = AuthType.WPA3_SAE, ciphers = setOf(CipherSuite.GCMP)),
-                createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", authType = AuthType.OPEN, ciphers = setOf(CipherSuite.NONE))
-            )
+            val analyses =
+                listOf(
+                    createMockBssAnalysis(bssid = "00:11:22:33:44:55", authType = AuthType.WPA3_SAE, ciphers = setOf(CipherSuite.GCMP)),
+                    createMockBssAnalysis(bssid = "AA:BB:CC:DD:EE:FF", authType = AuthType.OPEN, ciphers = setOf(CipherSuite.NONE)),
+                )
 
             val networkAnalysis = analyzer.analyzeNetwork(analyses)
             val assessment = prioritizer.prioritize(networkAnalysis)
 
             // Less than 50% should trigger risk
-            assertTrue(assessment.prioritizedRisks.any {
-                it.title.contains("Minimum Security", ignoreCase = true)
-            })
+            assertTrue(
+                assessment.prioritizedRisks.any {
+                    it.title.contains("Minimum Security", ignoreCase = true)
+                },
+            )
         }
 
         @Test
         fun `prioritize detects WPS risk`() {
-            val wpsInfo = WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null,
-                manufacturer = null,
-                modelName = null,
-                version = null
-            )
+            val wpsInfo =
+                WpsInfo(
+                    configMethods = setOf(WpsConfigMethod.LABEL),
+                    wpsState = WpsState.CONFIGURED,
+                    locked = false,
+                    deviceName = null,
+                    manufacturer = null,
+                    modelName = null,
+                    version = null,
+                )
 
             val bss = createMockBssAnalysis(wpsInfo = wpsInfo)
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val assessment = prioritizer.prioritize(networkAnalysis)
 
-            assertTrue(assessment.prioritizedRisks.any {
-                it.category == RiskCategory.WPS
-            })
+            assertTrue(
+                assessment.prioritizedRisks.any {
+                    it.category == RiskCategory.WPS
+                },
+            )
         }
 
         @Test
         fun `prioritize detects weak ciphers`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_40)
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_40),
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val assessment = prioritizer.prioritize(networkAnalysis)
 
-            assertTrue(assessment.prioritizedRisks.any {
-                it.category == RiskCategory.ENCRYPTION
-            })
+            assertTrue(
+                assessment.prioritizedRisks.any {
+                    it.category == RiskCategory.ENCRYPTION
+                },
+            )
         }
 
         @Test
         fun `prioritize detects missing PMF`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA3_SAE,
-                pmfEnabled = false,
-                pmfCapable = true
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA3_SAE,
+                    pmfEnabled = false,
+                    pmfCapable = true,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val assessment = prioritizer.prioritize(networkAnalysis)
 
-            assertTrue(assessment.prioritizedRisks.any {
-                it.category == RiskCategory.PMF
-            })
+            assertTrue(
+                assessment.prioritizedRisks.any {
+                    it.category == RiskCategory.PMF
+                },
+            )
         }
 
         @Test
@@ -1316,7 +1423,7 @@ class AdvisorTest {
             assessment.immediateActions.forEach { risk ->
                 assertTrue(
                     (risk.impact == RiskImpact.CRITICAL || risk.impact == RiskImpact.HIGH) &&
-                    (risk.effort == EffortLevel.LOW || risk.effort == EffortLevel.MEDIUM)
+                        (risk.effort == EffortLevel.LOW || risk.effort == EffortLevel.MEDIUM),
                 )
             }
         }
@@ -1380,70 +1487,74 @@ class AdvisorTest {
                 RiskAssessment(
                     networkAnalysis = networkAnalysis,
                     prioritizedRisks = emptyList(),
-                    totalRiskScore = 1.5 // Invalid
+                    totalRiskScore = 1.5, // Invalid
                 )
             }
         }
 
         @Test
         fun `PrioritizedRisk riskScore calculated from impact and likelihood`() {
-            val risk = PrioritizedRisk(
-                id = "TEST",
-                title = "Test",
-                description = "Description",
-                impact = RiskImpact.HIGH,
-                likelihood = RiskLikelihood.LIKELY,
-                effort = EffortLevel.LOW,
-                category = RiskCategory.SECURITY_POSTURE,
-                affectedBssids = emptyList(),
-                mitigationSteps = emptyList()
-            )
+            val risk =
+                PrioritizedRisk(
+                    id = "TEST",
+                    title = "Test",
+                    description = "Description",
+                    impact = RiskImpact.HIGH,
+                    likelihood = RiskLikelihood.LIKELY,
+                    effort = EffortLevel.LOW,
+                    category = RiskCategory.SECURITY_POSTURE,
+                    affectedBssids = emptyList(),
+                    mitigationSteps = emptyList(),
+                )
 
             assertEquals(0.7 * 0.7, risk.riskScore, 0.01)
         }
 
         @Test
         fun `PrioritizedRisk priorityScore accounts for effort`() {
-            val riskLowEffort = PrioritizedRisk(
-                id = "TEST1",
-                title = "Test",
-                description = "Description",
-                impact = RiskImpact.HIGH,
-                likelihood = RiskLikelihood.CERTAIN,
-                effort = EffortLevel.LOW,
-                category = RiskCategory.SECURITY_POSTURE,
-                affectedBssids = emptyList(),
-                mitigationSteps = emptyList()
-            )
+            val riskLowEffort =
+                PrioritizedRisk(
+                    id = "TEST1",
+                    title = "Test",
+                    description = "Description",
+                    impact = RiskImpact.HIGH,
+                    likelihood = RiskLikelihood.CERTAIN,
+                    effort = EffortLevel.LOW,
+                    category = RiskCategory.SECURITY_POSTURE,
+                    affectedBssids = emptyList(),
+                    mitigationSteps = emptyList(),
+                )
 
-            val riskHighEffort = PrioritizedRisk(
-                id = "TEST2",
-                title = "Test",
-                description = "Description",
-                impact = RiskImpact.HIGH,
-                likelihood = RiskLikelihood.CERTAIN,
-                effort = EffortLevel.HIGH,
-                category = RiskCategory.SECURITY_POSTURE,
-                affectedBssids = emptyList(),
-                mitigationSteps = emptyList()
-            )
+            val riskHighEffort =
+                PrioritizedRisk(
+                    id = "TEST2",
+                    title = "Test",
+                    description = "Description",
+                    impact = RiskImpact.HIGH,
+                    likelihood = RiskLikelihood.CERTAIN,
+                    effort = EffortLevel.HIGH,
+                    category = RiskCategory.SECURITY_POSTURE,
+                    affectedBssids = emptyList(),
+                    mitigationSteps = emptyList(),
+                )
 
             assertTrue(riskLowEffort.priorityScore > riskHighEffort.priorityScore)
         }
 
         @Test
         fun `PrioritizedRisk summary includes impact`() {
-            val risk = PrioritizedRisk(
-                id = "TEST",
-                title = "Test Risk",
-                description = "Description",
-                impact = RiskImpact.CRITICAL,
-                likelihood = RiskLikelihood.CERTAIN,
-                effort = EffortLevel.LOW,
-                category = RiskCategory.SECURITY_POSTURE,
-                affectedBssids = listOf("00:11:22:33:44:55"),
-                mitigationSteps = emptyList()
-            )
+            val risk =
+                PrioritizedRisk(
+                    id = "TEST",
+                    title = "Test Risk",
+                    description = "Description",
+                    impact = RiskImpact.CRITICAL,
+                    likelihood = RiskLikelihood.CERTAIN,
+                    effort = EffortLevel.LOW,
+                    category = RiskCategory.SECURITY_POSTURE,
+                    affectedBssids = listOf("00:11:22:33:44:55"),
+                    mitigationSteps = emptyList(),
+                )
 
             assertTrue(risk.summary.contains("CRITICAL"))
         }
@@ -1488,12 +1599,13 @@ class AdvisorTest {
 
         @Test
         fun `totalRiskScore is 0 for no risks`() {
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WPA3_SAE,
-                ciphers = setOf(CipherSuite.GCMP),
-                pmfEnabled = true,
-                threatLevel = ThreatLevel.NONE
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WPA3_SAE,
+                    ciphers = setOf(CipherSuite.GCMP),
+                    pmfEnabled = true,
+                    threatLevel = ThreatLevel.NONE,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val assessment = prioritizer.prioritize(networkAnalysis)
@@ -1504,15 +1616,16 @@ class AdvisorTest {
 
         @Test
         fun `WPS risk score above 0_9 triggers critical impact`() {
-            val wpsInfo = WpsInfo(
-                configMethods = setOf(WpsConfigMethod.LABEL),
-                wpsState = WpsState.CONFIGURED,
-                locked = false,
-                deviceName = null,
-                manufacturer = null,
-                modelName = null,
-                version = null
-            )
+            val wpsInfo =
+                WpsInfo(
+                    configMethods = setOf(WpsConfigMethod.LABEL),
+                    wpsState = WpsState.CONFIGURED,
+                    locked = false,
+                    deviceName = null,
+                    manufacturer = null,
+                    modelName = null,
+                    version = null,
+                )
 
             val bss = createMockBssAnalysis(wpsInfo = wpsInfo)
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
@@ -1521,9 +1634,11 @@ class AdvisorTest {
 
             val wpsRisks = assessment.prioritizedRisks.filter { it.category == RiskCategory.WPS }
             if (wpsRisks.isNotEmpty()) {
-                assertTrue(wpsRisks.any {
-                    it.impact == RiskImpact.CRITICAL || it.impact == RiskImpact.HIGH
-                })
+                assertTrue(
+                    wpsRisks.any {
+                        it.impact == RiskImpact.CRITICAL || it.impact == RiskImpact.HIGH
+                    },
+                )
             }
         }
     }
@@ -1534,7 +1649,6 @@ class AdvisorTest {
 
     @Nested
     inner class ProModeReporterTests {
-
         private val reporter = ProModeReporter()
         private val analyzer = SecurityAnalyzer()
 
@@ -1592,11 +1706,12 @@ class AdvisorTest {
 
         @Test
         fun `generateTechnicalReport includes per-AP details when enabled`() {
-            val bss = createMockBssAnalysis(
-                bssid = "00:11:22:33:44:55",
-                ssid = "TestSSID",
-                authType = AuthType.WPA2_PSK
-            )
+            val bss =
+                createMockBssAnalysis(
+                    bssid = "00:11:22:33:44:55",
+                    ssid = "TestSSID",
+                    authType = AuthType.WPA2_PSK,
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
 
             val report = reporter.generateTechnicalReport(networkAnalysis, includeDetails = true)
@@ -1629,10 +1744,11 @@ class AdvisorTest {
         @Test
         fun `generateActionPlan groups by priority`() {
             // Use WEP with WEP cipher to trigger CRITICAL priority actions
-            val bss = createMockBssAnalysis(
-                authType = AuthType.WEP,
-                ciphers = setOf(CipherSuite.WEP_104)  // WEP cipher triggers critical action
-            )
+            val bss =
+                createMockBssAnalysis(
+                    authType = AuthType.WEP,
+                    ciphers = setOf(CipherSuite.WEP_104), // WEP cipher triggers critical action
+                )
             val networkAnalysis = analyzer.analyzeNetwork(listOf(bss))
             val advice = SecurityAdvisor().analyze(networkAnalysis)
 
@@ -1683,8 +1799,8 @@ class AdvisorTest {
             val report = reporter.generateComprehensiveReport(networkAnalysis)
             val markdown = report.toMarkdown()
 
-            assertTrue(markdown.contains("#"))  // Markdown headers
-            assertTrue(markdown.contains("|"))  // Tables
+            assertTrue(markdown.contains("#")) // Markdown headers
+            assertTrue(markdown.contains("|")) // Tables
         }
 
         @Test
@@ -1720,28 +1836,31 @@ class AdvisorTest {
         pmfCapable: Boolean = false,
         wpsInfo: WpsInfo? = null,
         roamingSupported: Boolean = false,
-        threatLevel: ThreatLevel = ThreatLevel.LOW
+        threatLevel: ThreatLevel = ThreatLevel.LOW,
     ): BssSecurityAnalysis {
-        val fingerprint = SecurityFingerprint(
-            authType = authType,
-            cipherSet = ciphers,
-            pmfRequired = pmfEnabled,
-            transitionMode = null
-        )
-
-        val securityScore = SecurityScorePerBss.fromFingerprint(
-            bssid = bssid,
-            ssid = ssid,
-            fingerprint = fingerprint
-        )
-
-        val wpsRiskScore = wpsInfo?.let { WpsRiskScore.fromWpsInfo(bssid, it) }
-            ?: WpsRiskScore(
-                bssid = bssid,
-                riskScore = 0.0,
-                issues = emptyList(),
-                wpsInfo = null
+        val fingerprint =
+            SecurityFingerprint(
+                authType = authType,
+                cipherSet = ciphers,
+                pmfRequired = pmfEnabled,
+                transitionMode = null,
             )
+
+        val securityScore =
+            SecurityScorePerBss.fromFingerprint(
+                bssid = bssid,
+                ssid = ssid,
+                fingerprint = fingerprint,
+            )
+
+        val wpsRiskScore =
+            wpsInfo?.let { WpsRiskScore.fromWpsInfo(bssid, it) }
+                ?: WpsRiskScore(
+                    bssid = bssid,
+                    riskScore = 0.0,
+                    issues = emptyList(),
+                    wpsInfo = null,
+                )
 
         return BssSecurityAnalysis(
             bssid = bssid,
@@ -1753,7 +1872,7 @@ class AdvisorTest {
             wpsRisk = wpsRiskScore,
             roamingFeaturesSupported = roamingSupported,
             criticalIssues = emptyList(),
-            requiresImmediateAction = false
+            requiresImmediateAction = false,
         )
     }
 }

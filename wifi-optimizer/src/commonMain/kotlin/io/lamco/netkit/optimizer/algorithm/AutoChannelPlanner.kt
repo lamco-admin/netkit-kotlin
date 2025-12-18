@@ -29,7 +29,6 @@ import kotlin.math.exp
  * deployment optimization research.
  */
 class AutoChannelPlanner {
-
     /**
      * Plan optimal channel allocation for multi-AP network
      *
@@ -44,15 +43,17 @@ class AutoChannelPlanner {
     fun planChannels(
         apClusters: List<ApCluster>,
         constraints: ChannelPlanningConstraints,
-        neighborNetworks: List<NeighborNetwork> = emptyList()
+        neighborNetworks: List<NeighborNetwork> = emptyList(),
     ): ChannelPlan {
         require(apClusters.isNotEmpty()) {
             "Cannot plan channels for empty AP cluster list"
         }
 
-        val bssids = apClusters.flatMap { cluster ->
-            cluster.bssids.filter { it.band == constraints.band }
-        }.map { it.bssid }
+        val bssids =
+            apClusters
+                .flatMap { cluster ->
+                    cluster.bssids.filter { it.band == constraints.band }
+                }.map { it.bssid }
 
         if (bssids.isEmpty()) {
             return ChannelPlan(
@@ -61,19 +62,21 @@ class AutoChannelPlanner {
                 coChannelInterference = 0.0,
                 adjacentChannelInterference = 0.0,
                 dfsRisk = DfsRisk.NONE,
-                improvementVsCurrent = 0.0
+                improvementVsCurrent = 0.0,
             )
         }
 
-        val channelScores = bssids.associateWith { bssid ->
-            scoreChannelsForAp(bssid, constraints, neighborNetworks)
-        }
+        val channelScores =
+            bssids.associateWith { bssid ->
+                scoreChannelsForAp(bssid, constraints, neighborNetworks)
+            }
 
-        val assignments = optimizeGlobalAssignments(
-            bssids = bssids,
-            channelScores = channelScores,
-            constraints = constraints
-        )
+        val assignments =
+            optimizeGlobalAssignments(
+                bssids = bssids,
+                channelScores = channelScores,
+                constraints = constraints,
+            )
 
         val planMetrics = calculatePlanMetrics(assignments, neighborNetworks, constraints)
 
@@ -83,7 +86,7 @@ class AutoChannelPlanner {
             coChannelInterference = planMetrics.coChannelInterference,
             adjacentChannelInterference = planMetrics.adjacentChannelInterference,
             dfsRisk = planMetrics.dfsRisk,
-            improvementVsCurrent = planMetrics.improvementVsCurrent
+            improvementVsCurrent = planMetrics.improvementVsCurrent,
         )
     }
 
@@ -104,7 +107,7 @@ class AutoChannelPlanner {
         currentChannel: Int,
         band: WiFiBand,
         congestion: ChannelCongestionMetrics,
-        constraints: ChannelPlanningConstraints
+        constraints: ChannelPlanningConstraints,
     ): ChannelWidthRecommendation {
         require(currentChannel > 0) {
             "Channel must be positive, got $currentChannel"
@@ -120,10 +123,11 @@ class AutoChannelPlanner {
                     current = ChannelWidth.WIDTH_20MHZ,
                     rationale = "Low congestion allows 40 MHz for higher throughput",
                     expectedImprovement = 50.0,
-                    tradeoffs = listOf(
-                        "Increased interference from overlapping channels",
-                        "Reduced range due to lower sensitivity"
-                    )
+                    tradeoffs =
+                        listOf(
+                            "Increased interference from overlapping channels",
+                            "Reduced range due to lower sensitivity",
+                        ),
                 )
             } else {
                 ChannelWidthRecommendation(
@@ -131,27 +135,28 @@ class AutoChannelPlanner {
                     current = ChannelWidth.WIDTH_20MHZ,
                     rationale = "20 MHz optimal for 2.4 GHz to avoid channel overlap",
                     expectedImprovement = 0.0,
-                    tradeoffs = emptyList()
+                    tradeoffs = emptyList(),
                 )
             }
         }
 
-        val recommendedWidth = when {
-            congestion.utilizationPercent < 20 && congestion.neighborCount < 3 -> {
-                preferredWidths.firstOrNull() ?: ChannelWidth.WIDTH_80MHZ
+        val recommendedWidth =
+            when {
+                congestion.utilizationPercent < 20 && congestion.neighborCount < 3 -> {
+                    preferredWidths.firstOrNull() ?: ChannelWidth.WIDTH_80MHZ
+                }
+                congestion.utilizationPercent < 40 && congestion.neighborCount < 6 -> {
+                    preferredWidths.firstOrNull { it.widthMHz <= 80 } ?: ChannelWidth.WIDTH_40MHZ
+                }
+                congestion.utilizationPercent < 60 -> {
+                    ChannelWidth.WIDTH_40MHZ
+                }
+                else -> {
+                    ChannelWidth.WIDTH_20MHZ
+                }
             }
-            congestion.utilizationPercent < 40 && congestion.neighborCount < 6 -> {
-                preferredWidths.firstOrNull { it.widthMHz <= 80 } ?: ChannelWidth.WIDTH_40MHZ
-            }
-            congestion.utilizationPercent < 60 -> {
-                ChannelWidth.WIDTH_40MHZ
-            }
-            else -> {
-                ChannelWidth.WIDTH_20MHZ
-            }
-        }
 
-        val currentWidth = ChannelWidth.WIDTH_80MHZ  // Assume current is 80 MHz
+        val currentWidth = ChannelWidth.WIDTH_80MHZ // Assume current is 80 MHz
         val improvement = calculateWidthImprovement(currentWidth, recommendedWidth, congestion)
 
         return ChannelWidthRecommendation(
@@ -159,7 +164,7 @@ class AutoChannelPlanner {
             current = currentWidth,
             rationale = buildWidthRationale(recommendedWidth, congestion),
             expectedImprovement = improvement,
-            tradeoffs = buildWidthTradeoffs(recommendedWidth, congestion)
+            tradeoffs = buildWidthTradeoffs(recommendedWidth, congestion),
         )
     }
 
@@ -177,7 +182,7 @@ class AutoChannelPlanner {
     fun assessDfsChannels(
         location: RegulatoryDomain,
         radarHistory: RadarDetectionHistory? = null,
-        currentChannel: Int? = null
+        currentChannel: Int? = null,
     ): DfsAssessment {
         if (!location.requiresDfs) {
             return DfsAssessment(
@@ -185,26 +190,29 @@ class AutoChannelPlanner {
                 availableDfsChannels = emptySet(),
                 risk = DfsRisk.NONE,
                 recommendation = "DFS not required in this regulatory domain",
-                estimatedDisruptionFrequency = 0.0
+                estimatedDisruptionFrequency = 0.0,
             )
         }
 
-        val dfsChannels = location.getChannelsForBand(WiFiBand.BAND_5GHZ, includeDfs = true) -
+        val dfsChannels =
+            location.getChannelsForBand(WiFiBand.BAND_5GHZ, includeDfs = true) -
                 location.getChannelsForBand(WiFiBand.BAND_5GHZ, includeDfs = false)
 
-        val risk = if (radarHistory == null) {
-            DfsRisk.UNKNOWN
-        } else {
-            assessRadarRisk(radarHistory, currentChannel)
-        }
+        val risk =
+            if (radarHistory == null) {
+                DfsRisk.UNKNOWN
+            } else {
+                assessRadarRisk(radarHistory, currentChannel)
+            }
 
-        val disruptionFrequency = when (risk) {
-            DfsRisk.NONE -> 0.0
-            DfsRisk.LOW -> 0.5     // ~1 event per 2 months
-            DfsRisk.MEDIUM -> 2.0  // ~2 events per month
-            DfsRisk.HIGH -> 8.0    // ~2 events per week
-            DfsRisk.UNKNOWN -> 1.0 // Assume moderate
-        }
+        val disruptionFrequency =
+            when (risk) {
+                DfsRisk.NONE -> 0.0
+                DfsRisk.LOW -> 0.5 // ~1 event per 2 months
+                DfsRisk.MEDIUM -> 2.0 // ~2 events per month
+                DfsRisk.HIGH -> 8.0 // ~2 events per week
+                DfsRisk.UNKNOWN -> 1.0 // Assume moderate
+            }
 
         val recommendation = buildDfsRecommendation(risk, dfsChannels.size)
 
@@ -213,7 +221,7 @@ class AutoChannelPlanner {
             availableDfsChannels = dfsChannels,
             risk = risk,
             recommendation = recommendation,
-            estimatedDisruptionFrequency = disruptionFrequency
+            estimatedDisruptionFrequency = disruptionFrequency,
         )
     }
 
@@ -223,7 +231,7 @@ class AutoChannelPlanner {
     private fun scoreChannelsForAp(
         bssid: String,
         constraints: ChannelPlanningConstraints,
-        neighbors: List<NeighborNetwork>
+        neighbors: List<NeighborNetwork>,
     ): Map<Int, ChannelScore> {
         val availableChannels = constraints.getAvailableChannels()
 
@@ -245,7 +253,7 @@ class AutoChannelPlanner {
         channel: Int,
         bssid: String,
         neighbors: List<NeighborNetwork>,
-        constraints: ChannelPlanningConstraints
+        constraints: ChannelPlanningConstraints,
     ): ChannelScore {
         var score = 100.0
         val issues = mutableListOf<String>()
@@ -257,10 +265,11 @@ class AutoChannelPlanner {
         }
 
         if (constraints.band == WiFiBand.BAND_2_4GHZ) {
-            val adjacentCount = neighbors.count { neighbor ->
-                val separation = abs(neighbor.channel - channel)
-                separation in 1..2
-            }
+            val adjacentCount =
+                neighbors.count { neighbor ->
+                    val separation = abs(neighbor.channel - channel)
+                    separation in 1..2
+                }
             if (adjacentCount > 0) {
                 score -= adjacentCount * 10.0
                 issues.add("$adjacentCount networks on adjacent channels")
@@ -269,30 +278,36 @@ class AutoChannelPlanner {
 
         if (isDfsChannel(channel, constraints.regulatoryDomain)) {
             val dfsRisk = estimateDfsRisk(channel)
-            score -= when (dfsRisk) {
-                DfsRisk.HIGH -> 15.0
-                DfsRisk.MEDIUM -> 10.0
-                DfsRisk.LOW -> 5.0
-                else -> 0.0
-            }
+            score -=
+                when (dfsRisk) {
+                    DfsRisk.HIGH -> 15.0
+                    DfsRisk.MEDIUM -> 10.0
+                    DfsRisk.LOW -> 5.0
+                    else -> 0.0
+                }
             if (dfsRisk != DfsRisk.LOW) {
                 issues.add("DFS channel with ${dfsRisk.name} radar risk")
             }
         }
 
         // Channel utilization penalty (assume 0 if no data)
-        val utilization = neighbors.filter { it.channel == channel }
-            .maxOfOrNull { it.utilizationPercent } ?: 0
+        val utilization =
+            neighbors
+                .filter { it.channel == channel }
+                .maxOfOrNull { it.utilizationPercent } ?: 0
         score -= (utilization * 0.2)
 
         return ChannelScore(
             channel = channel,
             score = score.coerceIn(0.0, 100.0),
             coChannelCount = coChannelCount,
-            adjacentChannelCount = if (constraints.band == WiFiBand.BAND_2_4GHZ) {
-                neighbors.count { abs(it.channel - channel) in 1..2 }
-            } else 0,
-            issues = issues
+            adjacentChannelCount =
+                if (constraints.band == WiFiBand.BAND_2_4GHZ) {
+                    neighbors.count { abs(it.channel - channel) in 1..2 }
+                } else {
+                    0
+                },
+            issues = issues,
         )
     }
 
@@ -307,39 +322,41 @@ class AutoChannelPlanner {
     private fun optimizeGlobalAssignments(
         bssids: List<String>,
         channelScores: Map<String, Map<Int, ChannelScore>>,
-        constraints: ChannelPlanningConstraints
+        constraints: ChannelPlanningConstraints,
     ): Map<String, ChannelAssignment> {
         val assignments = mutableMapOf<String, ChannelAssignment>()
         val usedChannels = mutableMapOf<Int, Int>()
 
         // Process most constrained APs first (fewest good options) to avoid backing into corner later
-        val sortedBssids = bssids.sortedBy { bssid ->
-            channelScores[bssid]?.count { it.value.score >= 70.0 } ?: 0
-        }
+        val sortedBssids =
+            bssids.sortedBy { bssid ->
+                channelScores[bssid]?.count { it.value.score >= 70.0 } ?: 0
+            }
 
         for (bssid in sortedBssids) {
             val scores = channelScores[bssid] ?: continue
 
-            val bestChannel = scores.entries
-                .filter { (channel, _) ->
-                    (usedChannels[channel] ?: 0) < constraints.maxApCountPerChannel
-                }
-                .maxByOrNull { (channel, channelScore) ->
-                    // Penalize channels with existing APs to encourage diversity and reduce co-channel interference
-                    val penalty = (usedChannels[channel] ?: 0) * 10.0
-                    channelScore.score - penalty
-                }
+            val bestChannel =
+                scores.entries
+                    .filter { (channel, _) ->
+                        (usedChannels[channel] ?: 0) < constraints.maxApCountPerChannel
+                    }.maxByOrNull { (channel, channelScore) ->
+                        // Penalize channels with existing APs to encourage diversity and reduce co-channel interference
+                        val penalty = (usedChannels[channel] ?: 0) * 10.0
+                        channelScore.score - penalty
+                    }
 
             if (bestChannel != null) {
                 val (channel, channelScore) = bestChannel
                 val width = constraints.preferredWidth
 
-                assignments[bssid] = ChannelAssignment(
-                    bssid = bssid,
-                    channel = channel,
-                    width = width,
-                    rationale = buildAssignmentRationale(channelScore, usedChannels[channel] ?: 0)
-                )
+                assignments[bssid] =
+                    ChannelAssignment(
+                        bssid = bssid,
+                        channel = channel,
+                        width = width,
+                        rationale = buildAssignmentRationale(channelScore, usedChannels[channel] ?: 0),
+                    )
 
                 usedChannels[channel] = (usedChannels[channel] ?: 0) + 1
             }
@@ -354,25 +371,30 @@ class AutoChannelPlanner {
     private fun calculatePlanMetrics(
         assignments: Map<String, ChannelAssignment>,
         neighbors: List<NeighborNetwork>,
-        constraints: ChannelPlanningConstraints
+        constraints: ChannelPlanningConstraints,
     ): PlanMetrics {
         if (assignments.isEmpty()) {
             return PlanMetrics(0.0, 0.0, 0.0, DfsRisk.NONE, 0.0)
         }
 
         val assignedChannels = assignments.values.groupBy { it.channel }
-        val coChannelInterference = assignedChannels.values
-            .map { aps -> (aps.size - 1) / aps.size.toDouble() }
-            .average()
+        val coChannelInterference =
+            assignedChannels.values
+                .map { aps -> (aps.size - 1) / aps.size.toDouble() }
+                .average()
 
-        val adjacentChannelInterference = if (constraints.band == WiFiBand.BAND_2_4GHZ) {
-            calculateAdjacentInterference(assignments)
-        } else 0.0
+        val adjacentChannelInterference =
+            if (constraints.band == WiFiBand.BAND_2_4GHZ) {
+                calculateAdjacentInterference(assignments)
+            } else {
+                0.0
+            }
 
-        val dfsRisk = assignments.values
-            .filter { isDfsChannel(it.channel, constraints.regulatoryDomain) }
-            .map { estimateDfsRisk(it.channel) }
-            .maxByOrNull { it.ordinal } ?: DfsRisk.NONE
+        val dfsRisk =
+            assignments.values
+                .filter { isDfsChannel(it.channel, constraints.regulatoryDomain) }
+                .map { estimateDfsRisk(it.channel) }
+                .maxByOrNull { it.ordinal } ?: DfsRisk.NONE
 
         val score = calculateOverallScore(coChannelInterference, adjacentChannelInterference, dfsRisk)
 
@@ -381,7 +403,7 @@ class AutoChannelPlanner {
             coChannelInterference = coChannelInterference,
             adjacentChannelInterference = adjacentChannelInterference,
             dfsRisk = dfsRisk,
-            improvementVsCurrent = 0.0  // Would need current plan to calculate
+            improvementVsCurrent = 0.0, // Would need current plan to calculate
         )
     }
 
@@ -394,7 +416,7 @@ class AutoChannelPlanner {
             for (j in i + 1 until channels.size) {
                 val separation = abs(channels[i] - channels[j])
                 if (separation in 1..2) {
-                    totalInterference += 1.0 / separation  // Closer = more interference
+                    totalInterference += 1.0 / separation // Closer = more interference
                     pairCount++
                 }
             }
@@ -406,21 +428,25 @@ class AutoChannelPlanner {
     private fun calculateOverallScore(
         coChannel: Double,
         adjacentChannel: Double,
-        dfsRisk: DfsRisk
+        dfsRisk: DfsRisk,
     ): Double {
         var score = 100.0
         score -= coChannel * 40.0
         score -= adjacentChannel * 20.0
-        score -= when (dfsRisk) {
-            DfsRisk.HIGH -> 15.0
-            DfsRisk.MEDIUM -> 10.0
-            DfsRisk.LOW -> 5.0
-            else -> 0.0
-        }
+        score -=
+            when (dfsRisk) {
+                DfsRisk.HIGH -> 15.0
+                DfsRisk.MEDIUM -> 10.0
+                DfsRisk.LOW -> 5.0
+                else -> 0.0
+            }
         return score.coerceIn(0.0, 100.0)
     }
 
-    private fun isDfsChannel(channel: Int, domain: RegulatoryDomain): Boolean {
+    private fun isDfsChannel(
+        channel: Int,
+        domain: RegulatoryDomain,
+    ): Boolean {
         val allChannels = domain.getChannelsForBand(WiFiBand.BAND_5GHZ, includeDfs = true)
         val nonDfsChannels = domain.getChannelsForBand(WiFiBand.BAND_5GHZ, includeDfs = false)
         return channel in allChannels && channel !in nonDfsChannels
@@ -436,7 +462,10 @@ class AutoChannelPlanner {
         }
     }
 
-    private fun assessRadarRisk(history: RadarDetectionHistory, currentChannel: Int?): DfsRisk {
+    private fun assessRadarRisk(
+        history: RadarDetectionHistory,
+        currentChannel: Int?,
+    ): DfsRisk {
         val eventsPerMonth = history.detectionEvents.size / history.monitoringMonths.coerceAtLeast(1.0)
 
         return when {
@@ -447,8 +476,11 @@ class AutoChannelPlanner {
         }
     }
 
-    private fun buildAssignmentRationale(score: ChannelScore, apCount: Int): String {
-        return buildString {
+    private fun buildAssignmentRationale(
+        score: ChannelScore,
+        apCount: Int,
+    ): String =
+        buildString {
             append("Score: ${score.score.toInt()}/100")
             if (score.coChannelCount > 0) {
                 append(", ${score.coChannelCount} co-channel networks")
@@ -460,51 +492,59 @@ class AutoChannelPlanner {
                 append(". Issues: ${score.issues.joinToString(", ")}")
             }
         }
-    }
 
     private fun calculateWidthImprovement(
         current: ChannelWidth,
         recommended: ChannelWidth,
-        congestion: ChannelCongestionMetrics
+        congestion: ChannelCongestionMetrics,
     ): Double {
         val widthRatio = recommended.widthMHz.toDouble() / current.widthMHz
         val congestionFactor = 1.0 - (congestion.utilizationPercent / 100.0)
         return (widthRatio - 1.0) * 100.0 * congestionFactor
     }
 
-    private fun buildWidthRationale(width: ChannelWidth, congestion: ChannelCongestionMetrics): String {
-        return when {
+    private fun buildWidthRationale(
+        width: ChannelWidth,
+        congestion: ChannelCongestionMetrics,
+    ): String =
+        when {
             width.widthMHz >= 160 -> "Very clean spectrum allows maximum ${width.widthMHz} MHz width"
             width.widthMHz == 80 -> "Good spectrum conditions support ${width.widthMHz} MHz width"
             width.widthMHz == 40 -> "Moderate congestion (${congestion.utilizationPercent}%) suggests ${width.widthMHz} MHz"
             else -> "High congestion (${congestion.utilizationPercent}%) requires ${width.widthMHz} MHz for reliability"
         }
-    }
 
-    private fun buildWidthTradeoffs(width: ChannelWidth, congestion: ChannelCongestionMetrics): List<String> {
-        return when {
-            width.widthMHz >= 80 -> listOf(
-                "Higher throughput but more susceptible to interference",
-                "Fewer non-overlapping channels available"
-            )
-            width.widthMHz == 40 -> listOf(
-                "Good balance of throughput and reliability"
-            )
-            else -> listOf(
-                "Maximum reliability and compatibility",
-                "Lower peak throughput"
-            )
+    private fun buildWidthTradeoffs(
+        width: ChannelWidth,
+        congestion: ChannelCongestionMetrics,
+    ): List<String> =
+        when {
+            width.widthMHz >= 80 ->
+                listOf(
+                    "Higher throughput but more susceptible to interference",
+                    "Fewer non-overlapping channels available",
+                )
+            width.widthMHz == 40 ->
+                listOf(
+                    "Good balance of throughput and reliability",
+                )
+            else ->
+                listOf(
+                    "Maximum reliability and compatibility",
+                    "Lower peak throughput",
+                )
         }
-    }
 
-    private fun buildDfsRecommendation(risk: DfsRisk, channelCount: Int): String {
-        return when (risk) {
+    private fun buildDfsRecommendation(
+        risk: DfsRisk,
+        channelCount: Int,
+    ): String =
+        when (risk) {
             DfsRisk.NONE, DfsRisk.LOW -> "DFS channels ($channelCount available) are safe to use with low disruption risk"
             DfsRisk.MEDIUM -> "DFS channels usable but expect occasional disruptions (CAC: 60s, monitoring ongoing)"
             DfsRisk.HIGH -> "Avoid DFS channels if possible - high radar activity will cause frequent disruptions"
             DfsRisk.UNKNOWN -> "DFS channels available but risk unknown - monitor for radar detections"
         }
-    }
 }
 
 // ========================================
@@ -520,7 +560,7 @@ data class ChannelPlan(
     val coChannelInterference: Double,
     val adjacentChannelInterference: Double,
     val dfsRisk: DfsRisk,
-    val improvementVsCurrent: Double
+    val improvementVsCurrent: Double,
 ) {
     val apCount: Int get() = assignments.size
     val isOptimal: Boolean get() = score >= 80.0
@@ -534,7 +574,7 @@ data class ChannelAssignment(
     val bssid: String,
     val channel: Int,
     val width: ChannelWidth,
-    val rationale: String
+    val rationale: String,
 )
 
 /**
@@ -545,7 +585,7 @@ data class ChannelScore(
     val score: Double,
     val coChannelCount: Int,
     val adjacentChannelCount: Int,
-    val issues: List<String>
+    val issues: List<String>,
 )
 
 /**
@@ -556,7 +596,7 @@ data class ChannelWidthRecommendation(
     val current: ChannelWidth,
     val rationale: String,
     val expectedImprovement: Double,
-    val tradeoffs: List<String>
+    val tradeoffs: List<String>,
 ) {
     val shouldChange: Boolean get() = recommended != current
 }
@@ -569,18 +609,18 @@ data class DfsAssessment(
     val availableDfsChannels: Set<Int>,
     val risk: DfsRisk,
     val recommendation: String,
-    val estimatedDisruptionFrequency: Double  // Events per month
+    val estimatedDisruptionFrequency: Double, // Events per month
 )
 
 /**
  * DFS risk levels
  */
 enum class DfsRisk {
-    NONE,      // Non-DFS channel
-    LOW,       // Radar unlikely (< 0.5 events/month)
-    MEDIUM,    // Occasional radar (0.5-2 events/month)
-    HIGH,      // Frequent radar (> 2 events/month)
-    UNKNOWN    // No historical data
+    NONE, // Non-DFS channel
+    LOW, // Radar unlikely (< 0.5 events/month)
+    MEDIUM, // Occasional radar (0.5-2 events/month)
+    HIGH, // Frequent radar (> 2 events/month)
+    UNKNOWN, // No historical data
 }
 
 /**
@@ -591,7 +631,7 @@ data class NeighborNetwork(
     val ssid: String,
     val channel: Int,
     val rssi: Int,
-    val utilizationPercent: Int = 0
+    val utilizationPercent: Int = 0,
 )
 
 /**
@@ -601,7 +641,7 @@ data class ChannelCongestionMetrics(
     val channel: Int,
     val utilizationPercent: Int,
     val neighborCount: Int,
-    val averageRssi: Int
+    val averageRssi: Int,
 )
 
 /**
@@ -609,7 +649,7 @@ data class ChannelCongestionMetrics(
  */
 data class RadarDetectionHistory(
     val detectionEvents: List<RadarEvent>,
-    val monitoringMonths: Double
+    val monitoringMonths: Double,
 )
 
 /**
@@ -618,7 +658,7 @@ data class RadarDetectionHistory(
 data class RadarEvent(
     val channel: Int,
     val timestampMs: Long,
-    val duration: Int  // CAC time in seconds
+    val duration: Int, // CAC time in seconds
 )
 
 /**
@@ -629,5 +669,5 @@ private data class PlanMetrics(
     val coChannelInterference: Double,
     val adjacentChannelInterference: Double,
     val dfsRisk: DfsRisk,
-    val improvementVsCurrent: Double
+    val improvementVsCurrent: Double,
 )

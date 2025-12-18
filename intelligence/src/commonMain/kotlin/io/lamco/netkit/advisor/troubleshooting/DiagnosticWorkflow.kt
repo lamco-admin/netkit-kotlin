@@ -30,7 +30,6 @@ package io.lamco.netkit.advisor.troubleshooting
  * ```
  */
 class DiagnosticWorkflow {
-
     private val troubleshootingEngine = TroubleshootingEngine()
     private val rootCauseAnalyzer = RootCauseAnalyzer()
     private val symptomMatcher = SymptomMatcher()
@@ -47,7 +46,7 @@ class DiagnosticWorkflow {
     fun runDiagnostics(
         symptoms: List<Symptom>,
         context: DiagnosticContext = DiagnosticContext(),
-        maxDifficulty: Difficulty = Difficulty.HARD
+        maxDifficulty: Difficulty = Difficulty.HARD,
     ): WorkflowResult {
         require(symptoms.isNotEmpty()) { "At least one symptom required" }
 
@@ -61,31 +60,33 @@ class DiagnosticWorkflow {
         val deepAnalysis = rootCauseAnalyzer.analyze(symptoms, context = context)
 
         // Step 4: Merge results (prefer higher confidence causes)
-        val allCauses = (diagnosis.rootCauses + deepAnalysis)
-            .groupBy { it.cause }
-            .map { (_, causes) ->
-                causes.maxByOrNull { it.probability }!!
-            }
-            .sortedByDescending { it.probability }
+        val allCauses =
+            (diagnosis.rootCauses + deepAnalysis)
+                .groupBy { it.cause }
+                .map { (_, causes) ->
+                    causes.maxByOrNull { it.probability }!!
+                }.sortedByDescending { it.probability }
 
         // Step 5: Get solution for primary cause
         val primaryCause = allCauses.firstOrNull()
-        val recommendedSolution = primaryCause?.let {
-            solutionRecommender.recommendSolution(it.cause, maxDifficulty)
-        }
+        val recommendedSolution =
+            primaryCause?.let {
+                solutionRecommender.recommendSolution(it.cause, maxDifficulty)
+            }
 
         // Step 6: Get all solutions for all causes
-        val allSolutions = allCauses.mapNotNull { cause ->
-            solutionRecommender.recommendSolution(cause.cause, maxDifficulty)
-        }
+        val allSolutions =
+            allCauses.mapNotNull { cause ->
+                solutionRecommender.recommendSolution(cause.cause, maxDifficulty)
+            }
 
         return WorkflowResult(
             symptoms = symptoms,
             matchedPatterns = patterns,
             diagnosis = diagnosis.copy(rootCauses = allCauses),
             recommendedSolution = recommendedSolution,
-            alternativeSolutions = allSolutions.drop(1),  // Exclude primary solution
-            workflowSteps = generateWorkflowReport(symptoms, patterns, allCauses, recommendedSolution)
+            alternativeSolutions = allSolutions.drop(1), // Exclude primary solution
+            workflowSteps = generateWorkflowReport(symptoms, patterns, allCauses, recommendedSolution),
         )
     }
 
@@ -98,10 +99,8 @@ class DiagnosticWorkflow {
      */
     fun quickDiagnose(
         symptoms: List<Symptom>,
-        context: DiagnosticContext = DiagnosticContext()
-    ): DiagnosisResult {
-        return troubleshootingEngine.diagnose(symptoms, context)
-    }
+        context: DiagnosticContext = DiagnosticContext(),
+    ): DiagnosisResult = troubleshootingEngine.diagnose(symptoms, context)
 
     /**
      * Get troubleshooting steps for known issue
@@ -109,9 +108,7 @@ class DiagnosticWorkflow {
      * @param issue Network issue
      * @return Troubleshooting steps
      */
-    fun getTroubleshootingSteps(issue: NetworkIssue): List<TroubleshootingStep> {
-        return troubleshootingEngine.getTroubleshootingSteps(issue)
-    }
+    fun getTroubleshootingSteps(issue: NetworkIssue): List<TroubleshootingStep> = troubleshootingEngine.getTroubleshootingSteps(issue)
 
     /**
      * Run interactive troubleshooting session
@@ -124,7 +121,7 @@ class DiagnosticWorkflow {
      */
     fun startInteractiveSession(
         initialSymptoms: List<Symptom>,
-        context: DiagnosticContext = DiagnosticContext()
+        context: DiagnosticContext = DiagnosticContext(),
     ): InteractiveTroubleshootingSession {
         val diagnosis = troubleshootingEngine.diagnose(initialSymptoms, context)
 
@@ -133,7 +130,7 @@ class DiagnosticWorkflow {
             symptoms = initialSymptoms,
             diagnosis = diagnosis,
             currentStep = 0,
-            steps = diagnosis.troubleshootingSteps
+            steps = diagnosis.troubleshootingSteps,
         )
     }
 
@@ -148,7 +145,7 @@ class DiagnosticWorkflow {
         symptoms: List<Symptom>,
         patterns: List<SymptomPatternMatch>,
         causes: List<RootCause>,
-        solution: SolutionRecommendation?
+        solution: SolutionRecommendation?,
     ): List<String> {
         val report = mutableListOf<String>()
 
@@ -167,9 +164,7 @@ class DiagnosticWorkflow {
     /**
      * Generate unique session ID
      */
-    private fun generateSessionId(): String {
-        return "session-${System.currentTimeMillis()}"
-    }
+    private fun generateSessionId(): String = "session-${System.currentTimeMillis()}"
 }
 
 /**
@@ -188,19 +183,20 @@ data class WorkflowResult(
     val diagnosis: DiagnosisResult,
     val recommendedSolution: SolutionRecommendation?,
     val alternativeSolutions: List<SolutionRecommendation>,
-    val workflowSteps: List<String>
+    val workflowSteps: List<String>,
 ) {
     /**
      * Summary of workflow result
      */
     val summary: String
-        get() = buildString {
-            append("Diagnosed: ${diagnosis.primaryCause?.cause?.displayName ?: "Unknown"}")
-            if (recommendedSolution != null) {
-                append(" | Solution: ${recommendedSolution.solution}")
+        get() =
+            buildString {
+                append("Diagnosed: ${diagnosis.primaryCause?.cause?.displayName ?: "Unknown"}")
+                if (recommendedSolution != null) {
+                    append(" | Solution: ${recommendedSolution.solution}")
+                }
+                append(" | Confidence: ${(diagnosis.confidence * 100).toInt()}%")
             }
-            append(" | Confidence: ${(diagnosis.confidence * 100).toInt()}%")
-        }
 
     /**
      * Whether diagnosis has high confidence (>= 0.7)
@@ -235,7 +231,7 @@ data class InteractiveTroubleshootingSession(
     val currentStep: Int,
     val steps: List<TroubleshootingStep>,
     val completedSteps: List<Int> = emptyList(),
-    val feedback: Map<Int, StepFeedback> = emptyMap()
+    val feedback: Map<Int, StepFeedback> = emptyMap(),
 ) {
     /**
      * Get current troubleshooting step
@@ -258,24 +254,22 @@ data class InteractiveTroubleshootingSession(
     /**
      * Advance to next step
      */
-    fun nextStep(feedback: StepFeedback): InteractiveTroubleshootingSession {
-        return copy(
+    fun nextStep(feedback: StepFeedback): InteractiveTroubleshootingSession =
+        copy(
             currentStep = currentStep + 1,
             completedSteps = completedSteps + currentStep,
-            feedback = this.feedback + (currentStep to feedback)
+            feedback = this.feedback + (currentStep to feedback),
         )
-    }
 
     /**
      * Go back to previous step
      */
-    fun previousStep(): InteractiveTroubleshootingSession {
-        return if (currentStep > 0) {
+    fun previousStep(): InteractiveTroubleshootingSession =
+        if (currentStep > 0) {
             copy(currentStep = currentStep - 1)
         } else {
             this
         }
-    }
 }
 
 /**
@@ -283,12 +277,15 @@ data class InteractiveTroubleshootingSession(
  */
 data class StepFeedback(
     val success: Boolean,
-    val notes: String = ""
+    val notes: String = "",
 ) {
     companion object {
         val SUCCESS = StepFeedback(success = true)
         val FAILURE = StepFeedback(success = false)
 
-        fun withNotes(success: Boolean, notes: String) = StepFeedback(success, notes)
+        fun withNotes(
+            success: Boolean,
+            notes: String,
+        ) = StepFeedback(success, notes)
     }
 }

@@ -18,21 +18,21 @@ import kotlin.test.assertTrue
  * - Quality tiers and tolerance levels
  */
 class CoverageGoalsTest {
-
     // ========================================
     // Constructor Validation Tests
     // ========================================
 
     @Test
     fun `create goals with valid parameters succeeds`() {
-        val goals = CoverageGoals(
-            minRssi = -70,
-            targetRssi = -60,
-            maxInterference = 0.3,
-            coverageArea = 100.0,
-            minOverlapPercent = 10,
-            maxOverlapPercent = 40
-        )
+        val goals =
+            CoverageGoals(
+                minRssi = -70,
+                targetRssi = -60,
+                maxInterference = 0.3,
+                coverageArea = 100.0,
+                minOverlapPercent = 10,
+                maxOverlapPercent = 40,
+            )
 
         assertEquals(-70, goals.minRssi)
         assertEquals(-60, goals.targetRssi)
@@ -73,7 +73,7 @@ class CoverageGoalsTest {
         assertThrows<IllegalArgumentException> {
             CoverageGoals(
                 minRssi = -60,
-                targetRssi = -70
+                targetRssi = -70,
             )
         }
     }
@@ -139,7 +139,7 @@ class CoverageGoalsTest {
         assertThrows<IllegalArgumentException> {
             CoverageGoals(
                 minOverlapPercent = 40,
-                maxOverlapPercent = 30
+                maxOverlapPercent = 30,
             )
         }
     }
@@ -150,20 +150,22 @@ class CoverageGoalsTest {
 
     @Test
     fun `rssiMargin calculates correctly`() {
-        val goals = CoverageGoals(
-            minRssi = -70,
-            targetRssi = -60
-        )
+        val goals =
+            CoverageGoals(
+                minRssi = -70,
+                targetRssi = -60,
+            )
 
         assertEquals(10, goals.rssiMargin)
     }
 
     @Test
     fun `rssiMargin is zero when min equals target`() {
-        val goals = CoverageGoals(
-            minRssi = -60,
-            targetRssi = -60
-        )
+        val goals =
+            CoverageGoals(
+                minRssi = -60,
+                targetRssi = -60,
+            )
 
         assertEquals(0, goals.rssiMargin)
     }
@@ -182,30 +184,33 @@ class CoverageGoalsTest {
 
     @Test
     fun `overlapRange returns correct range`() {
-        val goals = CoverageGoals(
-            minOverlapPercent = 10,
-            maxOverlapPercent = 40
-        )
+        val goals =
+            CoverageGoals(
+                minOverlapPercent = 10,
+                maxOverlapPercent = 40,
+            )
 
         assertEquals(10..40, goals.overlapRange)
     }
 
     @Test
     fun `hasStrictOverlapRequirement is true for narrow range`() {
-        val goals = CoverageGoals(
-            minOverlapPercent = 20,
-            maxOverlapPercent = 30  // 10% range
-        )
+        val goals =
+            CoverageGoals(
+                minOverlapPercent = 20,
+                maxOverlapPercent = 30, // 10% range
+            )
 
         assertTrue(goals.hasStrictOverlapRequirement)
     }
 
     @Test
     fun `hasStrictOverlapRequirement is false for wide range`() {
-        val goals = CoverageGoals(
-            minOverlapPercent = 10,
-            maxOverlapPercent = 50  // 40% range
-        )
+        val goals =
+            CoverageGoals(
+                minOverlapPercent = 10,
+                maxOverlapPercent = 50, // 40% range
+            )
 
         assertFalse(goals.hasStrictOverlapRequirement)
     }
@@ -266,15 +271,16 @@ class CoverageGoalsTest {
 
     @Test
     fun `summary contains key information`() {
-        val goals = CoverageGoals(
-            minRssi = -70,
-            targetRssi = -60,
-            maxInterference = 0.3,
-            coverageArea = 100.0,
-            minOverlapPercent = 10,
-            maxOverlapPercent = 40,
-            prioritizeRoaming = true
-        )
+        val goals =
+            CoverageGoals(
+                minRssi = -70,
+                targetRssi = -60,
+                maxInterference = 0.3,
+                coverageArea = 100.0,
+                minOverlapPercent = 10,
+                maxOverlapPercent = 40,
+                prioritizeRoaming = true,
+            )
 
         val summary = goals.summary
         assertTrue(summary.contains("-70"))
@@ -448,10 +454,11 @@ class CoverageGoalsTest {
 
     @Test
     fun `goals with identical minRssi and targetRssi succeeds`() {
-        val goals = CoverageGoals(
-            minRssi = -60,
-            targetRssi = -60
-        )
+        val goals =
+            CoverageGoals(
+                minRssi = -60,
+                targetRssi = -60,
+            )
 
         assertEquals(0, goals.rssiMargin)
     }
@@ -470,10 +477,11 @@ class CoverageGoalsTest {
 
     @Test
     fun `goals with 100% overlap range succeeds`() {
-        val goals = CoverageGoals(
-            minOverlapPercent = 0,
-            maxOverlapPercent = 100
-        )
+        val goals =
+            CoverageGoals(
+                minOverlapPercent = 0,
+                maxOverlapPercent = 100,
+            )
 
         assertEquals(0..100, goals.overlapRange)
         assertFalse(goals.hasStrictOverlapRequirement)

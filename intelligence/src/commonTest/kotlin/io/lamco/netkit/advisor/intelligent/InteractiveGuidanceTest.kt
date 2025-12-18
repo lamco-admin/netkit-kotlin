@@ -5,7 +5,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
 
 class InteractiveGuidanceTest {
-
     private val guidance = InteractiveGuidance()
 
     // ========================================
@@ -143,7 +142,7 @@ class InteractiveGuidanceTest {
 
         assertTrue(
             firstStep.title.contains("type", ignoreCase = true) ||
-            firstStep.description.contains("type", ignoreCase = true)
+                firstStep.description.contains("type", ignoreCase = true),
         )
     }
 
@@ -151,10 +150,11 @@ class InteractiveGuidanceTest {
     fun `network setup asks about coverage area`() {
         val session = guidance.startWizard(WizardType.NETWORK_SETUP)
 
-        val coverageStep = session.steps.find {
-            it.title.contains("coverage", ignoreCase = true) ||
-            it.description.contains("coverage", ignoreCase = true)
-        }
+        val coverageStep =
+            session.steps.find {
+                it.title.contains("coverage", ignoreCase = true) ||
+                    it.description.contains("coverage", ignoreCase = true)
+            }
 
         assertNotNull(coverageStep)
     }
@@ -166,7 +166,7 @@ class InteractiveGuidanceTest {
 
         assertTrue(
             firstStep.title.contains("issue", ignoreCase = true) ||
-            firstStep.prompt.contains("problem", ignoreCase = true)
+                firstStep.prompt.contains("problem", ignoreCase = true),
         )
     }
 
@@ -177,7 +177,7 @@ class InteractiveGuidanceTest {
 
         assertTrue(
             firstStep.title.contains("security", ignoreCase = true) ||
-            firstStep.description.contains("security", ignoreCase = true)
+                firstStep.description.contains("security", ignoreCase = true),
         )
     }
 
@@ -188,7 +188,7 @@ class InteractiveGuidanceTest {
 
         assertTrue(
             firstStep.title.contains("access", ignoreCase = true) ||
-            firstStep.description.contains("access", ignoreCase = true)
+                firstStep.description.contains("access", ignoreCase = true),
         )
     }
 
@@ -199,7 +199,7 @@ class InteractiveGuidanceTest {
 
         assertTrue(
             firstStep.title.contains("node", ignoreCase = true) ||
-            firstStep.description.contains("node", ignoreCase = true)
+                firstStep.description.contains("node", ignoreCase = true),
         )
     }
 
@@ -415,50 +415,60 @@ class InteractiveGuidanceTest {
         val session = guidance.startWizard(WizardType.TROUBLESHOOTING)
 
         assertTrue(session.steps.size >= 3)
-        assertTrue(session.steps.any {
-            it.title.contains("issue", ignoreCase = true) ||
-            it.title.contains("problem", ignoreCase = true)
-        })
+        assertTrue(
+            session.steps.any {
+                it.title.contains("issue", ignoreCase = true) ||
+                    it.title.contains("problem", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `security wizard covers compliance`() {
         val session = guidance.startWizard(WizardType.SECURITY_SETUP)
 
-        assertTrue(session.steps.any {
-            it.title.contains("compliance", ignoreCase = true) ||
-            it.description.contains("compliance", ignoreCase = true)
-        })
+        assertTrue(
+            session.steps.any {
+                it.title.contains("compliance", ignoreCase = true) ||
+                    it.description.contains("compliance", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `performance wizard asks about current speeds`() {
         val session = guidance.startWizard(WizardType.PERFORMANCE_TUNING)
 
-        assertTrue(session.steps.any {
-            it.title.contains("performance", ignoreCase = true) ||
-            it.title.contains("speed", ignoreCase = true)
-        })
+        assertTrue(
+            session.steps.any {
+                it.title.contains("performance", ignoreCase = true) ||
+                    it.title.contains("speed", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `guest network wizard configures isolation`() {
         val session = guidance.startWizard(WizardType.GUEST_NETWORK)
 
-        assertTrue(session.steps.any {
-            it.title.contains("isolation", ignoreCase = true) ||
-            it.description.contains("isolation", ignoreCase = true)
-        })
+        assertTrue(
+            session.steps.any {
+                it.title.contains("isolation", ignoreCase = true) ||
+                    it.description.contains("isolation", ignoreCase = true)
+            },
+        )
     }
 
     @Test
     fun `mesh wizard asks about backhaul`() {
         val session = guidance.startWizard(WizardType.MESH_SETUP)
 
-        assertTrue(session.steps.any {
-            it.title.contains("backhaul", ignoreCase = true) ||
-            it.description.contains("backhaul", ignoreCase = true)
-        })
+        assertTrue(
+            session.steps.any {
+                it.title.contains("backhaul", ignoreCase = true) ||
+                    it.description.contains("backhaul", ignoreCase = true)
+            },
+        )
     }
 
     // ========================================
@@ -467,15 +477,17 @@ class InteractiveGuidanceTest {
 
     @Test
     fun `wizard can start with initial context`() {
-        val initialContext = mapOf<String, Any>(
-            "networkType" to "Enterprise",
-            "existingDevices" to 50
-        )
+        val initialContext =
+            mapOf<String, Any>(
+                "networkType" to "Enterprise",
+                "existingDevices" to 50,
+            )
 
-        val session = guidance.startWizard(
-            WizardType.NETWORK_SETUP,
-            initialContext = initialContext
-        )
+        val session =
+            guidance.startWizard(
+                WizardType.NETWORK_SETUP,
+                initialContext = initialContext,
+            )
 
         assertEquals("Enterprise", session.context["networkType"])
         assertEquals(50, session.context["existingDevices"])

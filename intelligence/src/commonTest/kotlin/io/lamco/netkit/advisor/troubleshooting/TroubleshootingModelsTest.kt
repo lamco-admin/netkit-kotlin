@@ -7,17 +7,16 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TroubleshootingModelsTest {
-
     @Test
     fun `slow speed symptom calculates severity based on speed ratio`() {
         val severe = Symptom.SlowSpeed(5.0, 100.0)
-        assertTrue(severe.severity >= 7)  // <10% of expected
+        assertTrue(severe.severity >= 7) // <10% of expected
 
         val moderate = Symptom.SlowSpeed(30.0, 100.0)
-        assertTrue(moderate.severity in 4..6)  // 30% of expected
+        assertTrue(moderate.severity in 4..6) // 30% of expected
 
         val mild = Symptom.SlowSpeed(60.0, 100.0)
-        assertTrue(mild.severity <= 5)  // 60% of expected
+        assertTrue(mild.severity <= 5) // 60% of expected
     }
 
     @Test
@@ -101,7 +100,7 @@ class TroubleshootingModelsTest {
                 cause = NetworkIssue.WEAK_SIGNAL,
                 probability = 1.5,
                 evidence = listOf("Test"),
-                fixSuggestion = "Fix"
+                fixSuggestion = "Fix",
             )
         }
 
@@ -110,7 +109,7 @@ class TroubleshootingModelsTest {
                 cause = NetworkIssue.WEAK_SIGNAL,
                 probability = -0.1,
                 evidence = listOf("Test"),
-                fixSuggestion = "Fix"
+                fixSuggestion = "Fix",
             )
         }
     }
@@ -122,19 +121,20 @@ class TroubleshootingModelsTest {
                 cause = NetworkIssue.WEAK_SIGNAL,
                 probability = 0.8,
                 evidence = emptyList(),
-                fixSuggestion = "Fix"
+                fixSuggestion = "Fix",
             )
         }
     }
 
     @Test
     fun `root cause summary includes cause and probability`() {
-        val cause = RootCause(
-            cause = NetworkIssue.WEAK_SIGNAL,
-            probability = 0.85,
-            evidence = listOf("Signal -80dBm"),
-            fixSuggestion = "Move closer"
-        )
+        val cause =
+            RootCause(
+                cause = NetworkIssue.WEAK_SIGNAL,
+                probability = 0.85,
+                evidence = listOf("Signal -80dBm"),
+                fixSuggestion = "Move closer",
+            )
 
         val summary = cause.summary
         assertTrue(summary.contains("Weak signal"))
@@ -143,13 +143,14 @@ class TroubleshootingModelsTest {
 
     @Test
     fun `troubleshooting step summary includes step number`() {
-        val step = TroubleshootingStep(
-            step = 1,
-            action = "Check signal",
-            expectedOutcome = "See RSSI value",
-            ifSuccess = "Continue",
-            ifFailure = "Try again"
-        )
+        val step =
+            TroubleshootingStep(
+                step = 1,
+                action = "Check signal",
+                expectedOutcome = "See RSSI value",
+                ifSuccess = "Continue",
+                ifFailure = "Try again",
+            )
 
         assertTrue(step.summary.contains("Step 1"))
         assertTrue(step.summary.contains("Check signal"))
@@ -163,60 +164,65 @@ class TroubleshootingModelsTest {
                 rootCauses = emptyList(),
                 confidence = 1.5,
                 troubleshootingSteps = emptyList(),
-                estimatedResolutionTime = "1 hour"
+                estimatedResolutionTime = "1 hour",
             )
         }
     }
 
     @Test
     fun `diagnosis result primary cause is max probability`() {
-        val causes = listOf(
-            RootCause(NetworkIssue.WEAK_SIGNAL, 0.6, listOf("A"), "Fix1"),
-            RootCause(NetworkIssue.CHANNEL_CONGESTION, 0.9, listOf("B"), "Fix2"),
-            RootCause(NetworkIssue.INTERFERENCE, 0.4, listOf("C"), "Fix3")
-        )
+        val causes =
+            listOf(
+                RootCause(NetworkIssue.WEAK_SIGNAL, 0.6, listOf("A"), "Fix1"),
+                RootCause(NetworkIssue.CHANNEL_CONGESTION, 0.9, listOf("B"), "Fix2"),
+                RootCause(NetworkIssue.INTERFERENCE, 0.4, listOf("C"), "Fix3"),
+            )
 
-        val result = DiagnosisResult(
-            symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
-            rootCauses = causes,
-            confidence = 0.8,
-            troubleshootingSteps = emptyList(),
-            estimatedResolutionTime = "30 min"
-        )
+        val result =
+            DiagnosisResult(
+                symptoms = listOf(Symptom.SlowSpeed(10.0, 100.0)),
+                rootCauses = causes,
+                confidence = 0.8,
+                troubleshootingSteps = emptyList(),
+                estimatedResolutionTime = "30 min",
+            )
 
         assertEquals(NetworkIssue.CHANNEL_CONGESTION, result.primaryCause?.cause)
     }
 
     @Test
     fun `diagnosis result is high confidence when at least 0_7`() {
-        val highConf = DiagnosisResult(
-            symptoms = emptyList(),
-            rootCauses = emptyList(),
-            confidence = 0.75,
-            troubleshootingSteps = emptyList(),
-            estimatedResolutionTime = ""
-        )
+        val highConf =
+            DiagnosisResult(
+                symptoms = emptyList(),
+                rootCauses = emptyList(),
+                confidence = 0.75,
+                troubleshootingSteps = emptyList(),
+                estimatedResolutionTime = "",
+            )
         assertTrue(highConf.isHighConfidence)
 
-        val lowConf = DiagnosisResult(
-            symptoms = emptyList(),
-            rootCauses = emptyList(),
-            confidence = 0.6,
-            troubleshootingSteps = emptyList(),
-            estimatedResolutionTime = ""
-        )
+        val lowConf =
+            DiagnosisResult(
+                symptoms = emptyList(),
+                rootCauses = emptyList(),
+                confidence = 0.6,
+                troubleshootingSteps = emptyList(),
+                estimatedResolutionTime = "",
+            )
         assertFalse(lowConf.isHighConfidence)
     }
 
     @Test
     fun `solution recommendation summary includes difficulty and impact`() {
-        val solution = SolutionRecommendation(
-            issue = NetworkIssue.WEAK_SIGNAL,
-            solution = "Add AP",
-            steps = listOf("Buy AP", "Install"),
-            difficulty = Difficulty.HARD,
-            impact = Impact.HIGH
-        )
+        val solution =
+            SolutionRecommendation(
+                issue = NetworkIssue.WEAK_SIGNAL,
+                solution = "Add AP",
+                steps = listOf("Buy AP", "Install"),
+                difficulty = Difficulty.HARD,
+                impact = Impact.HIGH,
+            )
 
         val summary = solution.summary
         assertTrue(summary.contains("Hard"))
@@ -239,16 +245,17 @@ class TroubleshootingModelsTest {
 
     @Test
     fun `diagnostic context with all fields`() {
-        val context = DiagnosticContext(
-            signalStrength = -65,
-            channelUtilization = 75,
-            connectedClients = 35,
-            band = "5GHz",
-            channel = 36,
-            bandwidth = 150.0,
-            latency = 25,
-            packetLoss = 2.5
-        )
+        val context =
+            DiagnosticContext(
+                signalStrength = -65,
+                channelUtilization = 75,
+                connectedClients = 35,
+                band = "5GHz",
+                channel = 36,
+                bandwidth = 150.0,
+                latency = 25,
+                packetLoss = 2.5,
+            )
 
         assertEquals(-65, context.signalStrength)
         assertEquals(75, context.channelUtilization)

@@ -29,7 +29,7 @@ data class EnterpriseConfig(
     val hasVlanSupport: Boolean = false,
     val isGuestNetwork: Boolean = false,
     val hasCaptivePortal: Boolean = false,
-    val enterpriseFeatures: Set<EnterpriseFeature> = emptySet()
+    val enterpriseFeatures: Set<EnterpriseFeature> = emptySet(),
 ) {
     init {
         require(ssid.isNotBlank()) {
@@ -73,31 +73,36 @@ data class EnterpriseConfig(
      * Enterprise deployment tier
      */
     val deploymentTier: EnterpriseDeploymentTier
-        get() = when {
-            has8021X && hasVlanSupport && enterpriseFeatures.size >= 3 -> EnterpriseDeploymentTier.FULL_ENTERPRISE
-            has8021X || hasVlanSupport -> EnterpriseDeploymentTier.PARTIAL_ENTERPRISE
-            isGuestNetwork -> EnterpriseDeploymentTier.GUEST_CAPABLE
-            else -> EnterpriseDeploymentTier.CONSUMER
-        }
+        get() =
+            when {
+                has8021X && hasVlanSupport && enterpriseFeatures.size >= 3 -> EnterpriseDeploymentTier.FULL_ENTERPRISE
+                has8021X || hasVlanSupport -> EnterpriseDeploymentTier.PARTIAL_ENTERPRISE
+                isGuestNetwork -> EnterpriseDeploymentTier.GUEST_CAPABLE
+                else -> EnterpriseDeploymentTier.CONSUMER
+            }
 
     /**
      * Human-readable summary
      */
     val summary: String
-        get() = buildString {
-            append("\"$ssid\" - ")
-            append("${deploymentTier.displayName}")
-            if (has8021X) append(", 802.1X")
-            if (hasVlanSupport) append(", VLAN")
-            if (isGuestNetwork) append(", Guest")
-            if (hasCaptivePortal) append(", Portal")
-        }
+        get() =
+            buildString {
+                append("\"$ssid\" - ")
+                append("${deploymentTier.displayName}")
+                if (has8021X) append(", 802.1X")
+                if (hasVlanSupport) append(", VLAN")
+                if (isGuestNetwork) append(", Guest")
+                if (hasCaptivePortal) append(", Portal")
+            }
 }
 
 /**
  * Enterprise deployment tiers
  */
-enum class EnterpriseDeploymentTier(val displayName: String, val description: String) {
+enum class EnterpriseDeploymentTier(
+    val displayName: String,
+    val description: String,
+) {
     /**
      * Full enterprise deployment
      * - 802.1X authentication
@@ -107,7 +112,7 @@ enum class EnterpriseDeploymentTier(val displayName: String, val description: St
      */
     FULL_ENTERPRISE(
         "Full Enterprise",
-        "Complete enterprise feature set with 802.1X and VLANs"
+        "Complete enterprise feature set with 802.1X and VLANs",
     ),
 
     /**
@@ -118,7 +123,7 @@ enum class EnterpriseDeploymentTier(val displayName: String, val description: St
      */
     PARTIAL_ENTERPRISE(
         "Partial Enterprise",
-        "Some enterprise features present"
+        "Some enterprise features present",
     ),
 
     /**
@@ -130,7 +135,7 @@ enum class EnterpriseDeploymentTier(val displayName: String, val description: St
      */
     GUEST_CAPABLE(
         "Guest Network",
-        "Guest network isolation capability"
+        "Guest network isolation capability",
     ),
 
     /**
@@ -140,21 +145,24 @@ enum class EnterpriseDeploymentTier(val displayName: String, val description: St
      */
     CONSUMER(
         "Consumer",
-        "No enterprise features detected"
-    )
+        "No enterprise features detected",
+    ),
 }
 
 /**
  * Detectable enterprise features
  */
-enum class EnterpriseFeature(val displayName: String, val description: String) {
+enum class EnterpriseFeature(
+    val displayName: String,
+    val description: String,
+) {
     /**
      * 802.1X/EAP authentication
      * Detectable from: RSN IE, AKM suites in beacon
      */
     RADIUS_AUTHENTICATION(
         "RADIUS/802.1X",
-        "Enterprise authentication via RADIUS"
+        "Enterprise authentication via RADIUS",
     ),
 
     /**
@@ -163,7 +171,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     VLAN_SEGMENTATION(
         "VLAN Segmentation",
-        "Network segmentation via VLANs"
+        "Network segmentation via VLANs",
     ),
 
     /**
@@ -172,7 +180,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     GUEST_NETWORK_ISOLATION(
         "Guest Isolation",
-        "Isolated guest network"
+        "Isolated guest network",
     ),
 
     /**
@@ -181,7 +189,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     CAPTIVE_PORTAL(
         "Captive Portal",
-        "Web-based authentication or terms acceptance"
+        "Web-based authentication or terms acceptance",
     ),
 
     /**
@@ -190,7 +198,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     FAST_ROAMING(
         "Fast Roaming",
-        "802.11k/r/v for seamless roaming"
+        "802.11k/r/v for seamless roaming",
     ),
 
     /**
@@ -199,7 +207,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     BAND_STEERING(
         "Band Steering",
-        "Automatic client band selection"
+        "Automatic client band selection",
     ),
 
     /**
@@ -208,7 +216,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     LOAD_BALANCING(
         "Load Balancing",
-        "Client distribution across APs"
+        "Client distribution across APs",
     ),
 
     /**
@@ -217,7 +225,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     ROGUE_AP_DETECTION(
         "Rogue AP Detection",
-        "Security monitoring for unauthorized APs"
+        "Security monitoring for unauthorized APs",
     ),
 
     /**
@@ -226,7 +234,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     WIRELESS_IDS(
         "Wireless IDS/IPS",
-        "Intrusion detection/prevention"
+        "Intrusion detection/prevention",
     ),
 
     /**
@@ -235,8 +243,8 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
      */
     CLIENT_PROFILING(
         "Client Profiling",
-        "Device type detection and policy enforcement"
-    )
+        "Device type detection and policy enforcement",
+    ),
 }
 
 /**
@@ -252,7 +260,7 @@ enum class EnterpriseFeature(val displayName: String, val description: String) {
 data class VlanConfig(
     val vlanId: Int? = null,
     val purpose: VlanPurpose,
-    val ssidPattern: String? = null
+    val ssidPattern: String? = null,
 ) {
     init {
         if (vlanId != null) {
@@ -272,13 +280,16 @@ data class VlanConfig(
 /**
  * Common VLAN purposes in enterprise deployments
  */
-enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<String>) {
+enum class VlanPurpose(
+    val displayName: String,
+    val typicalSsidPatterns: List<String>,
+) {
     /**
      * Corporate employee network
      */
     CORPORATE(
         "Corporate",
-        listOf("corp", "employee", "staff", "internal")
+        listOf("corp", "employee", "staff", "internal"),
     ),
 
     /**
@@ -286,7 +297,7 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
      */
     GUEST(
         "Guest",
-        listOf("guest", "visitor", "public")
+        listOf("guest", "visitor", "public"),
     ),
 
     /**
@@ -294,7 +305,7 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
      */
     IOT(
         "IoT/Devices",
-        listOf("iot", "devices", "things", "sensor")
+        listOf("iot", "devices", "things", "sensor"),
     ),
 
     /**
@@ -302,7 +313,7 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
      */
     VOICE(
         "Voice/VoIP",
-        listOf("voice", "voip", "phone")
+        listOf("voice", "voip", "phone"),
     ),
 
     /**
@@ -310,7 +321,7 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
      */
     MANAGEMENT(
         "Management",
-        listOf("mgmt", "admin", "management")
+        listOf("mgmt", "admin", "management"),
     ),
 
     /**
@@ -318,8 +329,8 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
      */
     UNKNOWN(
         "Unknown",
-        emptyList()
-    )
+        emptyList(),
+    ),
 }
 
 /**
@@ -334,19 +345,20 @@ enum class VlanPurpose(val displayName: String, val typicalSsidPatterns: List<St
 data class Dot1XConfiguration(
     val isEnabled: Boolean,
     val eapMethods: Set<EapMethod> = emptySet(),
-    val requiresCertificate: Boolean = false
+    val requiresCertificate: Boolean = false,
 ) {
     /**
      * Security strength of 802.1X configuration
      */
     val securityStrength: Dot1XSecurityStrength
-        get() = when {
-            !isEnabled -> Dot1XSecurityStrength.NONE
-            requiresCertificate -> Dot1XSecurityStrength.VERY_STRONG
-            eapMethods.any { it.isSecure } -> Dot1XSecurityStrength.STRONG
-            eapMethods.isNotEmpty() -> Dot1XSecurityStrength.MODERATE
-            else -> Dot1XSecurityStrength.UNKNOWN
-        }
+        get() =
+            when {
+                !isEnabled -> Dot1XSecurityStrength.NONE
+                requiresCertificate -> Dot1XSecurityStrength.VERY_STRONG
+                eapMethods.any { it.isSecure } -> Dot1XSecurityStrength.STRONG
+                eapMethods.isNotEmpty() -> Dot1XSecurityStrength.MODERATE
+                else -> Dot1XSecurityStrength.UNKNOWN
+            }
 }
 
 /**
@@ -355,7 +367,7 @@ data class Dot1XConfiguration(
 enum class EapMethod(
     val displayName: String,
     val isSecure: Boolean,
-    val description: String
+    val description: String,
 ) {
     /**
      * EAP-TLS (certificate-based, most secure)
@@ -363,7 +375,7 @@ enum class EapMethod(
     EAP_TLS(
         "EAP-TLS",
         true,
-        "Certificate-based authentication"
+        "Certificate-based authentication",
     ),
 
     /**
@@ -372,7 +384,7 @@ enum class EapMethod(
     EAP_TTLS(
         "EAP-TTLS",
         true,
-        "Tunneled TLS authentication"
+        "Tunneled TLS authentication",
     ),
 
     /**
@@ -381,7 +393,7 @@ enum class EapMethod(
     PEAP(
         "PEAP",
         true,
-        "Protected EAP with server certificate"
+        "Protected EAP with server certificate",
     ),
 
     /**
@@ -390,7 +402,7 @@ enum class EapMethod(
     EAP_SIM(
         "EAP-SIM",
         true,
-        "GSM SIM card authentication"
+        "GSM SIM card authentication",
     ),
 
     /**
@@ -399,7 +411,7 @@ enum class EapMethod(
     EAP_AKA(
         "EAP-AKA",
         true,
-        "UMTS authentication"
+        "UMTS authentication",
     ),
 
     /**
@@ -408,7 +420,7 @@ enum class EapMethod(
     EAP_PWD(
         "EAP-PWD",
         true,
-        "Password-based authentication"
+        "Password-based authentication",
     ),
 
     /**
@@ -417,7 +429,7 @@ enum class EapMethod(
     EAP_MD5(
         "EAP-MD5",
         false,
-        "MD5 challenge (deprecated, insecure)"
+        "MD5 challenge (deprecated, insecure)",
     ),
 
     /**
@@ -426,19 +438,21 @@ enum class EapMethod(
     LEAP(
         "LEAP",
         false,
-        "Cisco LEAP (deprecated, insecure)"
-    )
+        "Cisco LEAP (deprecated, insecure)",
+    ),
 }
 
 /**
  * 802.1X security strength
  */
-enum class Dot1XSecurityStrength(val displayName: String) {
+enum class Dot1XSecurityStrength(
+    val displayName: String,
+) {
     VERY_STRONG("Very Strong (Certificate-based)"),
     STRONG("Strong (Secure EAP)"),
     MODERATE("Moderate (Basic EAP)"),
     UNKNOWN("Unknown"),
-    NONE("Not Enabled")
+    NONE("Not Enabled"),
 }
 
 /**
@@ -457,24 +471,27 @@ data class CaptivePortalConfig(
     val portalType: CaptivePortalType = CaptivePortalType.UNKNOWN,
     val redirectUrl: String? = null,
     val requiresAuth: Boolean = false,
-    val requiresTerms: Boolean = false
+    val requiresTerms: Boolean = false,
 ) {
     /**
      * Portal complexity level
      */
     val complexity: PortalComplexity
-        get() = when {
-            requiresAuth && requiresTerms -> PortalComplexity.COMPLEX
-            requiresAuth || requiresTerms -> PortalComplexity.MODERATE
-            isDetected -> PortalComplexity.SIMPLE
-            else -> PortalComplexity.NONE
-        }
+        get() =
+            when {
+                requiresAuth && requiresTerms -> PortalComplexity.COMPLEX
+                requiresAuth || requiresTerms -> PortalComplexity.MODERATE
+                isDetected -> PortalComplexity.SIMPLE
+                else -> PortalComplexity.NONE
+            }
 }
 
 /**
  * Captive portal types
  */
-enum class CaptivePortalType(val displayName: String) {
+enum class CaptivePortalType(
+    val displayName: String,
+) {
     /**
      * Click-through (accept terms only)
      */
@@ -508,17 +525,19 @@ enum class CaptivePortalType(val displayName: String) {
     /**
      * Unknown portal type
      */
-    UNKNOWN("Unknown")
+    UNKNOWN("Unknown"),
 }
 
 /**
  * Captive portal complexity
  */
-enum class PortalComplexity(val displayName: String) {
+enum class PortalComplexity(
+    val displayName: String,
+) {
     COMPLEX("Complex (Auth + Terms)"),
     MODERATE("Moderate (Auth or Terms)"),
     SIMPLE("Simple (Click-Through)"),
-    NONE("No Portal")
+    NONE("No Portal"),
 }
 
 /**
@@ -534,25 +553,28 @@ enum class PortalComplexity(val displayName: String) {
 data class GuestIsolationValidation(
     val isIsolated: Boolean,
     val isolationMethods: Set<IsolationMethod> = emptySet(),
-    val securityIssues: List<String> = emptyList()
+    val securityIssues: List<String> = emptyList(),
 ) {
     /**
      * Isolation strength score (0-100)
      */
     val isolationScore: Int
-        get() = if (isIsolated) {
-            val baseScore = 60
-            val methodBonus = isolationMethods.size * 15
-            (baseScore + methodBonus - securityIssues.size * 10).coerceIn(0, 100)
-        } else {
-            0
-        }
+        get() =
+            if (isIsolated) {
+                val baseScore = 60
+                val methodBonus = isolationMethods.size * 15
+                (baseScore + methodBonus - securityIssues.size * 10).coerceIn(0, 100)
+            } else {
+                0
+            }
 }
 
 /**
  * Network isolation methods
  */
-enum class IsolationMethod(val displayName: String) {
+enum class IsolationMethod(
+    val displayName: String,
+) {
     /**
      * VLAN segmentation
      */
@@ -576,5 +598,5 @@ enum class IsolationMethod(val displayName: String) {
     /**
      * Rate limiting
      */
-    RATE_LIMITING("Rate Limiting")
+    RATE_LIMITING("Rate Limiting"),
 }

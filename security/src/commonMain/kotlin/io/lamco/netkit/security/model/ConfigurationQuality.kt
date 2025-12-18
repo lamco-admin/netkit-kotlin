@@ -1,7 +1,7 @@
 package io.lamco.netkit.security.model
 
 /**
- * Network configuration quality assessment
+ * Per-SSID configuration quality report
  *
  * Provides comprehensive analysis of WiFi network configuration including:
  * - Security configuration consistency
@@ -10,24 +10,8 @@ package io.lamco.netkit.security.model
  * - Multi-AP coordination
  * - Overall network health
  *
- * Used for:
- * - Identifying misconfigured networks
- * - Detecting security policy violations
- * - Assessing enterprise network quality
- * - Providing configuration recommendations
- *
- * Based on:
- * - IEEE 802.11-2020 best practices
- * - Wi-Fi Alliance certification requirements
- * - Enterprise WLAN deployment guidelines
- * - NIST wireless security standards
- *
- * @see SecurityScorePerBss
- * @see ConfigurationIssue
- */
-
-/**
- * Per-SSID configuration quality report
+ * Based on IEEE 802.11-2020 best practices, Wi-Fi Alliance certification requirements,
+ * enterprise WLAN deployment guidelines, and NIST wireless security standards.
  *
  * Analyzes all APs broadcasting the same SSID to assess configuration consistency
  * and overall network quality.

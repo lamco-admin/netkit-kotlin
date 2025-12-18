@@ -22,7 +22,7 @@ import io.lamco.netkit.model.network.WiFiBand
 data class MeshTopology(
     val nodes: List<MeshNode>,
     val links: List<MeshLink>,
-    val protocol: MeshProtocol = MeshProtocol.VENDOR_SPECIFIC
+    val protocol: MeshProtocol = MeshProtocol.VENDOR_SPECIFIC,
 ) {
     init {
         require(nodes.isNotEmpty()) {
@@ -119,35 +119,32 @@ data class MeshTopology(
     /**
      * Get node by BSSID
      */
-    fun getNode(bssid: String): MeshNode? {
-        return nodes.firstOrNull { it.bssid.equals(bssid, ignoreCase = true) }
-    }
+    fun getNode(bssid: String): MeshNode? = nodes.firstOrNull { it.bssid.equals(bssid, ignoreCase = true) }
 
     /**
      * Get all links for a specific node
      */
-    fun getLinksForNode(bssid: String): List<MeshLink> {
-        return links.filter {
+    fun getLinksForNode(bssid: String): List<MeshLink> =
+        links.filter {
             it.sourceBssid.equals(bssid, ignoreCase = true) ||
-            it.targetBssid.equals(bssid, ignoreCase = true)
+                it.targetBssid.equals(bssid, ignoreCase = true)
         }
-    }
 
     /**
      * Get nodes at a specific hop count
      */
-    fun getNodesAtHop(hopCount: Int): List<MeshNode> {
-        return nodes.filter { it.hopCount == hopCount }
-    }
+    fun getNodesAtHop(hopCount: Int): List<MeshNode> = nodes.filter { it.hopCount == hopCount }
 
     /**
      * Check if topology has alternate paths (redundancy)
      */
     private fun hasAlternatePaths(): Boolean {
         // Simple check: if any non-root node has multiple incoming links
-        val incomingLinkCounts = nodes.groupingBy { node ->
-            links.count { it.targetBssid == node.bssid }
-        }.eachCount()
+        val incomingLinkCounts =
+            nodes
+                .groupingBy { node ->
+                    links.count { it.targetBssid == node.bssid }
+                }.eachCount()
 
         return incomingLinkCounts.any { (count, _) -> count > 1 }
     }
@@ -164,20 +161,24 @@ data class MeshTopology(
             score += (averageLinkQuality * 40).toInt()
 
             // Redundancy (0-20 points)
-            if (hasRedundancy) score += 20
-            else if (rootCount == 1) score += 10
+            if (hasRedundancy) {
+                score += 20
+            } else if (rootCount == 1) {
+                score += 10
+            }
 
             // Hop count (0-20 points) - lower is better
             val hopPenalty = maxHopCount.coerceAtMost(5)
             score += 20 - (hopPenalty * 4)
 
             // Backhaul type (0-20 points)
-            score += when {
-                allWiredBackhaul -> 20
-                hasDedicatedBackhaul -> 15
-                wiredBackhaulPercent >= 50 -> 10
-                else -> 5
-            }
+            score +=
+                when {
+                    allWiredBackhaul -> 20
+                    hasDedicatedBackhaul -> 15
+                    wiredBackhaulPercent >= 50 -> 10
+                    else -> 5
+                }
 
             return score.coerceIn(0, 100)
         }
@@ -186,13 +187,14 @@ data class MeshTopology(
      * Human-readable topology summary
      */
     val summary: String
-        get() = buildString {
-            append("$nodeCount nodes (")
-            append("${rootCount}R/${relayCount}Re/${leafCount}L), ")
-            append("max ${maxHopCount} hops, ")
-            append("${wiredBackhaulPercent}% wired, ")
-            append("health: $healthScore/100")
-        }
+        get() =
+            buildString {
+                append("$nodeCount nodes (")
+                append("${rootCount}R/${relayCount}Re/${leafCount}L), ")
+                append("max $maxHopCount hops, ")
+                append("$wiredBackhaulPercent% wired, ")
+                append("health: $healthScore/100")
+            }
 }
 
 /**
@@ -215,7 +217,7 @@ data class MeshNode(
     val backhaulType: BackhaulType,
     val band: WiFiBand = WiFiBand.BAND_5GHZ,
     val signalStrength: Int? = null,
-    val parentBssid: String? = null
+    val parentBssid: String? = null,
 ) {
     init {
         require(bssid.isNotBlank()) {
@@ -253,14 +255,17 @@ data class MeshNode(
      * Whether backhaul connection is good (> -70 dBm for wireless)
      */
     val hasGoodBackhaul: Boolean
-        get() = when (backhaulType) {
-            BackhaulType.WIRED_ETHERNET,
-            BackhaulType.WIRED_POWERLINE -> true
-            BackhaulType.WIRELESS_DEDICATED -> signalStrength?.let { it >= -65 } ?: false
-            BackhaulType.WIRELESS_5GHZ,
-            BackhaulType.WIRELESS_6GHZ -> signalStrength?.let { it >= -70 } ?: false
-            BackhaulType.UNKNOWN -> false
-        }
+        get() =
+            when (backhaulType) {
+                BackhaulType.WIRED_ETHERNET,
+                BackhaulType.WIRED_POWERLINE,
+                -> true
+                BackhaulType.WIRELESS_DEDICATED -> signalStrength?.let { it >= -65 } ?: false
+                BackhaulType.WIRELESS_5GHZ,
+                BackhaulType.WIRELESS_6GHZ,
+                -> signalStrength?.let { it >= -70 } ?: false
+                BackhaulType.UNKNOWN -> false
+            }
 
     /**
      * Node quality score (0-100)
@@ -296,7 +301,9 @@ data class MeshNode(
  * - RELAY: Intermediate node forwarding traffic
  * - LEAF: Edge node with no children
  */
-enum class MeshRole(val displayName: String) {
+enum class MeshRole(
+    val displayName: String,
+) {
     /**
      * Gateway node (router)
      * - Has internet/WAN connection
@@ -319,7 +326,7 @@ enum class MeshRole(val displayName: String) {
      * - Only serves clients
      * - Lowest priority for routing
      */
-    LEAF("Leaf/Edge Node")
+    LEAF("Leaf/Edge Node"),
 }
 
 /**
@@ -330,7 +337,10 @@ enum class MeshRole(val displayName: String) {
  * - Dedicated wireless: Good (separate radio for backhaul)
  * - Shared wireless: Fair (competes with client traffic)
  */
-enum class BackhaulType(val displayName: String, val isWired: Boolean) {
+enum class BackhaulType(
+    val displayName: String,
+    val isWired: Boolean,
+) {
     /**
      * Ethernet backhaul (best)
      * - Gigabit or faster wired connection
@@ -374,7 +384,7 @@ enum class BackhaulType(val displayName: String, val isWired: Boolean) {
     /**
      * Unknown backhaul type
      */
-    UNKNOWN("Unknown", false)
+    UNKNOWN("Unknown", false),
 }
 
 /**
@@ -400,7 +410,7 @@ data class MeshLink(
     val quality: Double,
     val throughputMbps: Double,
     val latencyMs: Double = 5.0,
-    val packetLoss: Double = 0.0
+    val packetLoss: Double = 0.0,
 ) {
     init {
         require(sourceBssid.isNotBlank()) {
@@ -439,28 +449,33 @@ data class MeshLink(
      * Link quality category
      */
     val qualityCategory: LinkQuality
-        get() = when {
-            quality >= 0.8 && packetLoss < 0.5 -> LinkQuality.EXCELLENT
-            quality >= 0.6 && packetLoss < 1.0 -> LinkQuality.GOOD
-            quality >= 0.4 && packetLoss < 2.0 -> LinkQuality.FAIR
-            else -> LinkQuality.POOR
-        }
+        get() =
+            when {
+                quality >= 0.8 && packetLoss < 0.5 -> LinkQuality.EXCELLENT
+                quality >= 0.6 && packetLoss < 1.0 -> LinkQuality.GOOD
+                quality >= 0.4 && packetLoss < 2.0 -> LinkQuality.FAIR
+                else -> LinkQuality.POOR
+            }
 }
 
 /**
  * Link quality categories
  */
-enum class LinkQuality(val displayName: String) {
+enum class LinkQuality(
+    val displayName: String,
+) {
     EXCELLENT("Excellent"),
     GOOD("Good"),
     FAIR("Fair"),
-    POOR("Poor")
+    POOR("Poor"),
 }
 
 /**
  * Mesh protocol types
  */
-enum class MeshProtocol(val displayName: String) {
+enum class MeshProtocol(
+    val displayName: String,
+) {
     /**
      * IEEE 802.11s (standard mesh)
      */
@@ -475,5 +490,5 @@ enum class MeshProtocol(val displayName: String) {
     /**
      * Unknown mesh protocol
      */
-    UNKNOWN("Unknown")
+    UNKNOWN("Unknown"),
 }

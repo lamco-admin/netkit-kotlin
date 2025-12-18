@@ -53,7 +53,7 @@ data class BestPracticeRule(
     val rationale: String,
     val severity: RuleSeverity,
     val source: String,
-    val applicability: RuleApplicability
+    val applicability: RuleApplicability,
 ) {
     init {
         require(title.isNotBlank()) { "Rule title cannot be blank" }
@@ -73,22 +73,25 @@ data class BestPracticeRule(
     fun appliesTo(
         networkType: NetworkType,
         vendor: RouterVendor? = null,
-        wifiGeneration: WifiGeneration
+        wifiGeneration: WifiGeneration,
     ): Boolean {
         if (applicability.networkTypes.isNotEmpty() &&
-            networkType !in applicability.networkTypes) {
+            networkType !in applicability.networkTypes
+        ) {
             return false
         }
 
         // Check vendor applicability (empty means all vendors)
         if (applicability.vendors.isNotEmpty() &&
             vendor != null &&
-            vendor !in applicability.vendors) {
+            vendor !in applicability.vendors
+        ) {
             return false
         }
 
         if (applicability.wifiGenerations.isNotEmpty() &&
-            wifiGeneration !in applicability.wifiGenerations) {
+            wifiGeneration !in applicability.wifiGenerations
+        ) {
             return false
         }
 
@@ -119,19 +122,22 @@ enum class RuleCategory {
     CONFIGURATION,
 
     /** Compliance and regulatory rules */
-    COMPLIANCE;
+    COMPLIANCE,
+
+    ;
 
     /**
      * User-friendly display name
      */
     val displayName: String
-        get() = when (this) {
-            SECURITY -> "Security"
-            PERFORMANCE -> "Performance"
-            RELIABILITY -> "Reliability"
-            CONFIGURATION -> "Configuration"
-            COMPLIANCE -> "Compliance"
-        }
+        get() =
+            when (this) {
+                SECURITY -> "Security"
+                PERFORMANCE -> "Performance"
+                RELIABILITY -> "Reliability"
+                CONFIGURATION -> "Configuration"
+                COMPLIANCE -> "Compliance"
+            }
 }
 
 /**
@@ -150,27 +156,31 @@ enum class RuleSeverity {
     SHOULD,
 
     /** Optional - may be followed for additional benefit */
-    MAY;
+    MAY,
+
+    ;
 
     /**
      * User-friendly description
      */
     val description: String
-        get() = when (this) {
-            MUST -> "Required"
-            SHOULD -> "Recommended"
-            MAY -> "Optional"
-        }
+        get() =
+            when (this) {
+                MUST -> "Required"
+                SHOULD -> "Recommended"
+                MAY -> "Optional"
+            }
 
     /**
      * Numeric priority (higher = more important)
      */
     val priority: Int
-        get() = when (this) {
-            MUST -> 3
-            SHOULD -> 2
-            MAY -> 1
-        }
+        get() =
+            when (this) {
+                MUST -> 3
+                SHOULD -> 2
+                MAY -> 1
+            }
 }
 
 /**
@@ -186,7 +196,7 @@ enum class RuleSeverity {
 data class RuleApplicability(
     val networkTypes: List<NetworkType> = emptyList(),
     val vendors: List<RouterVendor> = emptyList(),
-    val wifiGenerations: List<WifiGeneration> = emptyList()
+    val wifiGenerations: List<WifiGeneration> = emptyList(),
 ) {
     /**
      * Whether this rule applies universally (to all contexts)
@@ -239,28 +249,31 @@ enum class NetworkType {
     RETAIL,
 
     /** Public venue (stadiums, conference centers) */
-    PUBLIC_VENUE;
+    PUBLIC_VENUE,
+
+    ;
 
     /**
      * User-friendly display name
      */
     val displayName: String
-        get() = when (this) {
-            HOME_BASIC -> "Home (Basic)"
-            HOME_ADVANCED -> "Home (Advanced)"
-            SMALL_OFFICE -> "Small Office"
-            MEDIUM_BUSINESS -> "Medium Business"
-            ENTERPRISE -> "Enterprise"
-            GUEST_NETWORK -> "Guest Network"
-            HIGH_DENSITY -> "High-Density"
-            OUTDOOR -> "Outdoor"
-            MESH_NETWORK -> "Mesh Network"
-            HEALTHCARE -> "Healthcare"
-            EDUCATION -> "Education"
-            HOSPITALITY -> "Hospitality"
-            RETAIL -> "Retail"
-            PUBLIC_VENUE -> "Public Venue"
-        }
+        get() =
+            when (this) {
+                HOME_BASIC -> "Home (Basic)"
+                HOME_ADVANCED -> "Home (Advanced)"
+                SMALL_OFFICE -> "Small Office"
+                MEDIUM_BUSINESS -> "Medium Business"
+                ENTERPRISE -> "Enterprise"
+                GUEST_NETWORK -> "Guest Network"
+                HIGH_DENSITY -> "High-Density"
+                OUTDOOR -> "Outdoor"
+                MESH_NETWORK -> "Mesh Network"
+                HEALTHCARE -> "Healthcare"
+                EDUCATION -> "Education"
+                HOSPITALITY -> "Hospitality"
+                RETAIL -> "Retail"
+                PUBLIC_VENUE -> "Public Venue"
+            }
 }
 
 /**
@@ -277,58 +290,63 @@ enum class RouterVendor {
     LINKSYS,
     D_LINK,
     MIKROTIK,
-    GENERIC;
+    GENERIC,
+    ;
 
     /**
      * Display name for the vendor
      */
     val displayName: String
-        get() = when (this) {
-            CISCO -> "Cisco"
-            ARUBA -> "Aruba (HPE)"
-            UBIQUITI -> "Ubiquiti"
-            RUCKUS -> "Ruckus"
-            NETGEAR -> "Netgear"
-            TP_LINK -> "TP-Link"
-            ASUS -> "ASUS"
-            LINKSYS -> "Linksys"
-            D_LINK -> "D-Link"
-            MIKROTIK -> "MikroTik"
-            GENERIC -> "Generic"
-        }
+        get() =
+            when (this) {
+                CISCO -> "Cisco"
+                ARUBA -> "Aruba (HPE)"
+                UBIQUITI -> "Ubiquiti"
+                RUCKUS -> "Ruckus"
+                NETGEAR -> "Netgear"
+                TP_LINK -> "TP-Link"
+                ASUS -> "ASUS"
+                LINKSYS -> "Linksys"
+                D_LINK -> "D-Link"
+                MIKROTIK -> "MikroTik"
+                GENERIC -> "Generic"
+            }
 }
 
 /**
  * WiFi generation classification
  */
 enum class WifiGeneration {
-    WIFI_4,   // 802.11n
-    WIFI_5,   // 802.11ac
-    WIFI_6,   // 802.11ax (2.4/5 GHz)
-    WIFI_6E,  // 802.11ax (6 GHz)
-    WIFI_7;   // 802.11be
+    WIFI_4, // 802.11n
+    WIFI_5, // 802.11ac
+    WIFI_6, // 802.11ax (2.4/5 GHz)
+    WIFI_6E, // 802.11ax (6 GHz)
+    WIFI_7, // 802.11be
+    ;
 
     /**
      * Display name
      */
     val displayName: String
-        get() = when (this) {
-            WIFI_4 -> "WiFi 4 (802.11n)"
-            WIFI_5 -> "WiFi 5 (802.11ac)"
-            WIFI_6 -> "WiFi 6 (802.11ax)"
-            WIFI_6E -> "WiFi 6E (6GHz)"
-            WIFI_7 -> "WiFi 7 (802.11be)"
-        }
+        get() =
+            when (this) {
+                WIFI_4 -> "WiFi 4 (802.11n)"
+                WIFI_5 -> "WiFi 5 (802.11ac)"
+                WIFI_6 -> "WiFi 6 (802.11ax)"
+                WIFI_6E -> "WiFi 6E (6GHz)"
+                WIFI_7 -> "WiFi 7 (802.11be)"
+            }
 
     /**
      * IEEE standard name
      */
     val standardName: String
-        get() = when (this) {
-            WIFI_4 -> "802.11n"
-            WIFI_5 -> "802.11ac"
-            WIFI_6 -> "802.11ax"
-            WIFI_6E -> "802.11ax (6GHz)"
-            WIFI_7 -> "802.11be"
-        }
+        get() =
+            when (this) {
+                WIFI_4 -> "802.11n"
+                WIFI_5 -> "802.11ac"
+                WIFI_6 -> "802.11ax"
+                WIFI_6E -> "802.11ax (6GHz)"
+                WIFI_7 -> "802.11be"
+            }
 }

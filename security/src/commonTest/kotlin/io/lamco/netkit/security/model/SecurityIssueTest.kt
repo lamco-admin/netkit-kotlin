@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
  * - Recommendations are present
  */
 class SecurityIssueTest {
-
     // ============================================
     // LEGACY CIPHER TESTS
     // ============================================
@@ -185,9 +184,11 @@ class SecurityIssueTest {
     fun `MissingRoamingOptimizations has LOW severity`() {
         val issue = SecurityIssue.MissingRoamingOptimizations
         assertEquals(SecurityIssue.Severity.LOW, issue.severity)
-        assertTrue(issue.technicalDetails.contains("802.11k") ||
-                   issue.technicalDetails.contains("802.11v") ||
-                   issue.technicalDetails.contains("802.11r"))
+        assertTrue(
+            issue.technicalDetails.contains("802.11k") ||
+                issue.technicalDetails.contains("802.11v") ||
+                issue.technicalDetails.contains("802.11r"),
+        )
         assertTrue(issue.recommendation.contains("Enable"))
     }
 
@@ -246,22 +247,23 @@ class SecurityIssueTest {
 
     @Test
     fun `All issue types have non-blank descriptions`() {
-        val issues = listOf(
-            SecurityIssue.WepInUse,
-            SecurityIssue.TkipInUse,
-            SecurityIssue.LegacyCipher(CipherSuite.TKIP),
-            SecurityIssue.PmfDisabledOnProtectedNetwork(AuthType.WPA2_PSK),
-            SecurityIssue.WeakGroupMgmtCipher,
-            SecurityIssue.OpenNetworkWithoutOwe,
-            SecurityIssue.OweTransitionWithOpenSideVisible("Test"),
-            SecurityIssue.SuiteBMissingForHighSecurityClaim,
-            SecurityIssue.TransitionalMode(AuthType.WPA2_PSK, AuthType.WPA3_SAE),
-            SecurityIssue.WpsPinEnabled,
-            SecurityIssue.WpsUnknownOrRiskyMode,
-            SecurityIssue.MissingRoamingOptimizations,
-            SecurityIssue.InconsistentSecurityAcrossAps("Test", 2),
-            SecurityIssue.DeprecatedAuthType(AuthType.WPA_PSK)
-        )
+        val issues =
+            listOf(
+                SecurityIssue.WepInUse,
+                SecurityIssue.TkipInUse,
+                SecurityIssue.LegacyCipher(CipherSuite.TKIP),
+                SecurityIssue.PmfDisabledOnProtectedNetwork(AuthType.WPA2_PSK),
+                SecurityIssue.WeakGroupMgmtCipher,
+                SecurityIssue.OpenNetworkWithoutOwe,
+                SecurityIssue.OweTransitionWithOpenSideVisible("Test"),
+                SecurityIssue.SuiteBMissingForHighSecurityClaim,
+                SecurityIssue.TransitionalMode(AuthType.WPA2_PSK, AuthType.WPA3_SAE),
+                SecurityIssue.WpsPinEnabled,
+                SecurityIssue.WpsUnknownOrRiskyMode,
+                SecurityIssue.MissingRoamingOptimizations,
+                SecurityIssue.InconsistentSecurityAcrossAps("Test", 2),
+                SecurityIssue.DeprecatedAuthType(AuthType.WPA_PSK),
+            )
 
         issues.forEach { issue ->
             assertTrue(issue.shortDescription.isNotBlank(), "Short description blank for ${issue::class.simpleName}")
@@ -273,13 +275,14 @@ class SecurityIssueTest {
     @Test
     fun `All issue types have appropriate severity`() {
         // All severities should be within enum range
-        val issues = listOf(
-            SecurityIssue.WepInUse,
-            SecurityIssue.TkipInUse,
-            SecurityIssue.LegacyCipher(CipherSuite.WEP_40),
-            SecurityIssue.PmfDisabledOnProtectedNetwork(AuthType.WPA3_SAE),
-            SecurityIssue.TransitionalMode(AuthType.WPA2_PSK, AuthType.WPA3_SAE)
-        )
+        val issues =
+            listOf(
+                SecurityIssue.WepInUse,
+                SecurityIssue.TkipInUse,
+                SecurityIssue.LegacyCipher(CipherSuite.WEP_40),
+                SecurityIssue.PmfDisabledOnProtectedNetwork(AuthType.WPA3_SAE),
+                SecurityIssue.TransitionalMode(AuthType.WPA2_PSK, AuthType.WPA3_SAE),
+            )
 
         issues.forEach { issue ->
             assertNotNull(issue.severity, "Severity null for ${issue::class.simpleName}")

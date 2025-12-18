@@ -29,7 +29,7 @@ data class CoverageGoals(
     val coverageArea: Double? = null,
     val minOverlapPercent: Int = 10,
     val maxOverlapPercent: Int = 40,
-    val prioritizeRoaming: Boolean = false
+    val prioritizeRoaming: Boolean = false,
 ) {
     init {
         require(minRssi in -100..-40) {
@@ -89,38 +89,41 @@ data class CoverageGoals(
      * Coverage quality tier based on RSSI targets
      */
     val qualityTier: CoverageQualityTier
-        get() = when {
-            targetRssi >= -50 -> CoverageQualityTier.PREMIUM
-            targetRssi >= -60 -> CoverageQualityTier.STANDARD
-            targetRssi >= -70 -> CoverageQualityTier.BASIC
-            else -> CoverageQualityTier.MINIMAL
-        }
+        get() =
+            when {
+                targetRssi >= -50 -> CoverageQualityTier.PREMIUM
+                targetRssi >= -60 -> CoverageQualityTier.STANDARD
+                targetRssi >= -70 -> CoverageQualityTier.BASIC
+                else -> CoverageQualityTier.MINIMAL
+            }
 
     /**
      * Interference tolerance level
      */
     val interferenceTolerance: InterferenceTolerance
-        get() = when {
-            maxInterference <= 0.2 -> InterferenceTolerance.STRICT
-            maxInterference <= 0.4 -> InterferenceTolerance.MODERATE
-            else -> InterferenceTolerance.PERMISSIVE
-        }
+        get() =
+            when {
+                maxInterference <= 0.2 -> InterferenceTolerance.STRICT
+                maxInterference <= 0.4 -> InterferenceTolerance.MODERATE
+                else -> InterferenceTolerance.PERMISSIVE
+            }
 
     /**
      * Get human-readable summary of coverage goals
      */
     val summary: String
-        get() = buildString {
-            append("RSSI: ${minRssi}/${targetRssi} dBm, ")
-            append("Interference: <${(maxInterference * 100).toInt()}%, ")
-            if (coverageArea != null) {
-                append("Area: ${coverageArea.toInt()} m², ")
+        get() =
+            buildString {
+                append("RSSI: $minRssi/$targetRssi dBm, ")
+                append("Interference: <${(maxInterference * 100).toInt()}%, ")
+                if (coverageArea != null) {
+                    append("Area: ${coverageArea.toInt()} m², ")
+                }
+                append("Overlap: $minOverlapPercent-$maxOverlapPercent%")
+                if (prioritizeRoaming) {
+                    append(" (roaming priority)")
+                }
             }
-            append("Overlap: $minOverlapPercent-$maxOverlapPercent%")
-            if (prioritizeRoaming) {
-                append(" (roaming priority)")
-            }
-        }
 
     companion object {
         /**
@@ -129,17 +132,16 @@ data class CoverageGoals(
          * - Moderate interference tolerance
          * - Roaming-friendly overlap
          */
-        fun residential(): CoverageGoals {
-            return CoverageGoals(
+        fun residential(): CoverageGoals =
+            CoverageGoals(
                 minRssi = -70,
                 targetRssi = -60,
                 maxInterference = 0.3,
                 coverageArea = null,
                 minOverlapPercent = 15,
                 maxOverlapPercent = 35,
-                prioritizeRoaming = true
+                prioritizeRoaming = true,
             )
-        }
 
         /**
          * Coverage goals for enterprise deployments
@@ -147,17 +149,16 @@ data class CoverageGoals(
          * - Low interference tolerance
          * - Precise overlap control for capacity
          */
-        fun enterprise(): CoverageGoals {
-            return CoverageGoals(
+        fun enterprise(): CoverageGoals =
+            CoverageGoals(
                 minRssi = -67,
                 targetRssi = -50,
                 maxInterference = 0.2,
                 coverageArea = null,
                 minOverlapPercent = 10,
                 maxOverlapPercent = 25,
-                prioritizeRoaming = false
+                prioritizeRoaming = false,
             )
-        }
 
         /**
          * Coverage goals for high-density deployments
@@ -165,17 +166,16 @@ data class CoverageGoals(
          * - Very low interference tolerance
          * - Minimal overlap to maximize capacity
          */
-        fun highDensity(): CoverageGoals {
-            return CoverageGoals(
+        fun highDensity(): CoverageGoals =
+            CoverageGoals(
                 minRssi = -65,
                 targetRssi = -50,
                 maxInterference = 0.15,
                 coverageArea = null,
                 minOverlapPercent = 5,
                 maxOverlapPercent = 20,
-                prioritizeRoaming = false
+                prioritizeRoaming = false,
             )
-        }
 
         /**
          * Coverage goals for outdoor/long-range deployments
@@ -183,24 +183,26 @@ data class CoverageGoals(
          * - Higher interference tolerance
          * - Larger overlap for mobility
          */
-        fun outdoor(): CoverageGoals {
-            return CoverageGoals(
+        fun outdoor(): CoverageGoals =
+            CoverageGoals(
                 minRssi = -75,
                 targetRssi = -65,
                 maxInterference = 0.5,
                 coverageArea = null,
                 minOverlapPercent = 20,
                 maxOverlapPercent = 50,
-                prioritizeRoaming = true
+                prioritizeRoaming = true,
             )
-        }
     }
 }
 
 /**
  * Coverage quality tiers based on signal strength targets
  */
-enum class CoverageQualityTier(val displayName: String, val description: String) {
+enum class CoverageQualityTier(
+    val displayName: String,
+    val description: String,
+) {
     /**
      * Premium coverage (-50 dBm or better)
      * - Excellent performance
@@ -209,7 +211,7 @@ enum class CoverageQualityTier(val displayName: String, val description: String)
      */
     PREMIUM(
         "Premium",
-        "Excellent signal strength for maximum performance"
+        "Excellent signal strength for maximum performance",
     ),
 
     /**
@@ -220,7 +222,7 @@ enum class CoverageQualityTier(val displayName: String, val description: String)
      */
     STANDARD(
         "Standard",
-        "Good signal strength for reliable performance"
+        "Good signal strength for reliable performance",
     ),
 
     /**
@@ -231,7 +233,7 @@ enum class CoverageQualityTier(val displayName: String, val description: String)
      */
     BASIC(
         "Basic",
-        "Acceptable signal strength for basic connectivity"
+        "Acceptable signal strength for basic connectivity",
     ),
 
     /**
@@ -242,14 +244,17 @@ enum class CoverageQualityTier(val displayName: String, val description: String)
      */
     MINIMAL(
         "Minimal",
-        "Weak signal strength, poor performance expected"
-    )
+        "Weak signal strength, poor performance expected",
+    ),
 }
 
 /**
  * Interference tolerance levels
  */
-enum class InterferenceTolerance(val displayName: String, val description: String) {
+enum class InterferenceTolerance(
+    val displayName: String,
+    val description: String,
+) {
     /**
      * Strict interference control (< 20%)
      * - Minimize co-channel interference
@@ -258,7 +263,7 @@ enum class InterferenceTolerance(val displayName: String, val description: Strin
      */
     STRICT(
         "Strict",
-        "Minimal interference tolerance for maximum capacity"
+        "Minimal interference tolerance for maximum capacity",
     ),
 
     /**
@@ -269,7 +274,7 @@ enum class InterferenceTolerance(val displayName: String, val description: Strin
      */
     MODERATE(
         "Moderate",
-        "Moderate interference tolerance for balanced performance"
+        "Moderate interference tolerance for balanced performance",
     ),
 
     /**
@@ -280,6 +285,6 @@ enum class InterferenceTolerance(val displayName: String, val description: Strin
      */
     PERMISSIVE(
         "Permissive",
-        "Higher interference tolerance prioritizing coverage"
-    )
+        "Higher interference tolerance prioritizing coverage",
+    ),
 }

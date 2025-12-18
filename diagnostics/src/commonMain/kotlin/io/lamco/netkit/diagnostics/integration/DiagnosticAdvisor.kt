@@ -88,14 +88,20 @@ class DiagnosticAdvisor {
         configuration: MutableList<Recommendation>,
     ) {
         if (diagnostics.worstPacketLoss >= 10.0) {
+            val action =
+                "Check WiFi signal strength and move closer to access point. " +
+                    "Verify no physical obstructions or interference sources nearby."
+            val technicalDetails =
+                "Packet loss above 10% severely impacts all network activities, " +
+                    "especially real-time applications like VoIP and gaming."
             critical.add(
                 Recommendation(
                     category = RecommendationCategory.CRITICAL,
                     issue = "High packet loss (${diagnostics.worstPacketLoss}%)",
-                    action = "Check WiFi signal strength and move closer to access point. Verify no physical obstructions or interference sources nearby.",
+                    action = action,
                     impact = RecommendationImpact.HIGH,
                     effort = RecommendationEffort.LOW,
-                    technicalDetails = "Packet loss above 10% severely impacts all network activities, especially real-time applications like VoIP and gaming.",
+                    technicalDetails = technicalDetails,
                 ),
             )
         } else if (diagnostics.worstPacketLoss >= 5.0) {
@@ -113,14 +119,20 @@ class DiagnosticAdvisor {
         val latency = diagnostics.bestLatency
         if (latency != null) {
             if (latency.inWholeMilliseconds >= 100) {
+                val action =
+                    "Check for network congestion. Consider QoS settings to prioritize traffic. " +
+                        "Verify ISP connection speed."
+                val technicalDetails =
+                    "Latency above 100ms impacts interactive applications. For gaming, aim for <50ms. " +
+                        "For VoIP, aim for <150ms."
                 performance.add(
                     Recommendation(
                         category = RecommendationCategory.PERFORMANCE,
                         issue = "High latency (${latency.inWholeMilliseconds}ms)",
-                        action = "Check for network congestion. Consider QoS settings to prioritize traffic. Verify ISP connection speed.",
+                        action = action,
                         impact = RecommendationImpact.MEDIUM,
                         effort = RecommendationEffort.MEDIUM,
-                        technicalDetails = "Latency above 100ms impacts interactive applications. For gaming, aim for <50ms. For VoIP, aim for <150ms.",
+                        technicalDetails = technicalDetails,
                     ),
                 )
             }
@@ -137,6 +149,9 @@ class DiagnosticAdvisor {
         configuration: MutableList<Recommendation>,
     ) {
         if (!diagnostics.hasHealthyGateway && diagnostics.tracerouteResults.isNotEmpty()) {
+            val technicalDetails =
+                "First hop (gateway/router) should respond with <10ms latency. " +
+                    "High gateway latency affects all internet traffic."
             critical.add(
                 Recommendation(
                     category = RecommendationCategory.CRITICAL,
@@ -144,7 +159,7 @@ class DiagnosticAdvisor {
                     action = "Restart your router. If problem persists, check router settings or contact ISP.",
                     impact = RecommendationImpact.HIGH,
                     effort = RecommendationEffort.LOW,
-                    technicalDetails = "First hop (gateway/router) should respond with <10ms latency. High gateway latency affects all internet traffic.",
+                    technicalDetails = technicalDetails,
                 ),
             )
         }
@@ -177,14 +192,19 @@ class DiagnosticAdvisor {
         val upload = diagnostics.bestUploadSpeed
 
         if (download != null && download < 10.0) {
+            val action =
+                "Check WiFi signal strength. Verify ISP service tier. Test with ethernet to rule out WiFi issues. " +
+                    "Restart router and modem."
+            val technicalDetails =
+                "Minimum 25 Mbps recommended for HD streaming. 50+ Mbps for 4K and multiple devices."
             critical.add(
                 Recommendation(
                     category = RecommendationCategory.CRITICAL,
                     issue = "Very low download speed (${"%.1f".format(download)} Mbps)",
-                    action = "Check WiFi signal strength. Verify ISP service tier. Test with ethernet to rule out WiFi issues. Restart router and modem.",
+                    action = action,
                     impact = RecommendationImpact.HIGH,
                     effort = RecommendationEffort.LOW,
-                    technicalDetails = "Minimum 25 Mbps recommended for HD streaming. 50+ Mbps for 4K and multiple devices.",
+                    technicalDetails = technicalDetails,
                 ),
             )
         } else if (download != null && download < 25.0) {
@@ -200,14 +220,19 @@ class DiagnosticAdvisor {
         }
 
         if (upload != null && upload < 5.0) {
+            val action =
+                "Upload speed impacts video calls and file sharing. Consider ISP plan with higher upload speeds."
+            val technicalDetails =
+                "Minimum 3 Mbps upload for HD video calls. 10+ Mbps recommended for multiple simultaneous " +
+                    "video calls."
             performance.add(
                 Recommendation(
                     category = RecommendationCategory.PERFORMANCE,
                     issue = "Low upload speed (${"%.1f".format(upload)} Mbps)",
-                    action = "Upload speed impacts video calls and file sharing. Consider ISP plan with higher upload speeds.",
+                    action = action,
                     impact = RecommendationImpact.MEDIUM,
                     effort = RecommendationEffort.MEDIUM,
-                    technicalDetails = "Minimum 3 Mbps upload for HD video calls. 10+ Mbps recommended for multiple simultaneous video calls.",
+                    technicalDetails = technicalDetails,
                 ),
             )
         }
@@ -240,14 +265,19 @@ class DiagnosticAdvisor {
         // Slow DNS
         val dnsTime = diagnostics.avgDnsResolutionTime
         if (dnsTime != null && dnsTime.inWholeMilliseconds >= 100) {
+            val action =
+                "Switch to faster DNS servers. Google DNS (8.8.8.8) or Cloudflare DNS (1.1.1.1) " +
+                    "typically offer <20ms resolution."
+            val technicalDetails =
+                "DNS resolution happens before every website load. Faster DNS improves browsing responsiveness."
             performance.add(
                 Recommendation(
                     category = RecommendationCategory.PERFORMANCE,
                     issue = "Slow DNS resolution (${dnsTime.inWholeMilliseconds}ms average)",
-                    action = "Switch to faster DNS servers. Google DNS (8.8.8.8) or Cloudflare DNS (1.1.1.1) typically offer <20ms resolution.",
+                    action = action,
                     impact = RecommendationImpact.MEDIUM,
                     effort = RecommendationEffort.LOW,
-                    technicalDetails = "DNS resolution happens before every website load. Faster DNS improves browsing responsiveness.",
+                    technicalDetails = technicalDetails,
                 ),
             )
         }

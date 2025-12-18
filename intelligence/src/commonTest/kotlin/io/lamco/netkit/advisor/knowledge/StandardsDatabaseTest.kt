@@ -7,7 +7,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
 
 class StandardsDatabaseTest {
-
     @Test
     fun `create standards database`() {
         val standard = createTestStandard()
@@ -89,12 +88,11 @@ class StandardsDatabaseTest {
         assertEquals("Security Standards", StandardCategory.SECURITY.displayName)
     }
 
-    private fun createTestStandard(): StandardsReference {
-        return StandardsReference(
+    private fun createTestStandard(): StandardsReference =
+        StandardsReference(
             id = "TEST-001",
             name = "Test Standard",
             description = "Test description",
-            category = StandardCategory.IEEE_WIFI
+            category = StandardCategory.IEEE_WIFI,
         )
-    }
 }
