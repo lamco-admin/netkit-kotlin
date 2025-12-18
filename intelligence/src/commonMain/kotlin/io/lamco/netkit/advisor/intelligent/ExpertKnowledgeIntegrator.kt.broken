@@ -1,0 +1,538 @@
+package com.lamco.wifiintelligence.advisor.intelligent
+
+import com.lamco.wifiintelligence.advisor.knowledge.*
+import com.lamco.wifiintelligence.advisor.model.*
+
+/**
+ * Expert knowledge integration layer
+ *
+ * Integrates and queries all knowledge sources:
+ * - Best practices database
+ * - Vendor-specific knowledge
+ * - Standards and compliance database
+ * - Network type profiles
+ * - Configuration templates
+ *
+ * Provides unified interface for knowledge queries using rule-based inference.
+ *
+ * **Approach**: Rule-based knowledge integration (NOT machine learning)
+ *
+ * Example Usage:
+ * ```kotlin
+ * val integrator = ExpertKnowledgeIntegrator()
+ *
+ * // Query best practices for specific scenario
+ * val practices = integrator.queryBestPractices(
+ *     networkType = NetworkType.ENTERPRISE,
+ *     category = RuleCategory.SECURITY
+ * )
+ *
+ * // Get comprehensive guidance
+ * val guidance = integrator.getComprehensiveGuidance(
+ *     topic = "WiFi 6 deployment",
+ *     context = NetworkContext(...)
+ * )
+ *
+ * // Validate against standards
+ * val compliance = integrator.checkCompliance(
+ *     context = NetworkContext(...),
+ *     standards = listOf("PCI-DSS", "HIPAA")
+ * )
+ * ```
+ */
+class ExpertKnowledgeIntegrator {
+
+    private val knowledgeBase = BestPracticesKnowledgeBase.create()
+    private val vendorKnowledge = VendorSpecificKnowledgeBase.create()
+    private val standardsDb = StandardsDatabase.create()
+    private val networkProfiles = NetworkTypeProfiles.create()
+    private val templateLibrary = ConfigurationTemplateLibrary.create()
+
+    /**
+     * Query best practices by criteria
+     *
+     * @param networkType Network type filter
+     * @param category Rule category filter
+     * @param severity Minimum severity level
+     * @return Matching best practice rules
+     */
+    fun queryBestPractices(
+        networkType: NetworkType? = null,
+        category: RuleCategory? = null,
+        severity: RuleSeverity? = null
+    ): List<BestPracticeRule> {
+        // Use the appropriate method based on filters
+        return when {
+            category != null -> knowledgeBase.getRulesByCategory(category, networkType)
+            severity == RuleSeverity.MUST && networkType != null -> knowledgeBase.getCriticalRules(networkType)
+            severity == RuleSeverity.SHOULD && networkType != null -> knowledgeBase.getRecommendedRules(networkType)
+            networkType != null -> knowledgeBase.getBestPractices(networkType)
+            else -> emptyList()
+        }
+    }
+
+    /**
+     * Get vendor recommendations
+     *
+     * @param vendor Vendor name
+     * @param topic Specific topic (optional)
+     * @return Vendor-specific recommendations
+     */
+    fun getVendorRecommendations(
+        vendor: String,
+        topic: String? = null
+    ): VendorRecommendationResult {
+        val vendorEnum = RouterVendor.values().find { it.displayName.equals(vendor, ignoreCase = true) } ?: RouterVendor.GENERIC
+        val knowledge = vendorKnowledge.getVendorKnowledge(vendorEnum) ?: return VendorRecommendationResult(
+            vendor = vendor,
+            bestPractices = emptyList(),
+            knownIssues = emptyList(),
+            features = emptyList()
+        )
+
+        val filteredPractices = if (topic != null) {
+            knowledge.bestPractices.filter { it.contains(topic, ignoreCase = true) }
+        } else {
+            knowledge.bestPractices
+        }
+
+        val relatedIssues = if (topic != null) {
+            knowledge.knownIssues.filter { it.description.contains(topic, ignoreCase = true) }
+        } else {
+            knowledge.knownIssues
+        }
+
+        return VendorRecommendationResult(
+            vendor = vendor,
+            bestPractices = filteredPractices,
+            knownIssues = relatedIssues,
+            features = knowledge.features
+        )
+    }
+
+    /**
+     * Get comprehensive guidance for topic
+     *
+     * Searches all knowledge sources and synthesizes comprehensive answer.
+     *
+     * @param topic Topic or question
+     * @param context Network context
+     * @return Comprehensive guidance
+     */
+    fun getComprehensiveGuidance(
+        topic: String,
+        context: NetworkContext
+    ): ComprehensiveGuidance {
+        val relevantRules = knowledgeBase.getBestPractices(context.networkType)
+            .filter { it.title.contains(topic, ignoreCase = true) || it.description.contains(topic, ignoreCase = true) }
+        val relevantStandards = standardsDb.searchStandards(topic)
+        val profile = networkProfiles.getProfile(context.networkType)
+        val profileRecommendations = listOf("Optimize for ${context.networkType.displayName} deployment")
+
+        // Synthesize guidance from all sources
+        val guidance = "Best practices for $topic in ${context.networkType.displayName} networks: " +
+                relevantRules.take(3).joinToString("; ") { it.title }
+
+        return ComprehensiveGuidance(
+            topic = topic,
+            summary = guidance,
+            bestPractices = relevantRules.map { it.title },
+            standards = relevantStandards.map { it.name },
+            recommendations = profileRecommendations,
+            references = relevantStandards.mapNotNull { it.url }
+        )
+    }
+
+    /**
+     * Check compliance against standards
+     *
+     * @param context Network context
+     * @param standards List of standard names to check
+     * @return Compliance check result
+     */
+    fun checkCompliance(
+        context: NetworkContext,
+        standards: List<String>
+    ): ComplianceCheckResult {
+        val validation = knowledgeBase.validate(context)
+        val violations = validation.violations.map { it.summary }
+
+        // Check specific standards
+        val standardResults = standards.map { standardName ->
+            val standard = standardsDb.getStandard(standardName)
+            val applicable = standard != null
+
+            val issues = if (applicable) {
+                // Check for violations related to this standard
+                violations.filter { it.contains(standardName, ignoreCase = true) }
+            } else {
+                emptyList()
+            }
+
+            StandardComplianceResult(
+                standardName = standardName,
+                compliant = issues.isEmpty() && applicable,
+                issues = issues,
+                recommendations = if (issues.isNotEmpty()) {
+                    listOf("Review and fix ${issues.size} compliance issue(s)")
+                } else {
+                    listOf("No issues found")
+                }
+            )
+        }
+
+        val overallCompliant = standardResults.all { it.compliant }
+
+        return ComplianceCheckResult(
+            overallCompliant = overallCompliant,
+            complianceScore = validation.complianceScore,
+            standardResults = standardResults,
+            summary = if (overallCompliant) {
+                "Compliant with all ${standards.size} standard(s)"
+            } else {
+                "Non-compliant: ${standardResults.count { !it.compliant }} standard(s) violated"
+            }
+        )
+    }
+
+    /**
+     * Get technology comparison
+     *
+     * Compare different technology options (e.g., WiFi 5 vs WiFi 6).
+     *
+     * @param options List of technologies to compare
+     * @return Comparison result
+     */
+    fun compareTechnologies(
+        options: List<String>
+    ): TechnologyComparisonResult {
+        val comparisons = options.map { option ->
+            val standards = findRelevantStandards(option)
+            val pros = extractPros(option)
+            val cons = extractCons(option)
+            val useCase = determineIdealUseCase(option)
+
+            TechnologyOption(
+                name = option,
+                pros = pros,
+                cons = cons,
+                idealUseCase = useCase,
+                standards = standards.map { it.name }
+            )
+        }
+
+        val recommendation = determineRecommendation(comparisons)
+
+        return TechnologyComparisonResult(
+            options = comparisons,
+            recommendation = recommendation
+        )
+    }
+
+    /**
+     * Query knowledge by topic
+     *
+     * Free-form knowledge query across all sources.
+     *
+     * @param query Query string
+     * @return Query results
+     */
+    fun queryKnowledge(query: String): KnowledgeQueryResult {
+        val matchingRules = findRelevantRules(query)
+        val matchingStandards = findRelevantStandards(query)
+        val matchingVendors = findRelevantVendors(query)
+
+        val answer = synthesizeAnswer(query, matchingRules, matchingStandards)
+
+        return KnowledgeQueryResult(
+            query = query,
+            answer = answer,
+            relevantRules = matchingRules.take(5),
+            relevantStandards = matchingStandards.take(3),
+            relevantVendors = matchingVendors,
+            confidence = calculateConfidence(matchingRules.size, matchingStandards.size)
+        )
+    }
+
+    // ========================================
+    // Private Helper Methods
+    // ========================================
+
+    /**
+     * Find rules relevant to topic
+     */
+    private fun findRelevantRules(topic: String): List<BestPracticeRule> {
+        val allRules = knowledgeBase.getAllRules()
+
+        return allRules.filter { rule ->
+            rule.title.contains(topic, ignoreCase = true) ||
+            rule.description.contains(topic, ignoreCase = true) ||
+            rule.rationale.contains(topic, ignoreCase = true)
+        }
+    }
+
+    /**
+     * Find standards relevant to topic
+     */
+    private fun findRelevantStandards(topic: String): List<Standard> {
+        val allStandards = standardsDb.getAllStandards()
+
+        return allStandards.filter { standard ->
+            standard.name.contains(topic, ignoreCase = true) ||
+            standard.category.name.contains(topic, ignoreCase = true) ||
+            standard.description.contains(topic, ignoreCase = true)
+        }
+    }
+
+    /**
+     * Find vendors relevant to topic
+     */
+    private fun findRelevantVendors(topic: String): List<String> {
+        return listOf("Cisco", "Aruba", "Ubiquiti", "Ruckus", "Netgear", "ASUS")
+            .filter { vendor ->
+                val knowledge = vendorKnowledge.getKnowledge(vendor)
+                knowledge.bestPractices.any { it.contains(topic, ignoreCase = true) } ||
+                knowledge.features.any { it.contains(topic, ignoreCase = true) }
+            }
+    }
+
+    /**
+     * Synthesize guidance from multiple sources
+     */
+    private fun synthesizeGuidance(
+        topic: String,
+        rules: List<BestPracticeRule>,
+        standards: List<Standard>,
+        profileRecs: List<String>
+    ): String {
+        if (rules.isEmpty() && standards.isEmpty()) {
+            return "No specific guidance found for '$topic'. Consider reviewing general best practices."
+        }
+
+        return buildString {
+            if (rules.isNotEmpty()) {
+                appendLine("Best Practices:")
+                rules.take(3).forEach { rule ->
+                    appendLine("- ${rule.title}: ${rule.description}")
+                }
+            }
+
+            if (standards.isNotEmpty()) {
+                appendLine()
+                appendLine("Related Standards:")
+                standards.take(2).forEach { standard ->
+                    appendLine("- ${standard.name}: ${standard.description}")
+                }
+            }
+
+            val relatedRecs = profileRecs.filter { it.contains(topic, ignoreCase = true) }
+            if (relatedRecs.isNotEmpty()) {
+                appendLine()
+                appendLine("Recommendations:")
+                relatedRecs.take(3).forEach { rec ->
+                    appendLine("- $rec")
+                }
+            }
+        }
+    }
+
+    /**
+     * Synthesize answer from knowledge sources
+     */
+    private fun synthesizeAnswer(
+        query: String,
+        rules: List<BestPracticeRule>,
+        standards: List<Standard>
+    ): String {
+        if (rules.isEmpty() && standards.isEmpty()) {
+            return "No direct answer found. Consider rephrasing your query."
+        }
+
+        return buildString {
+            if (rules.isNotEmpty()) {
+                val topRule = rules.first()
+                appendLine(topRule.description)
+                appendLine()
+                appendLine("Rationale: ${topRule.rationale}")
+            }
+
+            if (standards.isNotEmpty()) {
+                appendLine()
+                appendLine("Relevant Standards: ${standards.joinToString(", ") { it.name }}")
+            }
+        }
+    }
+
+    /**
+     * Extract pros for technology
+     */
+    private fun extractPros(technology: String): List<String> {
+        return when {
+            technology.contains("WiFi 6", ignoreCase = true) -> listOf(
+                "Higher throughput (up to 9.6 Gbps)",
+                "Better performance in dense environments",
+                "Improved power efficiency for battery devices",
+                "OFDMA for better multi-client performance"
+            )
+            technology.contains("WiFi 5", ignoreCase = true) -> listOf(
+                "Mature and widely supported",
+                "Cost-effective",
+                "Good performance for most use cases",
+                "Broad device compatibility"
+            )
+            technology.contains("mesh", ignoreCase = true) -> listOf(
+                "Easy to expand coverage",
+                "Self-healing network",
+                "Simplified management",
+                "Seamless roaming"
+            )
+            else -> listOf("Reliable technology")
+        }
+    }
+
+    /**
+     * Extract cons for technology
+     */
+    private fun extractCons(technology: String): List<String> {
+        return when {
+            technology.contains("WiFi 6", ignoreCase = true) -> listOf(
+                "Higher cost",
+                "Requires compatible client devices for full benefits",
+                "More complex configuration"
+            )
+            technology.contains("WiFi 5", ignoreCase = true) -> listOf(
+                "Lower maximum throughput",
+                "Less efficient in high-density scenarios",
+                "No OFDMA support"
+            )
+            technology.contains("mesh", ignoreCase = true) -> listOf(
+                "Wireless backhaul can reduce throughput",
+                "More expensive than single router",
+                "Can be overkill for small spaces"
+            )
+            else -> listOf("May have limitations")
+        }
+    }
+
+    /**
+     * Determine ideal use case for technology
+     */
+    private fun determineIdealUseCase(technology: String): String {
+        return when {
+            technology.contains("WiFi 6", ignoreCase = true) ->
+                "High-density environments, modern devices, performance-critical applications"
+            technology.contains("WiFi 5", ignoreCase = true) ->
+                "General purpose, cost-conscious deployments, mixed device environment"
+            technology.contains("mesh", ignoreCase = true) ->
+                "Large homes, multi-floor buildings, areas with difficult wiring"
+            technology.contains("enterprise", ignoreCase = true) ->
+                "Business environments, centralized management, high reliability requirements"
+            else -> "General purpose"
+        }
+    }
+
+    /**
+     * Determine recommendation from comparison
+     */
+    private fun determineRecommendation(options: List<TechnologyOption>): String {
+        if (options.isEmpty()) return "Insufficient data for recommendation"
+
+        return "For most modern deployments, ${options.firstOrNull()?.name ?: "the first option"} " +
+                "offers the best balance of performance and features. " +
+                "Consider your specific requirements and budget when making the final decision."
+    }
+
+    /**
+     * Calculate confidence score for query result
+     */
+    private fun calculateConfidence(ruleCount: Int, standardCount: Int): Double {
+        val totalSources = ruleCount + standardCount
+        return when {
+            totalSources >= 5 -> 0.9
+            totalSources >= 3 -> 0.7
+            totalSources >= 1 -> 0.5
+            else -> 0.2
+        }
+    }
+}
+
+/**
+ * Vendor recommendation result
+ */
+data class VendorRecommendationResult(
+    val vendor: String,
+    val bestPractices: List<String>,
+    val knownIssues: List<VendorIssue>,
+    val features: List<VendorFeature>
+)
+
+/**
+ * Comprehensive guidance result
+ */
+data class ComprehensiveGuidance(
+    val topic: String,
+    val summary: String,
+    val bestPractices: List<String>,
+    val standards: List<String>,
+    val recommendations: List<String>,
+    val references: List<String>
+)
+
+/**
+ * Compliance check result
+ */
+data class ComplianceCheckResult(
+    val overallCompliant: Boolean,
+    val complianceScore: Int,
+    val standardResults: List<StandardComplianceResult>,
+    val summary: String
+)
+
+/**
+ * Individual standard compliance result
+ */
+data class StandardComplianceResult(
+    val standardName: String,
+    val compliant: Boolean,
+    val issues: List<String>,
+    val recommendations: List<String>
+)
+
+/**
+ * Technology comparison result
+ */
+data class TechnologyComparisonResult(
+    val options: List<TechnologyOption>,
+    val recommendation: String
+)
+
+/**
+ * Technology option details
+ */
+data class TechnologyOption(
+    val name: String,
+    val pros: List<String>,
+    val cons: List<String>,
+    val idealUseCase: String,
+    val standards: List<String>
+)
+
+/**
+ * Knowledge query result
+ */
+data class KnowledgeQueryResult(
+    val query: String,
+    val answer: String,
+    val relevantRules: List<BestPracticeRule>,
+    val relevantStandards: List<Standard>,
+    val relevantVendors: List<String>,
+    val confidence: Double
+) {
+    init {
+        require(confidence in 0.0..1.0) { "Confidence must be 0-1" }
+    }
+
+    val summary: String
+        get() = "Query: '$query' | Confidence: ${(confidence * 100).toInt()}% | " +
+                "${relevantRules.size} rule(s), ${relevantStandards.size} standard(s)"
+}
