@@ -21,7 +21,7 @@ subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     configure<org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension> {
-        jvmToolchain(25)
+        jvmToolchain(21)
 
         jvm {
             testRuns["test"].executionTask.configure {
